@@ -11,3 +11,26 @@
 TEST_ENV_SETTINGS = {
     'TY_GROUP_PATH_ROOT_DIR': r'E:\02data\03typhoon'
 }
+
+# 数据库的配置，配置借鉴自 django 的 settings 的结构
+DATABASES = {
+    'default': {
+        'ENGINE': 'mysqldb',  # 数据库引擎
+        'NAME': 'searchrescue',  # 数据库名
+        # by casablanca
+        # mac
+        'USER': 'root',  # 账号
+        # 7530,mac
+        # 'PASSWORD': 'admin123',
+        # 5820,p52s,p500,razer
+        'PASSWORD': '123456',
+        # by cwb
+        # 'USER': 'root',  # 账号
+        # 'PASSWORD': '123456',
+        'HOST': '127.0.0.1',  # HOST
+        'POST': 3306,  # 端口
+        'OPTIONS': {
+            "init_command": "SET foreign_key_checks = 0;",
+        },
+    }
+}
