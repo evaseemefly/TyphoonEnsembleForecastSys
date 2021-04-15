@@ -1,8 +1,9 @@
 from django.db import models
+from django.contrib.gis.geos import GEOSGeometry
 from django.utils.timezone import now
 
 # ----
-from util.const import DEFAULT_FK, UNLESS_INDEX
+from util.const import DEFAULT_FK, UNLESS_INDEX, DEFAULT_CODE
 
 
 # Create your models here.
@@ -25,8 +26,8 @@ class IModel(models.Model):
         model 抽象父类，主要包含 创建及修改时间
     """
 
-    gmt_create_time = models.DateTimeField(default=now)
-    gmt_modify_time = models.DateTimeField(default=now)
+    gmt_created = models.DateTimeField(default=now)
+    gmt_modified = models.DateTimeField(default=now)
 
     class Meta:
         abstract = True
@@ -42,6 +43,8 @@ class TyphoonForecastRealDataModel(IIdModel, IDelModel, IModel):
     forecast_dt = models.DateTimeField(default=now)
     forecast_index = models.IntegerField(default=UNLESS_INDEX)
     # coords = Column(Geometry('POINT'))
+    lat = models.FloatField()
+    lon = models.FloatField()
     bp = models.FloatField()
     gale_radius = models.FloatField()
 
@@ -51,7 +54,7 @@ class TyphoonForecastRealDataModel(IIdModel, IDelModel, IModel):
 
 class TyphoonForecastDetailModel(IIdModel, IDelModel, IModel):
     code = models.CharField(max_length=200)
-    organ_code = models.CharField(max_length=200)
+    organ_code = models.IntegerField(default=UNLESS_INDEX)
     gmt_start = models.DateTimeField(default=now)
     gmt_end = models.DateTimeField(default=now)
     forecast_source = models.IntegerField(default=UNLESS_INDEX)
@@ -68,8 +71,8 @@ class TyphoonGroupPathModel(IIdModel, IDelModel, IModel):
     relative_path = models.CharField(max_length=500)
     area = models.IntegerField(default=UNLESS_INDEX)
     timestamp = models.CharField(max_length=100)
-    path_type = models.IntegerField(default=UNLESS_INDEX)
-    marking = models.CharField(max_length=10)
+    ty_path_type = models.CharField(max_length=3, default=DEFAULT_CODE)
+    ty_path_marking = models.IntegerField()
     bp = models.FloatField()
     is_bp_increase = models.BooleanField(default=False)
 

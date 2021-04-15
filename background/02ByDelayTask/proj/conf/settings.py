@@ -9,14 +9,15 @@
 
 # 测试环境配置
 TEST_ENV_SETTINGS = {
-    'TY_GROUP_PATH_ROOT_DIR': r'E:\02data\03typhoon'
+    # 'TY_GROUP_PATH_ROOT_DIR': r'E:\02data\03typhoon',  # win
+    'TY_GROUP_PATH_ROOT_DIR': r'/Users/liusihan/data/typhoon_data/TY2022_2020042710/'  # mac
 }
 
 # 数据库的配置，配置借鉴自 django 的 settings 的结构
 DATABASES = {
     'default': {
         'ENGINE': 'mysqldb',  # 数据库引擎
-        'NAME': 'searchrescue',  # 数据库名
+        'NAME': 'typhoon_forecast_db',  # 数据库名
         # by casablanca
         # mac
         'USER': 'root',  # 账号
