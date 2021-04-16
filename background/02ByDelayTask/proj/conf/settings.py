@@ -9,8 +9,8 @@
 
 # 测试环境配置
 TEST_ENV_SETTINGS = {
-    # 'TY_GROUP_PATH_ROOT_DIR': r'E:\02data\03typhoon',  # win
-    'TY_GROUP_PATH_ROOT_DIR': r'/Users/liusihan/data/typhoon_data/TY2022_2020042710/'  # mac
+    'TY_GROUP_PATH_ROOT_DIR': r'E:\02data\03typhoon',  # win
+    # 'TY_GROUP_PATH_ROOT_DIR': r'/Users/liusihan/data/typhoon_data/TY2022_2020042710/'  # mac
 }
 
 # 数据库的配置，配置借鉴自 django 的 settings 的结构
