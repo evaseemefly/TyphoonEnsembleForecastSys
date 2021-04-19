@@ -78,3 +78,17 @@ class TyphoonGroupPathModel(IIdModel, IDelModel, IModel):
 
     class Meta:
         db_table = 'typhoon_forecast_grouppath'
+
+
+class TyphoonComplexGroupRealDataModel(models.Model):
+    ty_id = models.IntegerField(default=DEFAULT_FK)
+    ty_code = models.CharField(max_length=200)
+    area = models.IntegerField(default=UNLESS_INDEX)
+    timestamp = models.CharField(max_length=100)
+    ty_path_type = models.CharField(max_length=3, default=DEFAULT_CODE)
+    ty_path_marking = models.IntegerField()
+    bp = models.FloatField()
+    is_bp_increase = models.BooleanField(default=False)
+    # list_realdata=models.ListField(TyphoonForecastRealDataModel)
+    class Meta:
+        abstract = True

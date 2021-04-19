@@ -16,8 +16,15 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 from django.conf.urls import url, include
+from rest_framework_jwt.views import obtain_jwt_token
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('api-auth/', include('rest_framework.urls')),
+    # 切换为 JWT 的验证token的方式
+    path('api-token-auth/', obtain_jwt_token),
+    # jwt的认证接口
+    path('login/', obtain_jwt_token),
+    url('^users/', include(('users.urls', "auth"), namespace="user")),
     url('^typhoon/', include(('typhoon.urls', "typhoon"), namespace="typhoon")),
 ]
