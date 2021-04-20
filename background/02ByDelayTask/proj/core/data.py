@@ -297,13 +297,14 @@ class GroupTyphoonPath(IBaseOpt):
         ty_detail = kwargs.get('ty_detail')
         # TY1822_2020042710_c0_p_05
         file_name: str = kwargs.get('file_name')
-        if df_temp is None:
-            # eg:
-            # /Users/liusihan/data/typhoon_data/TY2022_2020042710/TY1822_2020042710
-            # 实际 full_path :
-            # /Users/liusihan/data/typhoon_data/TY2022_2020042710/TY1822_2020052818/TY1822_2020052818_r6_p05
-            full_path = str(pathlib.Path(self.save_dir_path) / file_name)
-            df_temp = self.init_forecast_data(group_path_file=full_path)
+        # TODO:[-] 21-04-20 BUG: 此处会造成首次读取文件后 df 不会更新的bug
+        # if df_temp is None:
+        # eg:
+        # /Users/liusihan/data/typhoon_data/TY2022_2020042710/TY1822_2020042710
+        # 实际 full_path :
+        # /Users/liusihan/data/typhoon_data/TY2022_2020042710/TY1822_2020052818/TY1822_2020052818_r6_p05
+        full_path = str(pathlib.Path(self.save_dir_path) / file_name)
+        df_temp = self.init_forecast_data(group_path_file=full_path)
         list_ty_path_mid: List[GroupTyphoonPathMidModel] = []
         list_ty_path: List[TyphoonGroupPathModel] = []
         # 注意每个 集合预报路径 创建一个 ty_group_path model
