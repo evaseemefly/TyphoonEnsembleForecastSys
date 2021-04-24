@@ -8,7 +8,7 @@
 # @Software: PyCharm
 from typing import List
 import pathlib
-from core.data import GroupTyphoonPath, get_match_files, to_ty_group
+from core.data import GroupTyphoonPath, get_match_files, to_ty_group, to_station_realdata, get_gp
 from model.models import TyphoonForecastDetailModel
 from common.enum import ForecastOrganizationEnum, TyphoonForecastSourceEnum
 from conf.settings import TEST_ENV_SETTINGS
@@ -36,8 +36,33 @@ def case_group_ty_path():
     to_ty_group(list_match_files, ty_detail)
 
 
+def case_station():
+    """
+        批量写入 station 的 case
+    @return:
+    """
+    query_gp = get_gp(ty_code='2022', ts='2020042710', path_type='c', path_marking=20042710, bp=0, is_increase=True)
+    # 对应的 tyGroupPathModel ，主要用来获取 -> id
+    target_gp = None
+    if len(query_gp) > 0:
+        target_gp = query_gp[0]
+    pass
+
+
+def case_get_gp():
+    """
+        测试 get 指定 gp
+    @return:
+    """
+    query_gp = get_gp(ty_code='2022', ts='2020042710', path_type='c', path_marking=20042710, bp=0, is_increase=True)
+    print(query_gp)
+    pass
+
+
 def main():
-    case_group_ty_path()
+    # case_group_ty_path()
+    # 测试查询 gp
+    case_get_gp()
     pass
 
 

@@ -12,12 +12,17 @@ from abc import ABCMeta, abstractclassmethod, abstractmethod, ABC
 import pathlib
 import pandas as pd
 import numpy as np
-from datetime import datetime
+from datetime import datetime, timedelta
 import arrow
 from typing import List
+# sqlaclemy
+# from sqlalchemy import Query
+
 from model.mid_models import GroupTyphoonPathMidModel, TyphoonForecastDetailMidModel
-from model.models import TyphoonGroupPathModel, TyphoonForecastDetailModel, TyphoonForecastRealDataModel
+from model.models import TyphoonGroupPathModel, TyphoonForecastDetailModel, TyphoonForecastRealDataModel, \
+    StationForecastRealDataModel
 from common.const import UNLESS_CODE, UNLESS_RANGE
+from common.common_dict import DICT_STATION
 from conf.settings import TEST_ENV_SETTINGS
 from core.db import DbFactory
 
@@ -57,7 +62,7 @@ def to_ty_group(list_files: List[str], ty_detail: TyphoonForecastDetailModel, **
         # eg:  TY1822_2020042710_l5_p05
         # eg2: TY1822_2020042710_c0_p_10
         file_name: str = pathlib.Path(file_temp).name
-        name_split: List[str] = file_name.split('_')
+        name_split: List[str] = file_name.split('_')  # ['TY1822', '2020042710', 'c0', 'p', '10']
         ty_code_stamp: str = name_split[0]  # TY1822
         ts_str: str = parent_stamp_str if parent_stamp_str else name_split[1]  # 2020042710
         path_type_stamp: str = name_split[2]
@@ -75,6 +80,57 @@ def to_ty_group(list_files: List[str], ty_detail: TyphoonForecastDetailModel, **
             ty_group.to_store(ty_detail=ty_detail)
 
         pass
+
+
+def to_station_realdata(list_files: List[str], **kwargs):
+    for file_temp in list_files:
+        # eg: Surge_TY2022_2021010416_f0_p10.dat
+        # eg2: Surge_TY2022_2021010416_c0_p_10.dat
+        file_name: str = pathlib.Path(file_temp).name  # Surge_TY2022_2021010416_c0_p_10.dat
+        # 先去掉后缀
+        file_name = file_name.split('.')[0]  # Surge_TY2022_2021010416_c0_p_10
+        name_split: List[str] = file_name.split('_')  # ['Surge', 'TY2022', '2021010416', 'f0', 'p10']
+        ty_code_stamp: str = name_split[1]  # TY1822
+        ts_str: str = name_split[2]  # 2020042710
+        path_type_stamp: str = name_split[3]
+        # 注意此处需要加入判断，若切分后的 len > 4，说明最后是 p_xx 此种形式
+        bp_stamp: str = None
+        if len(name_split) > 5:
+            # ['Surge', 'TY2022', '2021010416', 'c0', 'p', '10']
+            bp_stamp: str = f'{name_split[3]}_{name_split[4]}'
+        else:
+            # ['Surge', 'TY2022', '2021010416', 'f0', 'p10']
+            bp_stamp: str = name_split[4]
+        if len(ty_code_stamp) > 2 and ty_code_stamp[:2].lower() == 'ty':
+            ty_code: str = ty_code_stamp[2:]  # 1822
+            # 创建 台风集合预报路径 类
+            ty_group = StationRealDataFile(ROOT_PATH, file_name, ts_str)
+            ty_group.read_forecast_data(file_name=file_name)
+            ty_group.to_store(ty_detail=ty_detail)
+
+
+def get_gp(is_many: bool = True, **kwargs) -> List[TyphoonGroupPathModel]:
+    """
+        + 21-04-24 根据传入的条件找到对应的 tyGroupPath 数组
+    @param kwargs:
+    @return:
+    """
+    ty_code: str = kwargs.get('ty_code')
+    ts: str = kwargs.get('ts')
+    path_type = kwargs.get('path_type')
+    path_marking = kwargs.get('path_marking')
+    bp = kwargs.get('bp')
+    is_increase = kwargs.get('is_increase')
+    session = DbFactory().Session
+    query_gp = session.query(TyphoonGroupPathModel).filter(
+        TyphoonGroupPathModel.ty_code == ty_code, TyphoonGroupPathModel.timestamp == ts,
+        TyphoonGroupPathModel.ty_path_type == path_type,
+        TyphoonGroupPathModel.ty_path_marking == path_marking, TyphoonGroupPathModel.bp == bp,
+        TyphoonGroupPathModel.is_bp_increase == is_increase)
+    # obj_group = session.query(TyphoonGroupPathModel).all()
+    # 此处加入判断，若是返回多个则执行 .all 若只获取一个执行 .first
+    res: List[TyphoonGroupPathModel] = query_gp.all()
+    return res
 
 
 class IBaseOpt(metaclass=ABCMeta):
@@ -102,16 +158,26 @@ class IBaseOpt(metaclass=ABCMeta):
 
 
 class ITyphoonPath(IBaseOpt):
+    dict_data = {
+        'DF': None,
+        'TY_PATH': None,  # TyphoonGroupPathModel
+        'LIST_TY_REALDATA': []  # TyphoonForecastRealDataModel list
+    }
+
     def __init__(self, root_path: str, file_name: str, timestmap_str: str):
-        def __init__(self, root_path: str, file_name: str, timestmap_str: str):
-            self.root_path = root_path
-            # self.ty_code = ty_code
-            self.timestmap = timestmap_str
-            self.file_name = file_name  # eg: TY1822_2020042710_l5_p05
-            self.list_forecast_data: List[GroupTyphoonPathMidModel] = []
-            # 台风集合预报路径的正则
-            self.re = '^[A-Z]+\d+_\d+_[a-z]{1}\d{1}_[a-z]{1}_?\d+'
-            self.session = DbFactory().Session
+        self.root_path = root_path
+        # self.ty_code = ty_code
+        self.timestmap = timestmap_str
+        self.file_name = file_name  # eg: TY1822_2020042710_l5_p05
+        self.list_forecast_data: List[GroupTyphoonPathMidModel] = []
+        # 台风集合预报路径的正则
+        self.re = '^[A-Z]+\d+_\d+_[a-z]{1}\d{1}_[a-z]{1}_?\d+'
+        self.session = DbFactory().Session
+
+    @property
+    @abstractmethod
+    def name_split(self) -> List[str]:
+        pass
 
     @property
     def relative_path(self) -> str:
@@ -535,12 +601,17 @@ class GroupTyphoonPath(IBaseOpt):
         return data
 
 
-class StationRealData(ITyphoonPath):
-    def __init__(self, root_path: str, file_name: str, timestmap_str: str):
-        super().__init__(root_path, file_name, timestmap_str)
+class StationRealDataFile(ITyphoonPath):
+    def __init__(self, root_path: str, file_name: str, timestmap_str: str, ty_code: str, gp_id: int,
+                 forecast_dt_start: datetime):
+        super(StationRealDataFile, self).__init__(root_path, file_name, timestmap_str)
+        # super().__init__(root_path, file_name, timestmap_str)
         self.list_forecast_data: List[GroupTyphoonPathMidModel] = []
         # 台风集合预报路径的正则
         self.re = '^Surge_[A-Z]+\d+_\d+_[a-z]{1}\d{1}_[a-z]{1}_?\d+'
+        self.ty_code = type_code
+        self.gp_id = gp_id
+        self.forecast_dt_start = forecast_dt_start
 
     # @property
     # def save_dir_path(self) -> str:
@@ -584,58 +655,31 @@ class StationRealData(ITyphoonPath):
         return list_split
 
     def read_forecast_data(self, **kwargs):
+        # TODO:[*] 21-04-23 此处存在一个如何获取 tyGroupPathModel 的问题
         df_temp: pd.DataFrame = self.dict_data.get("DF")
         ty_detail = kwargs.get('ty_detail')
-        # TY1822_2020042710_c0_p_05
         file_name: str = kwargs.get('file_name')
-        # TODO:[-] 21-04-20 BUG: 此处会造成首次读取文件后 df 不会更新的bug
-        # if df_temp is None:
-        # eg:
-        # /Users/liusihan/data/typhoon_data/TY2022_2020042710/TY1822_2020042710
-        # 实际 full_path :
-        # /Users/liusihan/data/typhoon_data/TY2022_2020042710/TY1822_2020052818/TY1822_2020052818_r6_p05
         full_path: str = str(pathlib.Path(self.save_dir_path) / file_name)
         df_temp: pd.DataFrame = self.init_forecast_data(group_path_file=full_path)
-        list_ty_path_mid: List[GroupTyphoonPathMidModel] = []
-        list_ty_path: List[TyphoonGroupPathModel] = []
-        # 注意每个 集合预报路径 创建一个 ty_group_path model
-        ty_path: TyphoonGroupPathModel = TyphoonGroupPathModel(ty_code=self.typhoon_code,
-                                                               file_name=self.file_name,
-                                                               relative_path=self.relative_path,
-                                                               timestamp=self.ty_timestmap,
-                                                               ty_path_type=self.ty_path_type,
-                                                               ty_path_marking=self.ty_path_marking, bp=self.ty_bp_val,
-                                                               is_bp_increase=self.ty_bp_isIncrease)
-        list_ty_realdata: List[TyphoonForecastRealDataModel] = []
-        # list_ty_path.append(ty_path)
+        list_station_realdata: List[StationForecastRealDataModel] = []
         # 先判断 df 中的预报时间是否与写入的 dt_range 匹配
-        if len(df_temp) > 3 and self.forecast_dt_range == len(df_temp.iloc[3:]):
-            index_forecast_dt = 0
-            for index in range(3, len(df_temp)):
-                series_temp: pd.Series = df_temp.iloc[index]
-                # ['091517', '119.2', '18.9', '940.0', '37.0']
-                list_split: List[str] = series_temp.values[0].split(' ')
-                year_str = '2020'
-                forecast_dt: datetime = arrow.get(year_str + list_split[0], 'YYYYMMDDHH').datetime
-                coords: List[float] = [float(list_split[2]), float(list_split[1])]
-                lat: float = float(list_split[2])
-                lon: float = float(list_split[1])
-                bp: float = float(list_split[3])
-                radius: float = float(list_split[4])
-                ty_path_mid: GroupTyphoonPathMidModel = GroupTyphoonPathMidModel(forecast_dt, coords, bp, radius)
-                ty_realdata: TyphoonForecastRealDataModel = TyphoonForecastRealDataModel(forecast_dt=forecast_dt,
-                                                                                         forecast_index=index_forecast_dt,
-                                                                                         # coords=coords,
-                                                                                         lat=lat, lon=lon,
-                                                                                         bp=bp,
-                                                                                         gale_radius=radius)
-                index_forecast_dt = index_forecast_dt + 1
-                list_ty_realdata.append(ty_realdata)
-                # list_ty_path_mid.append(ty_path_mid)
-
-        self.dict_data['TY_PATH'] = ty_path
-        self.dict_data['LIST_TY_REALDATA'] = list_ty_realdata
-        pass
+        if df_temp:
+            num_columns = df_temp.shape[0] # 行数
+            num_rows = df_temp.shape[1]    # 列数
+            # 列与 common/common_dict -> DICT_STATION 的 key 对应
+            for index_column in range(num_columns):
+                station_code: str = DICT_STATION[index_column]
+                series_column = df_temp[index_column]
+                index_row = 0
+                current_dt: datetime = self.forecast_dt_start
+                delta = timedelta(hours=1)
+                for val_row in series_column:
+                    # forecast_start=
+                    station_realdata = StationForecastRealDataModel(self.ty_code, self.gp_id, station_code, current_dt,
+                                                                    index_row, val_row)
+                    index_row = index_row + 1
+                    list_station_realdata.append(station_realdata)
+        self.dict_data['LIST_TY_REALDATA'] = list_station_realdata
 
     def init_forecast_data(self, **kwargs) -> pd.DataFrame:
         """
@@ -644,6 +688,7 @@ class StationRealData(ITyphoonPath):
         """
         data: pd.DataFrame = None
         full_path: str = kwargs.get('group_path_file', None)
+        df: pd.DataFrame = None
         if full_path is not None:
             # TODO:[-] 21-04-15 此处加入判断若指定文件存在
             if pathlib.Path(full_path).is_file():

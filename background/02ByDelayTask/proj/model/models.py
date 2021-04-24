@@ -69,20 +69,20 @@ class TyphoonForecastRealDataModel(IIdModel, IDel, IModel):
     bp = Column(Float, nullable=False)
     gale_radius = Column(Float, nullable=False)
 
-class ForecastStationRealDataModel(IIdModel,IDel,IModel):
+
+class StationForecastRealDataModel(IIdModel, IDel, IModel):
     """
         台站逐时潮位信息
     """
     __tablename__ = 'station_forecast_realdata'
-    ty_id = Column(Integer, nullable=False)
+    ty_code = Column(VARCHAR(200), nullable=False)
     gp_id = Column(Integer, nullable=False)
+    station_code = Column(VARCHAR(200), nullable=False)
+    # lat = Column(Float, nullable=False)
+    # lon = Column(Float, nullable=False)
     forecast_dt = Column(DATETIME(fsp=6))
     forecast_index = Column(Integer, nullable=False)
-    # coords = Column(Geometry('POINT'))
-    lat = Column(Float, nullable=False)
-    lon = Column(Float, nullable=False)
-    bp = Column(Float, nullable=False)
-    gale_radius = Column(Float, nullable=False)
+    surge = Column(Float, nullable=False)
 
 
 class TyphoonForecastDetailModel(IDel, IIdModel, IModel):
