@@ -75,7 +75,9 @@ def to_ty_group(list_files: List[str], ty_detail: TyphoonForecastDetailModel, **
         if len(ty_code_stamp) > 2 and ty_code_stamp[:2].lower() == 'ty':
             ty_code: str = ty_code_stamp[2:]  # 1822
             # 创建 台风集合预报路径 类
-            ty_group = GroupTyphoonPath(ROOT_PATH, file_name, ts_str)
+            # TODO:[*] 21-04-25 注意此处与 case.py -> case_group_ty_path -> dir_path 有歧义
+            dir_path: str = str(pathlib.Path(ROOT_PATH) / 'GROUP')
+            ty_group = GroupTyphoonPath(dir_path, file_name, ts_str)
             ty_group.read_forecast_data(file_name=file_name)
             ty_group.to_store(ty_detail=ty_detail)
 

@@ -10,6 +10,7 @@ from typing import List
 import pathlib
 from core.data import GroupTyphoonPath, get_match_files, to_ty_group, to_station_realdata, get_gp
 from model.models import TyphoonForecastDetailModel
+from core.file import StationSurgeRealDataFile
 from common.enum import ForecastOrganizationEnum, TyphoonForecastSourceEnum
 from conf.settings import TEST_ENV_SETTINGS
 from datetime import datetime
@@ -29,7 +30,7 @@ def case_group_ty_path():
                                                                        gmt_start=gmt_start,
                                                                        gmt_end=gmt_end,
                                                                        forecast_source=TyphoonForecastSourceEnum.DEFAULT.value)
-    dir_path: str = str(pathlib.Path(ROOT_DIR) / 'TY2022_2020042710')
+    dir_path: str = str(pathlib.Path(ROOT_DIR) / 'GROUP' / 'TY2022_2021010416')
     # GroupTyphoonPath(TEST_ENV_SETTINGS.get('TY_GROUP_PATH_ROOT_DIR'), '2022', '2020042710').read_forecast_data()
     list_match_files: List[str] = get_match_files('^[A-Z]+\d+_\d+_[a-z]{1}\d{1}_[a-z]{1}_?\d+',
                                                   dir_path)
@@ -59,10 +60,21 @@ def case_get_gp():
     pass
 
 
+def test_get_gp_model():
+    """
+        测试 根据 file_name 获取对应的 gp_model
+    @return:
+    """
+    dir_path: str = r'/Users/liusihan/data/typhoon_data/TY2022_2020042710/station'
+    file_name: str = 'Surge_TY2022_2021010416_c0_p_05.dat'
+    StationSurgeRealDataFile(dir_path=dir_path, file_name=file_name).get_pg()
+
+
 def main():
     # case_group_ty_path()
     # 测试查询 gp
-    case_get_gp()
+    # case_get_gp()
+    test_get_gp_model()
     pass
 
 

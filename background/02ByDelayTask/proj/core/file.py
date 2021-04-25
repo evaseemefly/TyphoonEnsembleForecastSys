@@ -1,12 +1,14 @@
 # + 21-04-24
 import typing
 from typing import List
+from model.models import TyphoonGroupPathModel
+from core.db import DbFactory
 
 
 class StationSurgeRealDataFile:
     def __init__(self, dir_path: str, file_name: str):
         """
-
+            海洋站 潮位站 数据 file
         @param dir_path:
         @param file_name: Surge_TY2022_2021010416_f0_p10.dat or Surge_TY2022_2021010416_c0_p_05.dat
         """
@@ -47,7 +49,7 @@ class StationSurgeRealDataFile:
         return code
 
     @property
-    def ty_timestmap(self) -> str:
+    def ty_timestamp(self) -> str:
         """
             获取 台风的时间戳
         @return:
@@ -73,7 +75,7 @@ class StationSurgeRealDataFile:
         return temp_stamp
 
     @property
-    def ty_bp_isIncrease(self) -> bool:
+    def ty_bp_is_increase(self) -> bool:
         """
             获取 气压的 是否为增量
             eg: TY1822_2020042710_l5_p05 -> true
@@ -113,4 +115,14 @@ class StationSurgeRealDataFile:
 
     @property
     def ty_path_marking(self) -> int:
-        return int(self.ty_timestmap[1:])
+        return int(self.ty_timestamp[1:])
+
+    def get_pg(self) -> TyphoonGroupPathModel:
+        session = DbFactory().Session
+        query_gp = session.query(TyphoonGroupPathModel).filter(
+            TyphoonGroupPathModel.ty_code == self.ty_code, TyphoonGroupPathModel.timestamp == self.ty_timestamp,
+            TyphoonGroupPathModel.ty_path_type == self.ty_path_type,
+            TyphoonGroupPathModel.ty_path_marking == self.ty_path_marking, TyphoonGroupPathModel.bp == self.ty_bp_val,
+            TyphoonGroupPathModel.is_bp_increase == self.ty_bp_is_increase)
+        res: TyphoonGroupPathModel = query_gp.first()
+        return res
