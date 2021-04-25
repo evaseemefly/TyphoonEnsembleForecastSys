@@ -26,6 +26,8 @@ from common.common_dict import DICT_STATION
 from conf.settings import TEST_ENV_SETTINGS
 from core.db import DbFactory
 
+from core.file import StationSurgeRealDataFile
+
 # root 的根目录
 ROOT_PATH = TEST_ENV_SETTINGS.get('TY_GROUP_PATH_ROOT_DIR')
 
@@ -76,21 +78,20 @@ def to_ty_group(list_files: List[str], ty_detail: TyphoonForecastDetailModel, **
             ty_code: str = ty_code_stamp[2:]  # 1822
             # 创建 台风集合预报路径 类
             # TODO:[*] 21-04-25 注意此处与 case.py -> case_group_ty_path -> dir_path 有歧义
-            dir_path: str = str(pathlib.Path(ROOT_PATH) / 'GROUP')
+            dir_path: str = str(pathlib.Path(ROOT_PATH))
             ty_group = GroupTyphoonPath(dir_path, file_name, ts_str)
             ty_group.read_forecast_data(file_name=file_name)
             ty_group.to_store(ty_detail=ty_detail)
 
-        pass
 
-
-def to_station_realdata(list_files: List[str], **kwargs):
+def to_station_realdata(list_files: List[str], ty_detail: TyphoonForecastDetailModel, **kwargs):
+    forecast_dt_start: datetime = kwargs.get('forecast_dt_start')
     for file_temp in list_files:
         # eg: Surge_TY2022_2021010416_f0_p10.dat
         # eg2: Surge_TY2022_2021010416_c0_p_10.dat
-        file_name: str = pathlib.Path(file_temp).name  # Surge_TY2022_2021010416_c0_p_10.dat
+        file_name_source: str = pathlib.Path(file_temp).name  # Surge_TY2022_2021010416_c0_p_10.dat
         # 先去掉后缀
-        file_name = file_name.split('.')[0]  # Surge_TY2022_2021010416_c0_p_10
+        file_name = file_name_source.split('.')[0]  # Surge_TY2022_2021010416_c0_p_10
         name_split: List[str] = file_name.split('_')  # ['Surge', 'TY2022', '2021010416', 'f0', 'p10']
         ty_code_stamp: str = name_split[1]  # TY1822
         ts_str: str = name_split[2]  # 2020042710
@@ -105,9 +106,12 @@ def to_station_realdata(list_files: List[str], **kwargs):
             bp_stamp: str = name_split[4]
         if len(ty_code_stamp) > 2 and ty_code_stamp[:2].lower() == 'ty':
             ty_code: str = ty_code_stamp[2:]  # 1822
+            station_surge_file: StationSurgeRealDataFile = StationSurgeRealDataFile(
+                str(pathlib.Path(file_temp).parents[0]), str(pathlib.Path(file_temp).name))
+            pg = station_surge_file.get_pg()
             # 创建 台风集合预报路径 类
-            ty_group = StationRealDataFile(ROOT_PATH, file_name, ts_str)
-            ty_group.read_forecast_data(file_name=file_name)
+            ty_group = StationRealDataFile(ROOT_PATH, file_name, ts_str, pg.id, forecast_dt_start)
+            ty_group.read_forecast_data(file_name=file_name_source)
             ty_group.to_store(ty_detail=ty_detail)
 
 
@@ -368,7 +372,7 @@ class GroupTyphoonPath(IBaseOpt):
         :return:
         """
 
-        final_path_str = str(pathlib.Path(self.root_path) / self.relative_path)
+        final_path_str = str(pathlib.Path(self.root_path) / self.relative_path / 'GROUP')
         return final_path_str
 
     @property
@@ -604,39 +608,29 @@ class GroupTyphoonPath(IBaseOpt):
 
 
 class StationRealDataFile(ITyphoonPath):
-    def __init__(self, root_path: str, file_name: str, timestmap_str: str, ty_code: str, gp_id: int,
+    def __init__(self, root_path: str, file_name: str, timestmap_str: str, gp_id: int,
                  forecast_dt_start: datetime):
         super(StationRealDataFile, self).__init__(root_path, file_name, timestmap_str)
         # super().__init__(root_path, file_name, timestmap_str)
         self.list_forecast_data: List[GroupTyphoonPathMidModel] = []
         # 台风集合预报路径的正则
         self.re = '^Surge_[A-Z]+\d+_\d+_[a-z]{1}\d{1}_[a-z]{1}_?\d+'
-        self.ty_code = type_code
+        # self.ty_code = ty_code
         self.gp_id = gp_id
         self.forecast_dt_start = forecast_dt_start
 
-    # @property
-    # def save_dir_path(self) -> str:
-    #     """
-    #
-    #     :param kwargs:
-    #     :return:
-    #     """
-    #
-    #     final_path_str = str(pathlib.Path(self.root_path) / self.relative_path)
-    #     return final_path_str
-    #
-    # @property
-    # def relative_path(self) -> str:
-    #     """
-    #         存储 group 集合预报路径的的相对路径
-    #     @return:
-    #     """
-    #     # 台风名称前缀
-    #     ty_prefix = 'TY'
-    #     # TY2022_2020042710
-    #     ty_full_name = f'{ty_prefix}{self.ty_code}_{self.timestmap}'
-    #     return ty_full_name
+    @property
+    def ty_code(self) -> str:
+        """
+            获取 台风 code
+            TODO:[*] 21-04-23 此处与 GroupTyPath 相同，可去掉
+        @return:
+        """
+        code: str = None
+        if len(self.name_split) > 0:
+            # TY1822 -> 1822
+            code = self.name_split[0][2:]
+        return code
 
     @property
     def name_split(self) -> List[str]:
@@ -656,6 +650,17 @@ class StationRealDataFile(ITyphoonPath):
             list_split = full_name_remove_ext.split(split_stamp)[1:]  # ['TY2022', '2021010416', 'c0', 'p', '05']
         return list_split
 
+    @property
+    def save_dir_path(self) -> str:
+        """
+
+        :param kwargs:
+        :return:
+        """
+
+        final_path_str = str(pathlib.Path(self.root_path) / self.relative_path / 'STATION')
+        return final_path_str
+
     def read_forecast_data(self, **kwargs):
         # TODO:[*] 21-04-23 此处存在一个如何获取 tyGroupPathModel 的问题
         df_temp: pd.DataFrame = self.dict_data.get("DF")
@@ -665,21 +670,24 @@ class StationRealDataFile(ITyphoonPath):
         df_temp: pd.DataFrame = self.init_forecast_data(group_path_file=full_path)
         list_station_realdata: List[StationForecastRealDataModel] = []
         # 先判断 df 中的预报时间是否与写入的 dt_range 匹配
-        if df_temp:
-            num_columns = df_temp.shape[0] # 行数
-            num_rows = df_temp.shape[1]    # 列数
+        if df_temp is not None:
+            num_columns = df_temp.shape[0]  # 行数
+            num_rows = df_temp.shape[1]  # 列数
+            current_dt: datetime = self.forecast_dt_start
             # 列与 common/common_dict -> DICT_STATION 的 key 对应
-            for index_column in range(num_columns):
+            for index_column in range(num_rows):
                 station_code: str = DICT_STATION[index_column]
                 series_column = df_temp[index_column]
                 index_row = 0
-                current_dt: datetime = self.forecast_dt_start
                 delta = timedelta(hours=1)
                 for val_row in series_column:
                     # forecast_start=
-                    station_realdata = StationForecastRealDataModel(self.ty_code, self.gp_id, station_code, current_dt,
-                                                                    index_row, val_row)
+                    station_realdata = StationForecastRealDataModel(ty_code=self.ty_code, gp_id=self.gp_id,
+                                                                    station_code=station_code, forecast_dt=current_dt,
+                                                                    forecast_index=index_row, surge=val_row)
                     index_row = index_row + 1
+                    current_dt = current_dt + delta
+                    # 对当前时间进行 hours +1
                     list_station_realdata.append(station_realdata)
         self.dict_data['LIST_TY_REALDATA'] = list_station_realdata
 
@@ -702,5 +710,24 @@ class StationRealDataFile(ITyphoonPath):
                     self.dict_data['DF'] = df
         return df
 
-    def to_store(self, **kwargs) -> bool:
-        pass
+    def to_store(self, ty_detail: TyphoonForecastDetailModel, **kwargs) -> bool:
+        is_stored = False
+        try:
+            # 获取 ty_group_path 的 id
+            if self.dict_data['LIST_TY_REALDATA']:
+                list_ty_realdata: List[TyphoonForecastRealDataModel] = self.dict_data.get('LIST_TY_REALDATA')
+                for ty_realdata in list_ty_realdata:
+                    # ty_realdata.gp_id = ty_group_path.id
+                    ty_realdata.ty_id = ty_detail.id
+                    self.session.add(ty_realdata)
+                self.session.commit()
+                is_stored = True
+        except Exception as ex:
+            # ERROR:
+            # (MySQLdb._exceptions.IntegrityError) (1364, "Field 'lat' doesn't have a default value")
+            # [SQL: INSERT INTO station_forecast_realdata (is_del, gmt_created, gmt_modified, ty_code, gp_id, station_code, forecast_dt, forecast_index, surge) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)]
+            # [parameters: (0, datetime.datetime(2021, 4, 25, 9, 15, 39, 714482), datetime.datetime(2021, 4, 25, 9, 15, 39, 714482), '2022', 147, 'SHW', datetime.datetime(2020, 9, 15, 17, 0), 0, 0.0)]
+            # (Background on this error at: http://sqlalche.me/e/13/gkpj)
+            print(f'{ex.args}')
+
+        return is_stored

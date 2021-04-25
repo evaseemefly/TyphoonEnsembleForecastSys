@@ -11,8 +11,8 @@ class StationForecastRealDataModel(IIdModel, IDelModel, IModel):
     ty_code = models.CharField(max_length=200)
     gp_id = models.IntegerField(default=DEFAULT_FK)
     station_code = models.CharField(max_length=10, default=DEFAULT_CODE)
-    lat = models.FloatField()
-    lon = models.FloatField()
+    # lat = models.FloatField()
+    # lon = models.FloatField()
     forecast_dt = models.DateTimeField(default=now)
     forecast_index = models.IntegerField(default=UNLESS_INDEX)
     surge = models.FloatField()
@@ -21,3 +21,14 @@ class StationForecastRealDataModel(IIdModel, IDelModel, IModel):
 
     class Meta:
         db_table = 'station_forecast_realdata'
+
+
+class StationInfoModel(IModel, IDelModel, IIdModel):
+    name = models.CharField(max_length=200)
+    code = models.CharField(max_length=50)
+    lat = models.FloatField()
+    lon = models.FloatField()
+    desc = models.CharField(max_length=500)
+
+    class Meta:
+        db_table = 'station_info'

@@ -30,7 +30,8 @@ def case_group_ty_path():
                                                                        gmt_start=gmt_start,
                                                                        gmt_end=gmt_end,
                                                                        forecast_source=TyphoonForecastSourceEnum.DEFAULT.value)
-    dir_path: str = str(pathlib.Path(ROOT_DIR) / 'GROUP' / 'TY2022_2021010416')
+    ty_timestamp: str = 'TY2022_2021010416'
+    dir_path: str = str(pathlib.Path(ROOT_DIR) / ty_timestamp / 'GROUP')
     # GroupTyphoonPath(TEST_ENV_SETTINGS.get('TY_GROUP_PATH_ROOT_DIR'), '2022', '2020042710').read_forecast_data()
     list_match_files: List[str] = get_match_files('^[A-Z]+\d+_\d+_[a-z]{1}\d{1}_[a-z]{1}_?\d+',
                                                   dir_path)
@@ -43,10 +44,23 @@ def case_station():
     @return:
     """
     query_gp = get_gp(ty_code='2022', ts='2020042710', path_type='c', path_marking=20042710, bp=0, is_increase=True)
+    gmt_start = datetime(2020, 9, 15, 17)
+    gmt_end = datetime(2020, 9, 18, 0)
+    ty_detail: TyphoonForecastDetailModel = TyphoonForecastDetailModel(code='2022',
+                                                                       organ_code=ForecastOrganizationEnum.NMEFC.value,
+                                                                       gmt_start=gmt_start,
+                                                                       gmt_end=gmt_end,
+                                                                       forecast_source=TyphoonForecastSourceEnum.DEFAULT.value)
     # 对应的 tyGroupPathModel ，主要用来获取 -> id
     target_gp = None
+    forecast_dt_start: datetime = datetime(2020, 9, 15, 17)
+    ty_timestamp: str = 'TY2022_2021010416'
+    dir_path: str = str(pathlib.Path(ROOT_DIR) / ty_timestamp / 'STATION')
     if len(query_gp) > 0:
         target_gp = query_gp[0]
+    list_match_files: List[str] = get_match_files('^Surge_[A-Z]+\d+_\d+_[a-z]{1}\d{1}_[a-z]{1}_?\d+.dat',
+                                                  dir_path)
+    to_station_realdata(list_match_files, ty_detail, forecast_dt_start=forecast_dt_start)
     pass
 
 
@@ -72,9 +86,11 @@ def test_get_gp_model():
 
 def main():
     # case_group_ty_path()
+    # 21-04-25 批量处理海洋站潮位数据
+    case_station()
     # 测试查询 gp
     # case_get_gp()
-    test_get_gp_model()
+    # test_get_gp_model()
     pass
 
 
