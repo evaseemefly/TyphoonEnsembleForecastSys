@@ -1,4 +1,3 @@
-
 # 海洋站 字典
 DICT_STATION = {
     0: 'SHW',
@@ -9,7 +8,7 @@ DICT_STATION = {
     5: 'DMS',
     6: 'SHK',
     7: 'CWH',
-    8: 'QHG',
-    9: 'JCH'
+    8: 'QHW',
+    9: 'SZJ'
 
 }

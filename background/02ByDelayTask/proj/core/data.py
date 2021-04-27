@@ -111,9 +111,16 @@ def to_station_realdata(list_files: List[str], ty_detail: TyphoonForecastDetailM
                 str(pathlib.Path(file_temp).parents[0]), str(pathlib.Path(file_temp).name))
             pg = station_surge_file.get_pg(ty_id)
             # 创建 台风集合预报路径 类
-            ty_group = StationRealDataFile(ROOT_PATH, file_name, ts_str, pg.id, forecast_dt_start)
-            ty_group.read_forecast_data(file_name=file_name_source)
-            ty_group.to_store(ty_detail=ty_detail)
+            # TODO:[-] 21-04-27 此处需要加入判断 pg 是否为 None
+            if pg is not None:
+
+                ty_group = StationRealDataFile(ROOT_PATH, file_name, ts_str, pg.id, forecast_dt_start)
+                ty_group.read_forecast_data(file_name=file_name_source)
+                ty_group.to_store(ty_detail=ty_detail)
+            else:
+                # 若为 None 应抛出异常
+                # TODO:[*] 21-04-27 + 缺少抛出异常
+                pass
 
 
 def get_gp(is_many: bool = True, **kwargs) -> List[TyphoonGroupPathModel]:

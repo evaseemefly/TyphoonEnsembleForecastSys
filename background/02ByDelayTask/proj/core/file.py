@@ -115,7 +115,7 @@ class StationSurgeRealDataFile:
 
     @property
     def ty_path_marking(self) -> int:
-        return int(self.ty_timestamp[1:])
+        return int(self.ty_path_stamp[1:])
 
     def get_pg(self, ty_id: int) -> TyphoonGroupPathModel:
         """
