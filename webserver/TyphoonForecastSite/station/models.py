@@ -6,22 +6,6 @@ from util.const import DEFAULT_FK, UNLESS_INDEX, DEFAULT_CODE, ABS_KEY
 
 
 # Create your models here.
-class StationForecastRealDataModel(IIdModel, IDelModel, IModel):
-    # ty_id = models.IntegerField(default=DEFAULT_FK)
-    ty_code = models.CharField(max_length=200)
-    gp_id = models.IntegerField(default=DEFAULT_FK)
-    station_code = models.CharField(max_length=10, default=DEFAULT_CODE)
-    # lat = models.FloatField()
-    # lon = models.FloatField()
-    forecast_dt = models.DateTimeField(default=now)
-    forecast_index = models.IntegerField(default=UNLESS_INDEX)
-    surge = models.FloatField()
-
-    # bp=models.FloatField()
-
-    class Meta:
-        db_table = 'station_forecast_realdata'
-
 
 class StationInfoModel(IModel, IDelModel, IIdModel):
     name = models.CharField(max_length=200)
@@ -34,6 +18,33 @@ class StationInfoModel(IModel, IDelModel, IIdModel):
 
     class Meta:
         db_table = 'station_info'
+
+
+class StationForecastRealDataModel(IIdModel, IDelModel, IModel):
+    # ty_id = models.IntegerField(default=DEFAULT_FK)
+    ty_code = models.CharField(max_length=200)
+    gp_id = models.IntegerField(default=DEFAULT_FK)
+    # 需要手动与 StationInfoModel 建立关联，但不加上外键
+    # station_code = models.ForeignKey(StationInfoModel, null=True, on_delete=models.SET_NULL,
+    #                                  related_name='station_code', db_column='station_code',
+    #                                  db_constraint=False)
+    station_code = models.CharField(max_length=10, default=DEFAULT_CODE)
+    # ERRORS:
+    # station.StationForecastRealDataModel.station_code: (fields.E302) Reverse accessor for 'StationForecastRealDataModel.station_code' clashes with field name 'StationInfoModel.code'.
+    # 	HINT: Rename field 'StationInfoModel.code', or add/change a related_name argument to the definition for field 'StationForecastRealDataModel.station_code'.
+    # station_code = models.ManyToManyField(StationInfoModel,related_name='code')
+    # lat = models.FloatField()
+    # lon = models.FloatField()
+    forecast_dt = models.DateTimeField(default=now)
+    forecast_index = models.IntegerField(default=UNLESS_INDEX)
+    surge = models.FloatField()
+
+    # station_info = models.OneToOneField(StationInfoModel, on_delete=models.CASCADE)
+
+    # bp=models.FloatField()
+
+    class Meta:
+        db_table = 'station_forecast_realdata'
 
 # class StationComplexModel(IIdModel):
 #     ty_code = models.CharField(max_length=200)
@@ -51,4 +62,4 @@ class StationInfoModel(IModel, IDelModel, IIdModel):
 #
 #     class Meta:
 #         db_table = 'station_info'
-        # abstract = True
+# abstract = True

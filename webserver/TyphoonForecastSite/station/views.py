@@ -49,6 +49,20 @@ class StationListBaseView(APIView):
                                                                        'lon': 'lon'})
         return query
 
+    def get_relation_station(self, gp_id: int, forecast_dt_str: str) -> {}:
+        forecast_dt: datetime = arrow.get(forecast_dt_str).datetime
+        # query = StationForecastRealDataModel.objects.filter(gp_id=gp_id)
+        # TODO:[*] 21-04-27 最后发现此种方式可行
+        # select 就相当于是 sql 中的 SELECT 语句
+        # tables 相当于 sql 中的 FROM
+        # where 相当于 sql 中的 WHERE
+        query = StationForecastRealDataModel.objects.filter(gp_id=1, forecast_dt=forecast_dt).extra(
+            select={'station_code': 'station_forecast_realdata.station_code', 'lat': 'station_info.lat',
+                    'lon': 'station_info.lon', 'name': 'station_info.name'},
+            tables=['station_forecast_realdata', 'station_info'],
+            where=['station_forecast_realdata.station_code=station_info.code'])
+        return query
+
 
 class StationListView(StationListBaseView):
     def get(self, request: Request) -> Response:
@@ -60,7 +74,7 @@ class StationListView(StationListBaseView):
 
         is_paged = bool(int(request.GET.get('is_paged', '0')))
         pg_id: int = int(request.GET.get('pg_id'))
-        forecast_dt: datetime = request.GET.get('forecast_dt')
+        forecast_dt_str: datetime = request.GET.get('forecast_dt')
         page_index = request.GET.get('page_index', str(DEFAULT_PAGE_INDEX))
         page_count = DEFAULT_PAGE_COUNT
         query: List[StationForecastRealDataModel] = []
@@ -71,7 +85,9 @@ class StationListView(StationListBaseView):
             # query = StationForecastRealDataModel.objects.filter(
             #     gp_id=pg_id) if pg_id != DEFAULT_NULL_KEY else StationForecastRealDataModel.objects
             # query = query.filter(forecast_dt=forecast_dt)
-            query = self.get_station_complex(pg_id, forecast_dt)
+            # query = self.get_station_complex(pg_id, forecast_dt_str)
+            # TODO:[*] 21-04-27 测试
+            query = self.get_relation_station(gp_id=pg_id, forecast_dt_str=forecast_dt_str)
             # 测试一下关联查询
             # res = query.union(stations)
             if is_paged:
