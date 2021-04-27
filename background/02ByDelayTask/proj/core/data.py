@@ -86,6 +86,7 @@ def to_ty_group(list_files: List[str], ty_detail: TyphoonForecastDetailModel, **
 
 def to_station_realdata(list_files: List[str], ty_detail: TyphoonForecastDetailModel, **kwargs):
     forecast_dt_start: datetime = kwargs.get('forecast_dt_start')
+    ty_id: int = kwargs.get('ty_id')
     for file_temp in list_files:
         # eg: Surge_TY2022_2021010416_f0_p10.dat
         # eg2: Surge_TY2022_2021010416_c0_p_10.dat
@@ -108,7 +109,7 @@ def to_station_realdata(list_files: List[str], ty_detail: TyphoonForecastDetailM
             ty_code: str = ty_code_stamp[2:]  # 1822
             station_surge_file: StationSurgeRealDataFile = StationSurgeRealDataFile(
                 str(pathlib.Path(file_temp).parents[0]), str(pathlib.Path(file_temp).name))
-            pg = station_surge_file.get_pg()
+            pg = station_surge_file.get_pg(ty_id)
             # 创建 台风集合预报路径 类
             ty_group = StationRealDataFile(ROOT_PATH, file_name, ts_str, pg.id, forecast_dt_start)
             ty_group.read_forecast_data(file_name=file_name_source)
@@ -468,7 +469,7 @@ class GroupTyphoonPath(IBaseOpt):
 
     @property
     def ty_path_marking(self) -> int:
-        return int(self.ty_timestmap[1:])
+        return int(self.ty_path_stamp[1:])
 
     def get_match_files(self, dir_path: str = None) -> List[str]:
         """
@@ -673,12 +674,12 @@ class StationRealDataFile(ITyphoonPath):
         if df_temp is not None:
             num_columns = df_temp.shape[0]  # 行数
             num_rows = df_temp.shape[1]  # 列数
-            current_dt: datetime = self.forecast_dt_start
             # 列与 common/common_dict -> DICT_STATION 的 key 对应
             for index_column in range(num_rows):
                 station_code: str = DICT_STATION[index_column]
                 series_column = df_temp[index_column]
                 index_row = 0
+                current_dt: datetime = self.forecast_dt_start
                 delta = timedelta(hours=1)
                 for val_row in series_column:
                     # forecast_start=

@@ -55,12 +55,13 @@ def case_station():
     target_gp = None
     forecast_dt_start: datetime = datetime(2020, 9, 15, 17)
     ty_timestamp: str = 'TY2022_2021010416'
+    ty_id: int = 8
     dir_path: str = str(pathlib.Path(ROOT_DIR) / ty_timestamp / 'STATION')
     if len(query_gp) > 0:
         target_gp = query_gp[0]
     list_match_files: List[str] = get_match_files('^Surge_[A-Z]+\d+_\d+_[a-z]{1}\d{1}_[a-z]{1}_?\d+.dat',
                                                   dir_path)
-    to_station_realdata(list_match_files, ty_detail, forecast_dt_start=forecast_dt_start)
+    to_station_realdata(list_match_files, ty_detail, forecast_dt_start=forecast_dt_start, ty_id=ty_id)
     pass
 
 
@@ -85,9 +86,9 @@ def test_get_gp_model():
 
 
 def main():
-    # case_group_ty_path()
+    case_group_ty_path()
     # 21-04-25 批量处理海洋站潮位数据
-    case_station()
+    # case_station()
     # 测试查询 gp
     # case_get_gp()
     # test_get_gp_model()

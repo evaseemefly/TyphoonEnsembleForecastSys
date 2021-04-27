@@ -117,12 +117,18 @@ class StationSurgeRealDataFile:
     def ty_path_marking(self) -> int:
         return int(self.ty_timestamp[1:])
 
-    def get_pg(self) -> TyphoonGroupPathModel:
+    def get_pg(self, ty_id: int) -> TyphoonGroupPathModel:
+        """
+            + 21-04-26 注意此处 还需要传入 ty_id ，因为不同的 ty 可能会有以下查询参数相同的问题(包括 ty_code)
+        @param ty_id: 台风 id
+        @return:
+        """
         session = DbFactory().Session
         query_gp = session.query(TyphoonGroupPathModel).filter(
             TyphoonGroupPathModel.ty_code == self.ty_code, TyphoonGroupPathModel.timestamp == self.ty_timestamp,
             TyphoonGroupPathModel.ty_path_type == self.ty_path_type,
             TyphoonGroupPathModel.ty_path_marking == self.ty_path_marking, TyphoonGroupPathModel.bp == self.ty_bp_val,
-            TyphoonGroupPathModel.is_bp_increase == self.ty_bp_is_increase)
+            TyphoonGroupPathModel.is_bp_increase == self.ty_bp_is_increase,
+            TyphoonGroupPathModel.ty_id == ty_id)
         res: TyphoonGroupPathModel = query_gp.first()
         return res
