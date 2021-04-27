@@ -34,3 +34,21 @@ class StationInfoModel(IModel, IDelModel, IIdModel):
 
     class Meta:
         db_table = 'station_info'
+
+# class StationComplexModel(IIdModel):
+#     ty_code = models.CharField(max_length=200)
+#     gp_id = models.IntegerField(default=DEFAULT_FK)
+#     station_code = models.CharField(max_length=10, default=DEFAULT_CODE)
+#     # lat = models.FloatField()
+#     # lon = models.FloatField()
+#     forecast_dt = models.DateTimeField(default=now)
+#     forecast_index = models.IntegerField(default=UNLESS_INDEX)
+#     surge = models.FloatField()
+#     name = models.CharField(max_length=200)
+#     code = models.CharField(max_length=50)
+#     lat = models.FloatField(null=True)
+#     lon = models.FloatField(null=True)
+#
+#     class Meta:
+#         db_table = 'station_info'
+        # abstract = True
