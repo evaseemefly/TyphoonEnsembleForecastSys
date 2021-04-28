@@ -1,21 +1,11 @@
-from django.shortcuts import render
-import pathlib
-from datetime import datetime
-from os import path
 from typing import List
 
-import arrow
-from django.shortcuts import render
-from django.core.serializers import serialize
-from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
-from rest_framework.decorators import (APIView, api_view,
-                                       authentication_classes,
-                                       permission_classes)
+from django.core.paginator import Paginator
 from rest_framework.response import Response
 from rest_framework.request import Request
 
 # -- 本项目
-from .view_base import BaseView
+from common.view_base import BaseView
 from .models import TyphoonForecastDetailModel, TyphoonGroupPathModel, TyphoonForecastRealDataModel
 from .mid_models import TyphoonComplexGroupRealDataMidModel
 from .serializers import TyphoonForecastDetailSerializer, TyphoonGroupPathSerializer, TyphoonForecastRealDataSerializer, \

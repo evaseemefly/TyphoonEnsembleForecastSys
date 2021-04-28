@@ -21,12 +21,13 @@ from .serializers import StationForecastRealDataSerializer, StationForecastRealD
 # 公共的
 from TyphoonForecastSite.settings import MY_PAGINATOR
 from util.const import DEFAULT_NULL_KEY, UNLESS_TY_CODE
+from common.view_base import BaseView
 
 DEFAULT_PAGE_INDEX = MY_PAGINATOR.get('PAGE_INDEX')
 DEFAULT_PAGE_COUNT = MY_PAGINATOR.get('PAGE_COUNT')
 
 
-class StationListBaseView(APIView):
+class StationListBaseView(BaseView, APIView):
     def get_all_station(self) -> List[StationInfoModel]:
         """
             获取全部的 非 is_del + is_abs 的station
@@ -56,7 +57,7 @@ class StationListBaseView(APIView):
         # select 就相当于是 sql 中的 SELECT 语句
         # tables 相当于 sql 中的 FROM
         # where 相当于 sql 中的 WHERE
-        query = StationForecastRealDataModel.objects.filter(gp_id=1, forecast_dt=forecast_dt).extra(
+        query = StationForecastRealDataModel.objects.filter(gp_id=gp_id, forecast_dt=forecast_dt).extra(
             select={'station_code': 'station_forecast_realdata.station_code', 'lat': 'station_info.lat',
                     'lon': 'station_info.lon', 'name': 'station_info.name'},
             tables=['station_forecast_realdata', 'station_info'],
@@ -67,27 +68,28 @@ class StationListBaseView(APIView):
 class StationListView(StationListBaseView):
     def get(self, request: Request) -> Response:
         """
-            根据 group_ id 获取 对应的台风实时数据
+            根据 group_ id 与 forecast_dt 获取 对应的台风实时数据
+            # TODO:[*] 21-04-28 此处缺少对参数的判断
         @param request:
         @return:
         """
 
         is_paged = bool(int(request.GET.get('is_paged', '0')))
-        pg_id: int = int(request.GET.get('pg_id'))
+        gp_id: int = int(request.GET.get('gp_id', str(DEFAULT_NULL_KEY)))
         forecast_dt_str: datetime = request.GET.get('forecast_dt')
         page_index = request.GET.get('page_index', str(DEFAULT_PAGE_INDEX))
         page_count = DEFAULT_PAGE_COUNT
         query: List[StationForecastRealDataModel] = []
         stations: List[StationInfoModel] = self.get_all_station()
         stations_ids: List[int] = [temp.id for temp in stations]
-
-        if pg_id != DEFAULT_NULL_KEY:
+        if gp_id != DEFAULT_NULL_KEY:
             # query = StationForecastRealDataModel.objects.filter(
             #     gp_id=pg_id) if pg_id != DEFAULT_NULL_KEY else StationForecastRealDataModel.objects
             # query = query.filter(forecast_dt=forecast_dt)
+            # 方式1：实现跨表拼接查询，使用拼接 sql 的方式
             # query = self.get_station_complex(pg_id, forecast_dt_str)
-            # TODO:[*] 21-04-27 测试
-            query = self.get_relation_station(gp_id=pg_id, forecast_dt_str=forecast_dt_str)
+            # 方式2: 使用extra 的方式使用伪sql 代码实现 跨表拼接查询
+            query = self.get_relation_station(gp_id=gp_id, forecast_dt_str=forecast_dt_str)
             # 测试一下关联查询
             # res = query.union(stations)
             if is_paged:

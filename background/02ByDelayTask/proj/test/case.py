@@ -43,7 +43,7 @@ def case_station():
         批量写入 station 的 case
     @return:
     """
-    query_gp = get_gp(ty_code='2022', ts='2020042710', path_type='c', path_marking=20042710, bp=0, is_increase=True)
+    query_gp = get_gp(ty_code='2022', ts='2021010416', path_type='c', path_marking=2021010416, bp=0, is_increase=True)
     gmt_start = datetime(2020, 9, 15, 17)
     gmt_end = datetime(2020, 9, 18, 0)
     ty_detail: TyphoonForecastDetailModel = TyphoonForecastDetailModel(code='2022',
@@ -55,7 +55,7 @@ def case_station():
     target_gp = None
     forecast_dt_start: datetime = datetime(2020, 9, 15, 17)
     ty_timestamp: str = 'TY2022_2021010416'
-    ty_id: int = 3
+    ty_id: int = 1
     dir_path: str = str(pathlib.Path(ROOT_DIR) / ty_timestamp / 'STATION')
     if len(query_gp) > 0:
         target_gp = query_gp[0]
