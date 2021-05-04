@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'station',
     'common',
     'users',
+    'geo',
 ]
 CORS_ALLOW_CREDENTIALS = True
 CORS_ORIGIN_ALLOW_ALL = True
@@ -140,4 +141,12 @@ STATIC_URL = '/static/'
 MY_PAGINATOR = {
     'PAGE_INDEX': 1,
     'PAGE_COUNT': 10
+}
+
+# TODO:[-] 20-11-03 加入的测试时使用的读取存储文件的网络存储的相关信息
+STORE_OPTIONS = {
+    'URL': 'localhost',
+    'HOST': 82,  # TODO:[-] 21-01-03 暂时将 nginx 的端口改为了 82 ，注意！
+    'STORE_COMMON_BASE': 'images',  # 对应 nginx 的映射的根目录
+    'HEAD': 'nmefc_download'  # nginx 实际存储的 起始路径
 }

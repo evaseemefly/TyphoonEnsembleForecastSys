@@ -28,4 +28,5 @@ urlpatterns = [
     url('^users/', include(('users.urls', "auth"), namespace="user")),
     url('^typhoon/', include(('typhoon.urls', "typhoon"), namespace="typhoon")),
     url('^station/', include(('station.urls', "station"), namespace="station")),
+    url('^geo/', include(('geo.urls', "geo"), namespace="geo")),
 ]

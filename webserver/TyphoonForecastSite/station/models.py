@@ -1,7 +1,8 @@
 from django.db import models
 from django.utils.timezone import now
 # 同项目的其他组件
-from typhoon.models import IDelModel, IIdModel, IModel
+# from typhoon.models import IDelModel, IIdModel, IModel
+from common.imodels import IDelModel, IIdModel, IModel
 from util.const import DEFAULT_FK, UNLESS_INDEX, DEFAULT_CODE, ABS_KEY
 
 
