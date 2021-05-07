@@ -22,6 +22,7 @@ class ForecastTifModel(IDelModel, IIdModel, IModel, ITyPathModel, IBpModel, ISpl
     coverage_type = models.IntegerField(default=DEFAULT_FK)
     ty_code = models.CharField(max_length=200)
     timestamp = models.CharField(max_length=100)
+    forecast_dt = models.DateTimeField(default=now)
 
     class Meta:
         db_table = 'geo_forecast_tif'
