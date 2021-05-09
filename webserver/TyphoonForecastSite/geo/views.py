@@ -28,9 +28,11 @@ class GeoTiffView(RasterBaseView):
         id: int = int(request.GET.get('id')) if request.GET.get('id', None) else DEFAULT_NULL_KEY
         ty_code: str = request.GET.get('ty_code', None)
         ty_timestamp_str: str = request.GET.get('ty_timestamp', None)
+        forecast_dt: datetime = request.GET.get('forecast_dt', None)
         # ty_timestamp: datetime = arrow.get(ty_timestamp_str).datetime
         try:
-            self.json_data = self.get_tif_url(request, id=id, ty_code=ty_code, timestamp=ty_timestamp_str)
+            self.json_data = self.get_tif_url(request, id=id, ty_code=ty_code, timestamp=ty_timestamp_str,
+                                              forecast_dt=forecast_dt)
             self._status = 200
         except NoneError as noneErr:
             self.json_data = noneErr.args

@@ -35,6 +35,7 @@ class RasterBaseView(BaseView):
     def get_coverage(self, id: int = DEFAULT_NULL_KEY, **kwargs) -> CoverageInfoModel:
         """
             获取 对应的 coverage
+            注意: 获取 coverage 不需要 forecast_dt
         @param id:
         @param kwargs: 可选参数 ty_code | timestamp
         @return:
@@ -42,6 +43,7 @@ class RasterBaseView(BaseView):
         query: CoverageInfoModel = None
         ty_code: str = kwargs.get('ty_code', None)
         ty_timestamp: str = kwargs.get('timestamp', None)
+        forecast_dt: datetime = kwargs.get('forecast_dt', None)
         if id not in [DEFAULT_NULL_KEY]:
             query = CoverageInfoModel.objects.filter(id=id)
         else:
@@ -50,6 +52,8 @@ class RasterBaseView(BaseView):
             query = query.filter(ty_code=ty_code)
         if ty_timestamp:
             query = query.filter(timestamp=ty_timestamp)
+        # if forecast_dt:
+        #     query = query.filter(forecast_dt=forecast_dt)
 
         return query.first()
 
@@ -57,25 +61,30 @@ class RasterBaseView(BaseView):
         gcid: int = kwargs.get('gcid')
         ty_code: str = kwargs.get('ty_code')
         ty_timestamp: str = kwargs.get('timestamp')
+        forecast_dt: datetime = kwargs.get('forecast_dt', None)
 
-        query = ForecastTifModel.objects.filter(gcid=gcid, ty_code=ty_code, timestamp=ty_timestamp)
+        query = ForecastTifModel.objects.filter(gcid=gcid, ty_code=ty_code, timestamp=ty_timestamp,
+                                                forecast_dt=forecast_dt)
         res: CoverageInfoModel = None
-        if len(query) > 0:
+        if query and len(query) > 0:
             res = query.first()
         return res
 
     def get_tif_url(self, request: Request, **kwargs) -> str:
         """
              获取指定的 tif url
-        @param request: 可选参数 ty_code | timestamp
+        @param request: 可选参数 ty_code | timestamp | forecast_dt
         @return:
         """
         ty_code = kwargs.get('ty_code', None)
         ty_timestamp = kwargs.get('timestamp', None)
+        # + 21-05-07 新加入的 forecast_dt
+        forecast_dt: datetime = kwargs.get('forecast_dt', None)
         query_coverage: CoverageInfoModel = self.get_coverage(ty_code=ty_code, timestamp=ty_timestamp)
         # 获取 coverage_id 作为 tb:tif 的 gcid
         coverage_id: int = query_coverage.id
-        res_tif: ForecastTifModel = self._query_tif(gcid=coverage_id, ty_code=ty_code, timestamp=ty_timestamp)
+        res_tif: ForecastTifModel = self._query_tif(gcid=coverage_id, ty_code=ty_code, timestamp=ty_timestamp,
+                                                    forecast_dt=forecast_dt)
 
         store_url: str = STORE_OPTIONS.get('URL')
         store_host: int = STORE_OPTIONS.get('HOST')
