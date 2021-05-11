@@ -7,6 +7,7 @@ from typing import List
 import arrow
 from django.shortcuts import render
 from django.core.serializers import serialize
+from django.db.models import Max, Min
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from rest_framework.response import Response
 from rest_framework.request import Request
@@ -50,18 +51,20 @@ class StationListBaseView(BaseView, APIView):
                                                                        'lon': 'lon'})
         return query
 
-    def get_relation_station(self, gp_id: int, forecast_dt_str: str) -> {}:
+    def get_relation_surge_range_value(self, station_code: str, forecast_dt_str: str) -> {}:
         forecast_dt: datetime = arrow.get(forecast_dt_str).datetime
         # query = StationForecastRealDataModel.objects.filter(gp_id=gp_id)
         # TODO:[*] 21-04-27 最后发现此种方式可行
         # select 就相当于是 sql 中的 SELECT 语句
         # tables 相当于 sql 中的 FROM
         # where 相当于 sql 中的 WHERE
-        query = StationForecastRealDataModel.objects.filter(gp_id=gp_id, forecast_dt=forecast_dt).extra(
+        query = StationForecastRealDataModel.objects.filter(station_code=station_code, forecast_dt=forecast_dt).extra(
             select={'station_code': 'station_forecast_realdata.station_code', 'lat': 'station_info.lat',
                     'lon': 'station_info.lon', 'name': 'station_info.name'},
             tables=['station_forecast_realdata', 'station_info'],
             where=['station_forecast_realdata.station_code=station_info.code'])
+        # AttributeError: 'QuerySet' object has no attribute 'arregate'
+        query = query.arregate(Max('surge'), Min('surge'))
         return query
 
 
@@ -105,3 +108,44 @@ class StationListView(StationListBaseView):
             except Exception as ex:
                 self.json = ex.args
         return Response(self.json_data, status=self._status)
+
+
+class StationSurgeRangeValueListView(StationListBaseView):
+    """
+        根据 forecast 与 ts 获取
+        tb:station_forecast_realdata 与 tb:station_info
+        获取预报范围值 和 当前中心路径的实际值
+    """
+
+    def get(self, request: Request) -> Response:
+        """
+
+        @param request:
+        @return:
+        """
+        is_paged = bool(int(request.GET.get('is_paged', '0')))
+        forecast_dt_str: datetime = request.GET.get('forecast_dt')
+        page_index = request.GET.get('page_index', str(DEFAULT_PAGE_INDEX))
+        page_count = DEFAULT_PAGE_COUNT
+        query: List[StationForecastRealDataModel] = []
+        stations: List[StationInfoModel] = self.get_all_station()
+        stations_codes: List[int] = [temp.code for temp in stations]
+        # 方式2: 使用extra 的方式使用伪sql 代码实现 跨表拼接查询
+        for temp_code in stations_codes:
+            query = self.get_relation_surge_range_value(station_code=temp_code, forecast_dt_str=forecast_dt_str)
+            # 测试一下关联查询
+            # res = query.union(stations)
+            if is_paged:
+                paginator = Paginator(query, page_count)
+                contacts = paginator.get_page(page_index)
+        try:
+
+            self.json_data = StationForecastRealDataComplexSerializer(contacts if is_paged else query[:],
+                                                                      many=True).data
+            self._status = 200
+
+        except Exception as ex:
+            self.json = ex.args
+
+        return Response(self.json_data, status=self._status)
+        pass

@@ -39,6 +39,7 @@ class StationForecastRealDataModel(IIdModel, IDelModel, IModel):
     forecast_dt = models.DateTimeField(default=now)
     forecast_index = models.IntegerField(default=UNLESS_INDEX)
     surge = models.FloatField()
+    timestamp = models.CharField(max_length=100, default='2021010416')  # + 21-05-11 新加入的时间戳字段
 
     # station_info = models.OneToOneField(StationInfoModel, on_delete=models.CASCADE)
 
