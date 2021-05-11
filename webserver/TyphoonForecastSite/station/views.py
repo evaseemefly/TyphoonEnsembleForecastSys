@@ -18,7 +18,8 @@ from rest_framework.decorators import (APIView, api_view,
 # --
 # 本项目的
 from .models import StationForecastRealDataModel, StationInfoModel
-from .serializers import StationForecastRealDataSerializer, StationForecastRealDataComplexSerializer
+from .serializers import StationForecastRealDataSerializer, StationForecastRealDataComplexSerializer, \
+    StationForecastRealDataRangeSerializer
 # 公共的
 from TyphoonForecastSite.settings import MY_PAGINATOR
 from util.const import DEFAULT_NULL_KEY, UNLESS_TY_CODE
@@ -60,11 +61,25 @@ class StationListBaseView(BaseView, APIView):
         # where 相当于 sql 中的 WHERE
         query = StationForecastRealDataModel.objects.filter(station_code=station_code, forecast_dt=forecast_dt).extra(
             select={'station_code': 'station_forecast_realdata.station_code', 'lat': 'station_info.lat',
-                    'lon': 'station_info.lon', 'name': 'station_info.name'},
+                    'lon': 'station_info.lon', 'name': 'station_info.name', 'surge': 'station_forecast_realdata.surge'},
             tables=['station_forecast_realdata', 'station_info'],
             where=['station_forecast_realdata.station_code=station_info.code'])
         # AttributeError: 'QuerySet' object has no attribute 'arregate'
-        query = query.arregate(Max('surge'), Min('surge'))
+        query = query.aggregate(Max('surge'), Min('surge'))
+        return query
+
+    def get_relation_station(self, gp_id: int, forecast_dt_str: str) -> {}:
+        forecast_dt: datetime = arrow.get(forecast_dt_str).datetime
+        # query = StationForecastRealDataModel.objects.filter(gp_id=gp_id)
+        # TODO:[*] 21-04-27 最后发现此种方式可行
+        # select 就相当于是 sql 中的 SELECT 语句
+        # tables 相当于 sql 中的 FROM
+        # where 相当于 sql 中的 WHERE
+        query = StationForecastRealDataModel.objects.filter(gp_id=gp_id, forecast_dt=forecast_dt).extra(
+            select={'station_code': 'station_forecast_realdata.station_code', 'lat': 'station_info.lat',
+                    'lon': 'station_info.lon', 'name': 'station_info.name', 'surge': 'station_forecast_realdata.surge'},
+            tables=['station_forecast_realdata', 'station_info'],
+            where=['station_forecast_realdata.station_code=station_info.code'])
         return query
 
 
@@ -130,18 +145,21 @@ class StationSurgeRangeValueListView(StationListBaseView):
         query: List[StationForecastRealDataModel] = []
         stations: List[StationInfoModel] = self.get_all_station()
         stations_codes: List[int] = [temp.code for temp in stations]
+        station_realdata_list: List[{}] = []
         # 方式2: 使用extra 的方式使用伪sql 代码实现 跨表拼接查询
         for temp_code in stations_codes:
-            query = self.get_relation_surge_range_value(station_code=temp_code, forecast_dt_str=forecast_dt_str)
+            res = self.get_relation_surge_range_value(station_code=temp_code, forecast_dt_str=forecast_dt_str)
+            res['station_code'] = temp_code
+            station_realdata_list.append(res)
             # 测试一下关联查询
             # res = query.union(stations)
-            if is_paged:
-                paginator = Paginator(query, page_count)
-                contacts = paginator.get_page(page_index)
+            # if is_paged:
+            #     paginator = Paginator(query, page_count)
+            #     contacts = paginator.get_page(page_index)
         try:
 
-            self.json_data = StationForecastRealDataComplexSerializer(contacts if is_paged else query[:],
-                                                                      many=True).data
+            self.json_data = StationForecastRealDataRangeSerializer(station_realdata_list,
+                                                                    many=True).data
             self._status = 200
 
         except Exception as ex:
