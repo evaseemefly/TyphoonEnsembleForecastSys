@@ -170,4 +170,7 @@ class TyDataRangeView(TypGroupBaseView):
         ty_code: str = request.GET.get('ty_code', UNLESS_TY_CODE)
         timestamp_str: str = request.GET.get('timestamp', None)
         query = self.getCenterGroupPath(ty_code=ty_code, timestamp=timestamp_str)
+        dt_range: [] = self.getCenterPathDateRange((query.first()))
+        self.json_data = dt_range
+        self._status = 200
         return Response(self.json_data, status=self._status)
