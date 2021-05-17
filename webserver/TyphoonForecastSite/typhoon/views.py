@@ -6,6 +6,7 @@ from rest_framework.request import Request
 
 # -- 本项目
 from common.view_base import BaseView
+from typhoon.views_base import TypGroupBaseView
 from .models import TyphoonForecastDetailModel, TyphoonGroupPathModel, TyphoonForecastRealDataModel
 from .mid_models import TyphoonComplexGroupRealDataMidModel
 from .serializers import TyphoonForecastDetailSerializer, TyphoonGroupPathSerializer, TyphoonForecastRealDataSerializer, \
@@ -155,4 +156,18 @@ class TyComplexGroupRealDatasetView(BaseView):
                 # The serializer field might be named incorrectly and not match any attribute or key on the `list` instance.
                 # Original exception text was: 'list' object has no attribute 'ty_id'.
                 self.json = ex.args
+        return Response(self.json_data, status=self._status)
+
+
+class TyDataRangeView(TypGroupBaseView):
+    def get(self, request: Request) -> Response:
+        """
+
+        @param request:
+        @return:
+        """
+        ty_id: int = int(request.GET.get('ty_id', str(DEFAULT_NULL_KEY)))
+        ty_code: str = request.GET.get('ty_code', UNLESS_TY_CODE)
+        timestamp_str: str = request.GET.get('timestamp', None)
+        query = self.getCenterGroupPath(ty_code=ty_code, timestamp=timestamp_str)
         return Response(self.json_data, status=self._status)

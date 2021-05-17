@@ -11,7 +11,7 @@ from django.conf.urls import url, include
 from rest_framework import routers
 
 # 本项目
-from .views import TyDetailModelView, TyGroupPathView, TyRealDataView, TyComplexGroupRealDatasetView
+from .views import TyDetailModelView, TyGroupPathView, TyRealDataView, TyComplexGroupRealDatasetView, TyDataRangeView
 
 app_name = '[typhoon]'
 
@@ -23,4 +23,5 @@ urlpatterns = [
     # 根据查询条件获取 typhoonRealDataset 的列表
     url(r'^tyRealDataset/list$', TyRealDataView.as_view()),
     url(r'^tyComplex/group/realdata/list$', TyComplexGroupRealDatasetView.as_view()),
+    url(r'^tyGroupPath/datarage$', TyDataRangeView.as_view()),
 ]
