@@ -11,7 +11,8 @@ from django.conf.urls import url, include
 from rest_framework import routers
 
 # 本项目
-from .views import TyDetailModelView, TyGroupPathView, TyRealDataView, TyComplexGroupRealDatasetView, TyDataRangeView
+from .views import TyDetailModelView, TyGroupPathView, TyRealDataView, TyComplexGroupRealDatasetView, TyDataRangeView, \
+    TyGroupDateDistView
 
 app_name = '[typhoon]'
 
@@ -24,4 +25,5 @@ urlpatterns = [
     url(r'^tyRealDataset/list$', TyRealDataView.as_view()),
     url(r'^tyComplex/group/realdata/list$', TyComplexGroupRealDatasetView.as_view()),
     url(r'^tyGroupPath/datarage$', TyDataRangeView.as_view()),
+    url(r'^tyGroupPath/dist/date$', TyGroupDateDistView.as_view()),
 ]

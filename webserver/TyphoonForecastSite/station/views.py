@@ -216,4 +216,3 @@ class StationSurgeRangeValueListView(StationListBaseView):
             self.json = ex.args
 
         return Response(self.json_data, status=self._status)
-        pass

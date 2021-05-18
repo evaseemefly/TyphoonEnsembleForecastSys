@@ -6,7 +6,7 @@ from rest_framework.request import Request
 
 # -- 本项目
 from common.view_base import BaseView
-from typhoon.views_base import TypGroupBaseView
+from typhoon.views_base import TyGroupBaseView
 from .models import TyphoonForecastDetailModel, TyphoonGroupPathModel, TyphoonForecastRealDataModel
 from .mid_models import TyphoonComplexGroupRealDataMidModel
 from .serializers import TyphoonForecastDetailSerializer, TyphoonGroupPathSerializer, TyphoonForecastRealDataSerializer, \
@@ -159,18 +159,49 @@ class TyComplexGroupRealDatasetView(BaseView):
         return Response(self.json_data, status=self._status)
 
 
-class TyDataRangeView(TypGroupBaseView):
+class TyDataRangeView(TyGroupBaseView):
+    """
+
+    """
+
     def get(self, request: Request) -> Response:
         """
-
+            获取对应的 tyGroup 的时间范围
         @param request:
         @return:
         """
         ty_id: int = int(request.GET.get('ty_id', str(DEFAULT_NULL_KEY)))
-        ty_code: str = request.GET.get('ty_code', UNLESS_TY_CODE)
+        ty_code: str = request.GET.get('ty_code', None)
         timestamp_str: str = request.GET.get('timestamp', None)
-        query = self.getCenterGroupPath(ty_code=ty_code, timestamp=timestamp_str)
-        dt_range: [] = self.getCenterPathDateRange((query.first()))
+        dt_range: [] = []
+        if all([ty_code, timestamp_str]) and not 'DEFAULT' in [ty_code, timestamp_str]:
+            query = self.getCenterGroupPath(ty_code=ty_code, timestamp=timestamp_str)
+            dt_range = self.getCenterPathDateRange((query.first()))
+        else:
+            dt_range = self.getDefaultDateRange()
         self.json_data = dt_range
         self._status = 200
+        return Response(self.json_data, status=self._status)
+
+
+class TyGroupDateDistView(TyGroupBaseView):
+    def get(self, request: Request) -> Response:
+        """
+            获取对应的 tyGroup 的时间列表(相当于知道了时间间隔)
+        @param request:
+        @return:
+        """
+        ty_id: int = int(request.GET.get('ty_id', str(DEFAULT_NULL_KEY)))
+        ty_code: str = request.GET.get('ty_code', None)
+        timestamp_str: str = request.GET.get('timestamp', None)
+        list_dt_dist: [] = []
+        if all([ty_code, timestamp_str]):
+            try:
+                query = self.getCenterGroupPath(ty_code=ty_code, timestamp=timestamp_str)
+                list_dt_dist = self.getDateDist(query.first())
+                self.json_data = list_dt_dist
+                self._status = 200
+            except Exception as e:
+                print(e.args)
+
         return Response(self.json_data, status=self._status)
