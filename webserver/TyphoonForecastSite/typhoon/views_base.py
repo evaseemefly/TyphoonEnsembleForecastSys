@@ -15,7 +15,7 @@ from django.db.models import Max, Min
 from typing import List
 
 import arrow
-from arrow.arrow import TZ_EXPR, Arrow
+from arrow.arrow import  Arrow
 
 from .models import TyphoonForecastDetailModel, TyphoonGroupPathModel, TyphoonForecastRealDataModel
 from common.view_base import BaseView
