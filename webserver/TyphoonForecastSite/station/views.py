@@ -8,6 +8,7 @@ import arrow
 from django.shortcuts import render
 from django.core.serializers import serialize
 from django.db.models import Max, Min
+from django.db.models import QuerySet
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from rest_framework.response import Response
 from rest_framework.request import Request
@@ -19,17 +20,18 @@ from rest_framework.decorators import (APIView, api_view,
 # 本项目的
 from .models import StationForecastRealDataModel, StationInfoModel
 from .serializers import StationForecastRealDataSerializer, StationForecastRealDataComplexSerializer, \
-    StationForecastRealDataRangeSerializer,StationForecastRealDataMixin
+    StationForecastRealDataRangeSerializer, StationForecastRealDataMixin, StationForecastRealDataComplexSerializer
 # 公共的
 from TyphoonForecastSite.settings import MY_PAGINATOR
-from util.const import DEFAULT_NULL_KEY, UNLESS_TY_CODE
+from util.const import DEFAULT_NULL_KEY, UNLESS_TY_CODE, DEFAULT_CODE
 from common.view_base import BaseView
+from typhoon.views_base import TyGroupBaseView
 
 DEFAULT_PAGE_INDEX = MY_PAGINATOR.get('PAGE_INDEX')
 DEFAULT_PAGE_COUNT = MY_PAGINATOR.get('PAGE_COUNT')
 
 
-class StationListBaseView(BaseView, APIView):
+class StationListBaseView(TyGroupBaseView):
     def get_all_station(self) -> List[StationInfoModel]:
         """
             获取全部的 非 is_del + is_abs 的station
@@ -116,6 +118,68 @@ class StationListBaseView(BaseView, APIView):
             tables=['station_forecast_realdata', 'station_info'],
             where=['station_forecast_realdata.station_code=station_info.code'])
         return query
+
+    def get_surge_list(self, station_code: str, gp_id: int) -> List[StationForecastRealDataModel]:
+        """
+            + 21-05-26 根据 station_code 与 gp_id 该站点的时序数据
+        @param station_code:
+        @param gp_id:
+        @return:
+        """
+        res: List[StationForecastRealDataModel] = StationForecastRealDataModel.objects.filter(station_code=station_code,
+                                                                                              gp_id=gp_id).all()
+        return res
+
+    def get_surge_realdata_dist_dt(self, station_code: str, ty_code: str, timestamp: str):
+        """
+            + 21-05-26 根据 station_code | ty_code | timestamp
+            -> 中间路径对应的 tb:station_forecast_realdata
+        @param station_code:
+        @param ty_code:
+        @param timestamp:
+        @return:
+        """
+        qs_group_path: QuerySet = self.getCenterGroupPath(ty_code=ty_code, timestamp=timestamp)
+        qs_real_data: QuerySet = None
+        if (len(qs_group_path)) > 0:
+            gp_center = qs_group_path.first()
+            # 查询 tb:station_forecast_realdata 的条件有 : station_code | ty_code | timestamp | 中间路径 gp_id
+            qs_real_data = StationForecastRealDataModel.objects.filter(station_code=station_code, ty_code=ty_code,
+                                                                       timestamp=timestamp,
+                                                                       gp_id=gp_center.id).values('forecast_dt',
+                                                                                                  'surge').order_by(
+                'forecast_dt')
+        return qs_real_data
+        pass
+
+    def get_surge_all_group(self, station_code: str, ty_code: str, timestamp: str):
+        """
+            + 21-05-26 根据 station_code | ty_code | timestamp
+            -> tb:station_forecast_realdata
+            by dist forecast_dt
+            并 逐一求 max 与 min
+        @param station_code:
+        @param ty_code:
+        @param timestamp:
+        @return:
+        """
+        # TODO:[-] 21-05-26 Unable to get repr for <class 'method'>
+        # 获取指定条件的全部 forecast_dt 的 dist list
+        qs_dist_forecast_dt: QuerySet = StationForecastRealDataModel.objects.filter(station_code=station_code,
+                                                                                    ty_code=ty_code,
+                                                                                    timestamp=timestamp).values(
+            'forecast_dt').distinct()
+        list_dist_forecast_dt = [temp.get('forecast_dt') for temp in qs_dist_forecast_dt]
+
+        # 根据 forecast_dt dist list -> tb:station_forecast_realdata
+        res: QuerySet = StationForecastRealDataModel.objects.filter(station_code=station_code, ty_code=ty_code,
+                                                                    timestamp=timestamp).extra(
+            where=['forecast_dt in %s'], params=[list_dist_forecast_dt])
+        # eg:
+        # <class 'dict'>: {'forecast_dt': datetime.datetime(2020, 9, 15, 17, 0, tzinfo=<UTC>), 'surge_max': 0.0}
+        res: QuerySet = res.values('forecast_dt').annotate(surge_max=Max('surge'), surge_min=Min('surge')).order_by(
+            'forecast_dt')
+        return res
 
 
 class StationListView(StationListBaseView):
@@ -209,10 +273,48 @@ class StationSurgeRangeValueListView(StationListBaseView):
         try:
 
             self.json_data = StationForecastRealDataMixin(station_finial_list,
-                                                                    many=True).data
+                                                          many=True).data
             self._status = 200
 
         except Exception as ex:
             self.json = ex.args
 
         return Response(self.json_data, status=self._status)
+
+
+class StationSurgeRealListRangeValueView(StationListBaseView):
+    """
+        + 21-05-26 加载潮位站 指定过程的 历史曲线以及范围曲线
+    """
+
+    def get(self, request: Request) -> Response:
+        """
+            + 21-05-26 ty_code | timestamp -> gp_id
+              gp_id | station_code 找到对应的 tb: station_forecast_realdata 的数据集
+        @param request:
+        @return:
+        """
+        list_res: List[{}] = []
+        ty_code: str = request.GET.get('ty_code', None)
+        forecast_dt_str: datetime = request.GET.get('forecast_dt')
+        timestamp_str: str = request.GET.get('timestamp', None)
+
+        gp_id: int = int(request.GET.get('gp_id')) if request.GET.get('gp_id', None) is not None else DEFAULT_NULL_KEY
+        station_code: str = request.GET.get('station_code', None) if request.GET.get('station_code',
+                                                                                     None) is not None else DEFAULT_CODE
+        self.get_surge_list(station_code, gp_id)
+        # 包含 forecast_dt + surge_max + surge_min
+        qs_surge_range = self.get_surge_all_group(station_code, ty_code, timestamp_str)
+        # 包含 forecast_dt + surge
+        qs_surge_realdatalist = self.get_surge_realdata_dist_dt(station_code, ty_code, timestamp_str)
+        # 将两者拼接
+        for index in range(len(qs_surge_range)):
+            temp_range = qs_surge_range[index]
+            temp_realdata = qs_surge_realdatalist[index]
+            list_res.append({**temp_range, **temp_realdata})
+        self._status = 200
+        # 序列化
+        self.json_data = StationForecastRealDataComplexSerializer(list_res, many=True).data
+        return Response(self.json_data, status=self._status)
+
+    pass
