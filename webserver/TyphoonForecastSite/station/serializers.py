@@ -28,7 +28,7 @@ class StationForecastRealDataRangeSerializer(serializers.Serializer):
     station_code = serializers.CharField()
 
 
-class StationForecastRealDataComplexSerializer(serializers.Serializer):
+class StationForecastRealDataRangeComplexSerializer(serializers.Serializer):
     """
         + 21-05-26 海洋展潮位数据 混合 序列化器
     """
