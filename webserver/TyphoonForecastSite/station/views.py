@@ -20,7 +20,7 @@ from rest_framework.decorators import (APIView, api_view,
 # 本项目的
 from .models import StationForecastRealDataModel, StationInfoModel
 from .serializers import StationForecastRealDataSerializer, StationForecastRealDataComplexSerializer, \
-    StationForecastRealDataRangeSerializer, StationForecastRealDataMixin, StationForecastRealDataComplexSerializer
+    StationForecastRealDataRangeSerializer, StationForecastRealDataMixin, StationForecastRealDataRangeComplexSerializer
 # 公共的
 from TyphoonForecastSite.settings import MY_PAGINATOR
 from util.const import DEFAULT_NULL_KEY, UNLESS_TY_CODE, DEFAULT_CODE
@@ -314,7 +314,7 @@ class StationSurgeRealListRangeValueView(StationListBaseView):
             list_res.append({**temp_range, **temp_realdata})
         self._status = 200
         # 序列化
-        self.json_data = StationForecastRealDataComplexSerializer(list_res, many=True).data
+        self.json_data = StationForecastRealDataRangeComplexSerializer(list_res, many=True).data
         return Response(self.json_data, status=self._status)
 
     pass
