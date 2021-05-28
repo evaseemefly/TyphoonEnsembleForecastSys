@@ -7,6 +7,8 @@
 # @File    : views_base.py
 # @Software: PyCharm
 from datetime import datetime, timedelta
+from abc import abstractmethod
+# ---
 from django.db.models import QuerySet
 from rest_framework.response import Response
 from rest_framework.request import Request
@@ -19,6 +21,8 @@ from arrow.arrow import Arrow
 
 from .models import TyphoonForecastDetailModel, TyphoonGroupPathModel, TyphoonForecastRealDataModel
 from common.view_base import BaseView
+from common.interface import ICheckExisted
+from util.common import inter
 
 
 class TyGroupBaseView(BaseView):
@@ -77,3 +81,27 @@ class TyGroupBaseView(BaseView):
         start_time: datetime = arrow.Arrow(now.year, now.month, now.day, now.hour, 0).datetime
         end_time: datetime = start_time + timedelta(hours=24)
         return [start_time, end_time]
+
+
+class TyGroupCommonView(ICheckExisted):
+    # @staticmethod
+    def check_existed(self, ty_code: str, timestamp: str, forecast_dt: datetime) -> bool:
+        """
+            + 21-05-28
+            根据 传入的参数 判断是否存在指定的 台风路径信息
+            目前只从 -> tb: ty_forecast_detailinfo 中查找 gmt_start < forecast_dt and gmt_end > forecast_dt
+        @param ty_code:
+        @param timestamp:
+        @param forecast_dt:
+        @return:
+        """
+        isExisted: bool = False
+        query_ty_detail: QuerySet = TyphoonForecastDetailModel.objects.filter(code=ty_code, gmt_start__lte=forecast_dt,
+                                                                              gmt_end__gte=forecast_dt)
+        query_ty_grouppath: QuerySet = TyphoonGroupPathModel.objects.filter(ty_code=ty_code, timestamp=timestamp)
+        if len(query_ty_grouppath) > 0 and len(query_ty_detail) > 0:
+            list_detial_ids: List[int] = [temp.id for temp in query_ty_detail]
+            list_grouppath_tyids: List[int] = [temp.ty_id for temp in query_ty_grouppath]
+            if len(inter(list_detial_ids, list_grouppath_tyids)) > 0:
+                isExisted = True
+        return isExisted

@@ -31,6 +31,7 @@ DEFAULT_PAGE_INDEX = MY_PAGINATOR.get('PAGE_INDEX')
 DEFAULT_PAGE_COUNT = MY_PAGINATOR.get('PAGE_COUNT')
 
 
+
 class StationListBaseView(TyGroupBaseView):
     def get_all_station(self) -> List[StationInfoModel]:
         """
