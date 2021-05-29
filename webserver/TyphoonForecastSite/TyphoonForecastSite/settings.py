@@ -150,3 +150,6 @@ STORE_OPTIONS = {
     'STORE_COMMON_BASE': 'images',  # 对应 nginx 的映射的根目录
     'HEAD': 'nmefc_download'  # nginx 实际存储的 起始路径
 }
+# TODO:[-] 21-05-24 手动添加 gdal lib 的地址
+# TODO:[-] 21-03-27 mac 可以去掉此部分
+# GDAL_LIBRARY_PATH = r'C:\Users\evase\.conda\envs\new_oil_gdal\Library\bin\gdal300'
