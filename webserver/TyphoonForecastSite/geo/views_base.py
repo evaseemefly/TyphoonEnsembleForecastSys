@@ -17,6 +17,7 @@ import arrow
 from django.shortcuts import render
 from django.core.serializers import serialize
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+from django.db.models import QuerySet
 from rest_framework.response import Response
 from rest_framework.request import Request
 from rest_framework.decorators import (APIView, api_view,
@@ -29,6 +30,8 @@ from util.const import DEFAULT_NULL_KEY
 from .models import CoverageInfoModel, ForecastTifModel
 from TyphoonForecastSite.settings import STORE_OPTIONS
 from util.exception import NoneError
+
+from common.interface import ICheckExisted
 
 
 class RasterBaseView(BaseView):
@@ -99,3 +102,20 @@ class RasterBaseView(BaseView):
             raise NoneError(f'ty_code:{ty_code}|ty_timestamp:{ty_timestamp} 查无结果')
         url_full = f'{url_base}/{url_file}'
         return url_full
+
+
+class GeoCommonView(ICheckExisted):
+    def check_existed(self, ty_code: str, timestamp: str, forecast_dt: datetime) -> bool:
+        """
+            + 21-05-28
+            根据 传入的参数 判断是否存在指定的 栅格数据
+        @param ty_code:
+        @param timestamp:
+        @param forecast_dt:
+        @return:
+        """
+        isExisted: bool = False
+        query: QuerySet = ForecastTifModel.objects.filter(ty_code=ty_code, timestamp=timestamp, forecast_dt=forecast_dt)
+        if len(query) > 0:
+            isExisted: bool = True
+        return isExisted
