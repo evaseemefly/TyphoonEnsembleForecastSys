@@ -1,0 +1,1512 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>1530</width>
+    <height>880</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>MainWindow</string>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <layout class="QGridLayout" name="gridLayout_2">
+    <item row="0" column="0">
+     <layout class="QVBoxLayout" name="verticalLayout"/>
+    </item>
+    <item row="0" column="1">
+     <layout class="QVBoxLayout" name="verticalLayout_23">
+      <property name="spacing">
+       <number>15</number>
+      </property>
+      <property name="bottomMargin">
+       <number>0</number>
+      </property>
+      <item>
+       <widget class="QLabel" name="label">
+        <property name="styleSheet">
+         <string notr="true">font: 75 26pt &quot;微软雅黑&quot;;</string>
+        </property>
+        <property name="text">
+         <string>深圳市基于GPU加速的台风风暴潮集合预报系统</string>
+        </property>
+        <property name="textFormat">
+         <enum>Qt::AutoText</enum>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignCenter</set>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <layout class="QGridLayout" name="gridLayout_5" columnstretch="6,5">
+        <item row="0" column="0">
+         <layout class="QVBoxLayout" name="verticalLayout_22" stretch="1,20">
+          <property name="spacing">
+           <number>3</number>
+          </property>
+          <property name="sizeConstraint">
+           <enum>QLayout::SetMinimumSize</enum>
+          </property>
+          <item>
+           <layout class="QHBoxLayout" name="horizontalLayout_14" stretch="4,1,1,1">
+            <property name="spacing">
+             <number>6</number>
+            </property>
+            <property name="sizeConstraint">
+             <enum>QLayout::SetMinimumSize</enum>
+            </property>
+            <property name="leftMargin">
+             <number>3</number>
+            </property>
+            <property name="topMargin">
+             <number>3</number>
+            </property>
+            <property name="rightMargin">
+             <number>3</number>
+            </property>
+            <property name="bottomMargin">
+             <number>3</number>
+            </property>
+            <item>
+             <widget class="QGroupBox" name="groupBox">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+                <horstretch>1</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="styleSheet">
+               <string notr="true">font: 11pt &quot;微软雅黑&quot;;</string>
+              </property>
+              <property name="title">
+               <string>输入 &amp;&amp; 启动</string>
+              </property>
+              <layout class="QGridLayout" name="gridLayout">
+               <property name="sizeConstraint">
+                <enum>QLayout::SetMinimumSize</enum>
+               </property>
+               <property name="leftMargin">
+                <number>3</number>
+               </property>
+               <property name="topMargin">
+                <number>3</number>
+               </property>
+               <property name="rightMargin">
+                <number>3</number>
+               </property>
+               <property name="bottomMargin">
+                <number>3</number>
+               </property>
+               <property name="spacing">
+                <number>3</number>
+               </property>
+               <item row="0" column="0">
+                <layout class="QHBoxLayout" name="horizontalLayout_13" stretch="4,1">
+                 <property name="spacing">
+                  <number>4</number>
+                 </property>
+                 <property name="sizeConstraint">
+                  <enum>QLayout::SetMinimumSize</enum>
+                 </property>
+                 <item>
+                  <layout class="QVBoxLayout" name="verticalLayout_21">
+                   <property name="spacing">
+                    <number>6</number>
+                   </property>
+                   <property name="sizeConstraint">
+                    <enum>QLayout::SetMinimumSize</enum>
+                   </property>
+                   <item>
+                    <widget class="QGroupBox" name="groupBox_5">
+                     <property name="styleSheet">
+                      <string notr="true">font: 9pt &quot;微软雅黑&quot;;</string>
+                     </property>
+                     <property name="title">
+                      <string>误差半径及大风半径增减（km）</string>
+                     </property>
+                     <layout class="QVBoxLayout" name="verticalLayout_20">
+                      <property name="spacing">
+                       <number>3</number>
+                      </property>
+                      <property name="leftMargin">
+                       <number>3</number>
+                      </property>
+                      <property name="topMargin">
+                       <number>3</number>
+                      </property>
+                      <property name="rightMargin">
+                       <number>3</number>
+                      </property>
+                      <property name="bottomMargin">
+                       <number>3</number>
+                      </property>
+                      <item>
+                       <layout class="QVBoxLayout" name="verticalLayout_19">
+                        <property name="spacing">
+                         <number>3</number>
+                        </property>
+                        <property name="sizeConstraint">
+                         <enum>QLayout::SetMinimumSize</enum>
+                        </property>
+                        <item>
+                         <layout class="QHBoxLayout" name="horizontalLayout_11">
+                          <property name="spacing">
+                           <number>3</number>
+                          </property>
+                          <property name="leftMargin">
+                           <number>1</number>
+                          </property>
+                          <property name="topMargin">
+                           <number>1</number>
+                          </property>
+                          <property name="rightMargin">
+                           <number>1</number>
+                          </property>
+                          <property name="bottomMargin">
+                           <number>1</number>
+                          </property>
+                          <item>
+                           <widget class="QLabel" name="label_16">
+                            <property name="styleSheet">
+                             <string notr="true">font: 10pt &quot;微软雅黑&quot;;</string>
+                            </property>
+                            <property name="text">
+                             <string>24h</string>
+                            </property>
+                            <property name="alignment">
+                             <set>Qt::AlignCenter</set>
+                            </property>
+                           </widget>
+                          </item>
+                          <item>
+                           <widget class="QLabel" name="label_17">
+                            <property name="styleSheet">
+                             <string notr="true">font: 10pt &quot;微软雅黑&quot;;</string>
+                            </property>
+                            <property name="text">
+                             <string>48h</string>
+                            </property>
+                            <property name="alignment">
+                             <set>Qt::AlignCenter</set>
+                            </property>
+                           </widget>
+                          </item>
+                          <item>
+                           <widget class="QLabel" name="label_18">
+                            <property name="styleSheet">
+                             <string notr="true">font: 10pt &quot;微软雅黑&quot;;</string>
+                            </property>
+                            <property name="text">
+                             <string>72h</string>
+                            </property>
+                            <property name="alignment">
+                             <set>Qt::AlignCenter</set>
+                            </property>
+                           </widget>
+                          </item>
+                          <item>
+                           <widget class="QLabel" name="label_19">
+                            <property name="styleSheet">
+                             <string notr="true">font: 10pt &quot;微软雅黑&quot;;</string>
+                            </property>
+                            <property name="text">
+                             <string>96h</string>
+                            </property>
+                            <property name="alignment">
+                             <set>Qt::AlignCenter</set>
+                            </property>
+                           </widget>
+                          </item>
+                          <item>
+                           <widget class="QLabel" name="label_20">
+                            <property name="styleSheet">
+                             <string notr="true">font: 10pt &quot;微软雅黑&quot;;</string>
+                            </property>
+                            <property name="text">
+                             <string>120h</string>
+                            </property>
+                            <property name="alignment">
+                             <set>Qt::AlignCenter</set>
+                            </property>
+                           </widget>
+                          </item>
+                          <item>
+                           <widget class="QLabel" name="label_21">
+                            <property name="styleSheet">
+                             <string notr="true">font: 10pt &quot;微软雅黑&quot;;</string>
+                            </property>
+                            <property name="text">
+                             <string>dR</string>
+                            </property>
+                            <property name="alignment">
+                             <set>Qt::AlignCenter</set>
+                            </property>
+                           </widget>
+                          </item>
+                         </layout>
+                        </item>
+                        <item>
+                         <layout class="QHBoxLayout" name="horizontalLayout_12">
+                          <property name="spacing">
+                           <number>3</number>
+                          </property>
+                          <property name="leftMargin">
+                           <number>3</number>
+                          </property>
+                          <property name="topMargin">
+                           <number>1</number>
+                          </property>
+                          <property name="rightMargin">
+                           <number>3</number>
+                          </property>
+                          <property name="bottomMargin">
+                           <number>1</number>
+                          </property>
+                          <item>
+                           <widget class="QLineEdit" name="lineEdit_9">
+                            <property name="layoutDirection">
+                             <enum>Qt::LeftToRight</enum>
+                            </property>
+                            <property name="styleSheet">
+                             <string notr="true">font: 10pt &quot;微软雅黑&quot;;</string>
+                            </property>
+                            <property name="text">
+                             <string>60</string>
+                            </property>
+                            <property name="alignment">
+                             <set>Qt::AlignCenter</set>
+                            </property>
+                           </widget>
+                          </item>
+                          <item>
+                           <widget class="QLineEdit" name="lineEdit_10">
+                            <property name="styleSheet">
+                             <string notr="true">font: 10pt &quot;微软雅黑&quot;;</string>
+                            </property>
+                            <property name="text">
+                             <string>100</string>
+                            </property>
+                            <property name="alignment">
+                             <set>Qt::AlignCenter</set>
+                            </property>
+                           </widget>
+                          </item>
+                          <item>
+                           <widget class="QLineEdit" name="lineEdit_11">
+                            <property name="styleSheet">
+                             <string notr="true">font: 10pt &quot;微软雅黑&quot;;</string>
+                            </property>
+                            <property name="text">
+                             <string>120</string>
+                            </property>
+                            <property name="alignment">
+                             <set>Qt::AlignCenter</set>
+                            </property>
+                           </widget>
+                          </item>
+                          <item>
+                           <widget class="QLineEdit" name="lineEdit_12">
+                            <property name="styleSheet">
+                             <string notr="true">font: 10pt &quot;微软雅黑&quot;;</string>
+                            </property>
+                            <property name="text">
+                             <string>150</string>
+                            </property>
+                            <property name="alignment">
+                             <set>Qt::AlignCenter</set>
+                            </property>
+                           </widget>
+                          </item>
+                          <item>
+                           <widget class="QLineEdit" name="lineEdit_13">
+                            <property name="styleSheet">
+                             <string notr="true">font: 10pt &quot;微软雅黑&quot;;</string>
+                            </property>
+                            <property name="text">
+                             <string>180</string>
+                            </property>
+                            <property name="alignment">
+                             <set>Qt::AlignCenter</set>
+                            </property>
+                           </widget>
+                          </item>
+                          <item>
+                           <widget class="QLineEdit" name="lineEdit_14">
+                            <property name="styleSheet">
+                             <string notr="true">font: 10pt &quot;微软雅黑&quot;;</string>
+                            </property>
+                            <property name="text">
+                             <string>0</string>
+                            </property>
+                            <property name="alignment">
+                             <set>Qt::AlignCenter</set>
+                            </property>
+                           </widget>
+                          </item>
+                         </layout>
+                        </item>
+                       </layout>
+                      </item>
+                     </layout>
+                    </widget>
+                   </item>
+                   <item>
+                    <layout class="QHBoxLayout" name="horizontalLayout_10" stretch="4,2,1,2,2">
+                     <property name="spacing">
+                      <number>6</number>
+                     </property>
+                     <property name="sizeConstraint">
+                      <enum>QLayout::SetMinimumSize</enum>
+                     </property>
+                     <property name="leftMargin">
+                      <number>8</number>
+                     </property>
+                     <property name="rightMargin">
+                      <number>10</number>
+                     </property>
+                     <item>
+                      <widget class="QLabel" name="label_22">
+                       <property name="sizePolicy">
+                        <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+                         <horstretch>3</horstretch>
+                         <verstretch>0</verstretch>
+                        </sizepolicy>
+                       </property>
+                       <property name="styleSheet">
+                        <string notr="true">font: 10pt &quot;微软雅黑&quot;;</string>
+                       </property>
+                       <property name="text">
+                        <string>集合成员设定</string>
+                       </property>
+                      </widget>
+                     </item>
+                     <item>
+                      <widget class="QComboBox" name="comboBox">
+                       <property name="sizePolicy">
+                        <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                         <horstretch>2</horstretch>
+                         <verstretch>1</verstretch>
+                        </sizepolicy>
+                       </property>
+                       <item>
+                        <property name="text">
+                         <string>145个</string>
+                        </property>
+                       </item>
+                       <item>
+                        <property name="text">
+                         <string>125个</string>
+                        </property>
+                       </item>
+                       <item>
+                        <property name="text">
+                         <string>105个</string>
+                        </property>
+                       </item>
+                       <item>
+                        <property name="text">
+                         <string>85个</string>
+                        </property>
+                       </item>
+                       <item>
+                        <property name="text">
+                         <string>65个</string>
+                        </property>
+                       </item>
+                       <item>
+                        <property name="text">
+                         <string>45个</string>
+                        </property>
+                       </item>
+                       <item>
+                        <property name="text">
+                         <string>25个</string>
+                        </property>
+                       </item>
+                      </widget>
+                     </item>
+                     <item>
+                      <widget class="QLabel" name="label_31">
+                       <property name="sizePolicy">
+                        <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+                         <horstretch>1</horstretch>
+                         <verstretch>0</verstretch>
+                        </sizepolicy>
+                       </property>
+                       <property name="text">
+                        <string/>
+                       </property>
+                      </widget>
+                     </item>
+                     <item>
+                      <widget class="QLabel" name="label_23">
+                       <property name="sizePolicy">
+                        <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+                         <horstretch>1</horstretch>
+                         <verstretch>0</verstretch>
+                        </sizepolicy>
+                       </property>
+                       <property name="styleSheet">
+                        <string notr="true">font: 10pt &quot;微软雅黑&quot;;</string>
+                       </property>
+                       <property name="text">
+                        <string>TY ID</string>
+                       </property>
+                      </widget>
+                     </item>
+                     <item>
+                      <widget class="QLineEdit" name="lineEdit_15">
+                       <property name="sizePolicy">
+                        <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+                         <horstretch>2</horstretch>
+                         <verstretch>0</verstretch>
+                        </sizepolicy>
+                       </property>
+                       <property name="text">
+                        <string/>
+                       </property>
+                       <property name="alignment">
+                        <set>Qt::AlignCenter</set>
+                       </property>
+                      </widget>
+                     </item>
+                    </layout>
+                   </item>
+                  </layout>
+                 </item>
+                 <item>
+                  <layout class="QVBoxLayout" name="verticalLayout_18">
+                   <property name="spacing">
+                    <number>0</number>
+                   </property>
+                   <property name="sizeConstraint">
+                    <enum>QLayout::SetMinimumSize</enum>
+                   </property>
+                   <property name="leftMargin">
+                    <number>3</number>
+                   </property>
+                   <property name="rightMargin">
+                    <number>3</number>
+                   </property>
+                   <item>
+                    <widget class="QPushButton" name="pushButton_4">
+                     <property name="styleSheet">
+                      <string notr="true">font: 75 10pt &quot;微软雅黑&quot;;</string>
+                     </property>
+                     <property name="text">
+                      <string>读取</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QPushButton" name="pushButton_3">
+                     <property name="styleSheet">
+                      <string notr="true">font: 75 10pt &quot;微软雅黑&quot;;</string>
+                     </property>
+                     <property name="text">
+                      <string>采集</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QPushButton" name="pushButton_2">
+                     <property name="sizePolicy">
+                      <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+                       <horstretch>0</horstretch>
+                       <verstretch>1</verstretch>
+                      </sizepolicy>
+                     </property>
+                     <property name="styleSheet">
+                      <string notr="true">font: 75 12pt &quot;微软雅黑&quot;;</string>
+                     </property>
+                     <property name="text">
+                      <string>启动</string>
+                     </property>
+                    </widget>
+                   </item>
+                  </layout>
+                 </item>
+                </layout>
+               </item>
+              </layout>
+             </widget>
+            </item>
+            <item>
+             <widget class="QGroupBox" name="groupBox_2">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+                <horstretch>1</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="styleSheet">
+               <string notr="true">font: 11pt &quot;微软雅黑&quot;;</string>
+              </property>
+              <property name="title">
+               <string>画图区域设定</string>
+              </property>
+              <layout class="QGridLayout" name="gridLayout_3">
+               <property name="leftMargin">
+                <number>6</number>
+               </property>
+               <property name="topMargin">
+                <number>3</number>
+               </property>
+               <property name="rightMargin">
+                <number>6</number>
+               </property>
+               <property name="bottomMargin">
+                <number>3</number>
+               </property>
+               <property name="horizontalSpacing">
+                <number>3</number>
+               </property>
+               <item row="0" column="0">
+                <layout class="QVBoxLayout" name="verticalLayout_16" stretch="0,1">
+                 <item>
+                  <widget class="QLabel" name="label_5">
+                   <property name="styleSheet">
+                    <string notr="true">font: 10pt &quot;微软雅黑&quot;;</string>
+                   </property>
+                   <property name="text">
+                    <string>西</string>
+                   </property>
+                   <property name="alignment">
+                    <set>Qt::AlignCenter</set>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <layout class="QHBoxLayout" name="horizontalLayout_7">
+                   <property name="spacing">
+                    <number>8</number>
+                   </property>
+                   <property name="leftMargin">
+                    <number>3</number>
+                   </property>
+                   <property name="rightMargin">
+                    <number>3</number>
+                   </property>
+                   <item>
+                    <widget class="QLineEdit" name="lineEdit_3">
+                     <property name="styleSheet">
+                      <string notr="true">font: 10pt &quot;微软雅黑&quot;;</string>
+                     </property>
+                     <property name="text">
+                      <string>110</string>
+                     </property>
+                     <property name="alignment">
+                      <set>Qt::AlignCenter</set>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QLabel" name="label_11">
+                     <property name="styleSheet">
+                      <string notr="true">font: 11pt &quot;微软雅黑&quot;;</string>
+                     </property>
+                     <property name="text">
+                      <string>E</string>
+                     </property>
+                    </widget>
+                   </item>
+                  </layout>
+                 </item>
+                </layout>
+               </item>
+               <item row="0" column="1">
+                <layout class="QVBoxLayout" name="verticalLayout_27" stretch="0,1">
+                 <item>
+                  <widget class="QLabel" name="label_6">
+                   <property name="styleSheet">
+                    <string notr="true">font: 10pt &quot;微软雅黑&quot;;</string>
+                   </property>
+                   <property name="text">
+                    <string>东</string>
+                   </property>
+                   <property name="alignment">
+                    <set>Qt::AlignCenter</set>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <layout class="QHBoxLayout" name="horizontalLayout_8">
+                   <property name="spacing">
+                    <number>8</number>
+                   </property>
+                   <property name="leftMargin">
+                    <number>3</number>
+                   </property>
+                   <property name="rightMargin">
+                    <number>3</number>
+                   </property>
+                   <item>
+                    <widget class="QLineEdit" name="lineEdit_4">
+                     <property name="styleSheet">
+                      <string notr="true">font: 10pt &quot;微软雅黑&quot;;</string>
+                     </property>
+                     <property name="text">
+                      <string>118</string>
+                     </property>
+                     <property name="alignment">
+                      <set>Qt::AlignCenter</set>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QLabel" name="label_12">
+                     <property name="styleSheet">
+                      <string notr="true">font: 11pt &quot;微软雅黑&quot;;</string>
+                     </property>
+                     <property name="text">
+                      <string>E</string>
+                     </property>
+                    </widget>
+                   </item>
+                  </layout>
+                 </item>
+                </layout>
+               </item>
+               <item row="1" column="0">
+                <layout class="QVBoxLayout" name="verticalLayout_28" stretch="0,1">
+                 <item>
+                  <widget class="QLabel" name="label_7">
+                   <property name="styleSheet">
+                    <string notr="true">font: 10pt &quot;微软雅黑&quot;;</string>
+                   </property>
+                   <property name="text">
+                    <string>南</string>
+                   </property>
+                   <property name="alignment">
+                    <set>Qt::AlignCenter</set>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <layout class="QHBoxLayout" name="horizontalLayout_9">
+                   <property name="spacing">
+                    <number>8</number>
+                   </property>
+                   <property name="leftMargin">
+                    <number>3</number>
+                   </property>
+                   <property name="rightMargin">
+                    <number>3</number>
+                   </property>
+                   <item>
+                    <widget class="QLineEdit" name="lineEdit_5">
+                     <property name="styleSheet">
+                      <string notr="true">font: 10pt &quot;微软雅黑&quot;;</string>
+                     </property>
+                     <property name="text">
+                      <string>19</string>
+                     </property>
+                     <property name="alignment">
+                      <set>Qt::AlignCenter</set>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QLabel" name="label_13">
+                     <property name="styleSheet">
+                      <string notr="true">font: 11pt &quot;微软雅黑&quot;;</string>
+                     </property>
+                     <property name="text">
+                      <string>N</string>
+                     </property>
+                    </widget>
+                   </item>
+                  </layout>
+                 </item>
+                </layout>
+               </item>
+               <item row="1" column="1">
+                <layout class="QVBoxLayout" name="verticalLayout_29" stretch="0,1">
+                 <item>
+                  <widget class="QLabel" name="label_8">
+                   <property name="styleSheet">
+                    <string notr="true">font: 10pt &quot;微软雅黑&quot;;</string>
+                   </property>
+                   <property name="text">
+                    <string>北</string>
+                   </property>
+                   <property name="alignment">
+                    <set>Qt::AlignCenter</set>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <layout class="QHBoxLayout" name="horizontalLayout_15">
+                   <property name="spacing">
+                    <number>8</number>
+                   </property>
+                   <property name="leftMargin">
+                    <number>3</number>
+                   </property>
+                   <property name="rightMargin">
+                    <number>3</number>
+                   </property>
+                   <item>
+                    <widget class="QLineEdit" name="lineEdit_6">
+                     <property name="styleSheet">
+                      <string notr="true">font: 10pt &quot;微软雅黑&quot;;</string>
+                     </property>
+                     <property name="text">
+                      <string>24</string>
+                     </property>
+                     <property name="alignment">
+                      <set>Qt::AlignCenter</set>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QLabel" name="label_14">
+                     <property name="styleSheet">
+                      <string notr="true">font: 11pt &quot;微软雅黑&quot;;</string>
+                     </property>
+                     <property name="text">
+                      <string>N</string>
+                     </property>
+                    </widget>
+                   </item>
+                  </layout>
+                 </item>
+                </layout>
+               </item>
+              </layout>
+             </widget>
+            </item>
+            <item>
+             <widget class="QGroupBox" name="groupBox_3">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+                <horstretch>1</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="styleSheet">
+               <string notr="true">font: 11pt &quot;微软雅黑&quot;;</string>
+              </property>
+              <property name="title">
+               <string>产品制作</string>
+              </property>
+              <layout class="QVBoxLayout" name="verticalLayout_15">
+               <item>
+                <layout class="QVBoxLayout" name="verticalLayout_14">
+                 <item>
+                  <widget class="QLabel" name="label_15">
+                   <property name="styleSheet">
+                    <string notr="true">font: 10pt &quot;微软雅黑&quot;;</string>
+                   </property>
+                   <property name="text">
+                    <string>色标范围</string>
+                   </property>
+                   <property name="alignment">
+                    <set>Qt::AlignCenter</set>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <layout class="QHBoxLayout" name="horizontalLayout_3">
+                   <item>
+                    <widget class="QLineEdit" name="lineEdit_7">
+                     <property name="styleSheet">
+                      <string notr="true">font: 10pt &quot;微软雅黑&quot;;</string>
+                     </property>
+                     <property name="text">
+                      <string>0</string>
+                     </property>
+                     <property name="alignment">
+                      <set>Qt::AlignCenter</set>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QLabel" name="label_24">
+                     <property name="styleSheet">
+                      <string notr="true">font: 11pt &quot;微软雅黑&quot;;</string>
+                     </property>
+                     <property name="text">
+                      <string>cm</string>
+                     </property>
+                    </widget>
+                   </item>
+                  </layout>
+                 </item>
+                 <item>
+                  <layout class="QHBoxLayout" name="horizontalLayout_6">
+                   <item>
+                    <widget class="QLineEdit" name="lineEdit_8">
+                     <property name="styleSheet">
+                      <string notr="true">font: 10pt &quot;微软雅黑&quot;;</string>
+                     </property>
+                     <property name="text">
+                      <string>默认</string>
+                     </property>
+                     <property name="alignment">
+                      <set>Qt::AlignCenter</set>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QLabel" name="label_25">
+                     <property name="styleSheet">
+                      <string notr="true">font: 11pt &quot;微软雅黑&quot;;</string>
+                     </property>
+                     <property name="text">
+                      <string>cm</string>
+                     </property>
+                    </widget>
+                   </item>
+                  </layout>
+                 </item>
+                 <item>
+                  <layout class="QHBoxLayout" name="horizontalLayout_2">
+                   <property name="spacing">
+                    <number>6</number>
+                   </property>
+                   <property name="leftMargin">
+                    <number>3</number>
+                   </property>
+                   <property name="rightMargin">
+                    <number>3</number>
+                   </property>
+                   <item>
+                    <widget class="QPushButton" name="pushButton">
+                     <property name="sizePolicy">
+                      <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+                       <horstretch>0</horstretch>
+                       <verstretch>1</verstretch>
+                      </sizepolicy>
+                     </property>
+                     <property name="styleSheet">
+                      <string notr="true">font: 75 12pt &quot;微软雅黑&quot;;</string>
+                     </property>
+                     <property name="text">
+                      <string>画图</string>
+                     </property>
+                    </widget>
+                   </item>
+                  </layout>
+                 </item>
+                </layout>
+               </item>
+              </layout>
+             </widget>
+            </item>
+            <item>
+             <widget class="QFrame" name="frame_4">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+                <horstretch>1</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="frameShape">
+               <enum>QFrame::StyledPanel</enum>
+              </property>
+              <property name="frameShadow">
+               <enum>QFrame::Raised</enum>
+              </property>
+              <layout class="QVBoxLayout" name="verticalLayout_13">
+               <property name="spacing">
+                <number>3</number>
+               </property>
+               <property name="sizeConstraint">
+                <enum>QLayout::SetMinimumSize</enum>
+               </property>
+               <property name="leftMargin">
+                <number>3</number>
+               </property>
+               <property name="topMargin">
+                <number>3</number>
+               </property>
+               <property name="rightMargin">
+                <number>3</number>
+               </property>
+               <property name="bottomMargin">
+                <number>3</number>
+               </property>
+               <item>
+                <layout class="QVBoxLayout" name="verticalLayout_12" stretch="1,3,3">
+                 <property name="spacing">
+                  <number>3</number>
+                 </property>
+                 <property name="sizeConstraint">
+                  <enum>QLayout::SetMinimumSize</enum>
+                 </property>
+                 <property name="leftMargin">
+                  <number>6</number>
+                 </property>
+                 <property name="topMargin">
+                  <number>0</number>
+                 </property>
+                 <property name="rightMargin">
+                  <number>6</number>
+                 </property>
+                 <property name="bottomMargin">
+                  <number>10</number>
+                 </property>
+                 <item>
+                  <widget class="QLabel" name="label_4">
+                   <property name="styleSheet">
+                    <string notr="true">font: 75 12pt &quot;微软雅黑&quot;;</string>
+                   </property>
+                   <property name="text">
+                    <string>案例查询</string>
+                   </property>
+                   <property name="alignment">
+                    <set>Qt::AlignCenter</set>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <layout class="QVBoxLayout" name="verticalLayout_25">
+                   <property name="topMargin">
+                    <number>10</number>
+                   </property>
+                   <item>
+                    <widget class="QLabel" name="label_9">
+                     <property name="styleSheet">
+                      <string notr="true">font: 10pt &quot;微软雅黑&quot;;</string>
+                     </property>
+                     <property name="text">
+                      <string>台风编号</string>
+                     </property>
+                     <property name="alignment">
+                      <set>Qt::AlignCenter</set>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QComboBox" name="comboBox_3">
+                     <property name="sizePolicy">
+                      <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                       <horstretch>2</horstretch>
+                       <verstretch>1</verstretch>
+                      </sizepolicy>
+                     </property>
+                     <property name="styleSheet">
+                      <string notr="true">font: 10pt &quot;微软雅黑&quot;;</string>
+                     </property>
+                     <item>
+                      <property name="text">
+                       <string>2018</string>
+                      </property>
+                     </item>
+                     <item>
+                      <property name="text">
+                       <string>2017</string>
+                      </property>
+                     </item>
+                    </widget>
+                   </item>
+                  </layout>
+                 </item>
+                 <item>
+                  <layout class="QVBoxLayout" name="verticalLayout_26">
+                   <item>
+                    <widget class="QLabel" name="label_10">
+                     <property name="styleSheet">
+                      <string notr="true">font: 10pt &quot;微软雅黑&quot;;</string>
+                     </property>
+                     <property name="text">
+                      <string>操作时间</string>
+                     </property>
+                     <property name="alignment">
+                      <set>Qt::AlignCenter</set>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QComboBox" name="comboBox_4">
+                     <property name="sizePolicy">
+                      <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                       <horstretch>2</horstretch>
+                       <verstretch>1</verstretch>
+                      </sizepolicy>
+                     </property>
+                     <property name="styleSheet">
+                      <string notr="true">font: 10pt &quot;微软雅黑&quot;;</string>
+                     </property>
+                     <item>
+                      <property name="text">
+                       <string>103014</string>
+                      </property>
+                     </item>
+                     <item>
+                      <property name="text">
+                       <string>103015</string>
+                      </property>
+                     </item>
+                    </widget>
+                   </item>
+                  </layout>
+                 </item>
+                </layout>
+               </item>
+              </layout>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item>
+           <widget class="QFrame" name="frame_3">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+              <horstretch>1</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="styleSheet">
+             <string notr="true"/>
+            </property>
+            <property name="frameShape">
+             <enum>QFrame::StyledPanel</enum>
+            </property>
+            <property name="frameShadow">
+             <enum>QFrame::Raised</enum>
+            </property>
+            <layout class="QVBoxLayout" name="verticalLayout_11">
+             <property name="sizeConstraint">
+              <enum>QLayout::SetMinimumSize</enum>
+             </property>
+             <item>
+              <widget class="QTabWidget" name="tabWidget">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+                 <horstretch>3</horstretch>
+                 <verstretch>1</verstretch>
+                </sizepolicy>
+               </property>
+               <property name="minimumSize">
+                <size>
+                 <width>100</width>
+                 <height>0</height>
+                </size>
+               </property>
+               <property name="styleSheet">
+                <string notr="true">QTabBar::tab{height:32;width:200;font: 75 12pt &quot;微软雅黑&quot;;};
+</string>
+               </property>
+               <property name="tabShape">
+                <enum>QTabWidget::Triangular</enum>
+               </property>
+               <property name="currentIndex">
+                <number>2</number>
+               </property>
+               <widget class="QWidget" name="tab_3">
+                <attribute name="title">
+                 <string>台风集合预报成员图</string>
+                </attribute>
+                <layout class="QVBoxLayout" name="verticalLayout_10">
+                 <item>
+                  <layout class="QVBoxLayout" name="verticalLayout_7">
+                   <property name="sizeConstraint">
+                    <enum>QLayout::SetMinimumSize</enum>
+                   </property>
+                   <item>
+                    <widget class="QLabel" name="label_28">
+                     <property name="styleSheet">
+                      <string notr="true">font: 75 14pt &quot;微软雅黑&quot;;</string>
+                     </property>
+                     <property name="text">
+                      <string>台风集合预报成员图</string>
+                     </property>
+                     <property name="alignment">
+                      <set>Qt::AlignCenter</set>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QGraphicsView" name="graphicsView_5">
+                     <property name="sizePolicy">
+                      <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+                       <horstretch>1</horstretch>
+                       <verstretch>0</verstretch>
+                      </sizepolicy>
+                     </property>
+                    </widget>
+                   </item>
+                  </layout>
+                 </item>
+                </layout>
+               </widget>
+               <widget class="QWidget" name="tab">
+                <attribute name="title">
+                 <string>最大风暴增水分布图</string>
+                </attribute>
+                <layout class="QVBoxLayout" name="verticalLayout_17">
+                 <item>
+                  <layout class="QVBoxLayout" name="verticalLayout_8">
+                   <property name="sizeConstraint">
+                    <enum>QLayout::SetMinimumSize</enum>
+                   </property>
+                   <item>
+                    <widget class="QLabel" name="label_27">
+                     <property name="styleSheet">
+                      <string notr="true">font: 75 14pt &quot;微软雅黑&quot;;</string>
+                     </property>
+                     <property name="text">
+                      <string>最大风暴增水分布图</string>
+                     </property>
+                     <property name="alignment">
+                      <set>Qt::AlignCenter</set>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QGraphicsView" name="graphicsView_3">
+                     <property name="sizePolicy">
+                      <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+                       <horstretch>1</horstretch>
+                       <verstretch>0</verstretch>
+                      </sizepolicy>
+                     </property>
+                    </widget>
+                   </item>
+                  </layout>
+                 </item>
+                </layout>
+               </widget>
+               <widget class="QWidget" name="tab_2">
+                <attribute name="title">
+                 <string>风暴增水概率分布图</string>
+                </attribute>
+                <layout class="QVBoxLayout" name="verticalLayout_24">
+                 <item>
+                  <layout class="QVBoxLayout" name="verticalLayout_9">
+                   <property name="sizeConstraint">
+                    <enum>QLayout::SetMinimumSize</enum>
+                   </property>
+                   <item>
+                    <layout class="QHBoxLayout" name="horizontalLayout">
+                     <item>
+                      <widget class="QComboBox" name="comboBox_5">
+                       <property name="sizePolicy">
+                        <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                         <horstretch>1</horstretch>
+                         <verstretch>0</verstretch>
+                        </sizepolicy>
+                       </property>
+                       <item>
+                        <property name="text">
+                         <string>&gt;0.5米概率</string>
+                        </property>
+                       </item>
+                       <item>
+                        <property name="text">
+                         <string>&gt;1.0米概率</string>
+                        </property>
+                       </item>
+                       <item>
+                        <property name="text">
+                         <string>&gt;1.5米概率</string>
+                        </property>
+                       </item>
+                       <item>
+                        <property name="text">
+                         <string>&gt;2.0米概率</string>
+                        </property>
+                       </item>
+                       <item>
+                        <property name="text">
+                         <string>&gt;2.5米概率</string>
+                        </property>
+                       </item>
+                       <item>
+                        <property name="text">
+                         <string>&gt;3.0米概率</string>
+                        </property>
+                       </item>
+                      </widget>
+                     </item>
+                     <item>
+                      <widget class="QLabel" name="label_29">
+                       <property name="sizePolicy">
+                        <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+                         <horstretch>2</horstretch>
+                         <verstretch>0</verstretch>
+                        </sizepolicy>
+                       </property>
+                       <property name="text">
+                        <string/>
+                       </property>
+                      </widget>
+                     </item>
+                     <item>
+                      <widget class="QLabel" name="label_26">
+                       <property name="sizePolicy">
+                        <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+                         <horstretch>4</horstretch>
+                         <verstretch>0</verstretch>
+                        </sizepolicy>
+                       </property>
+                       <property name="styleSheet">
+                        <string notr="true">font: 75 14pt &quot;微软雅黑&quot;;</string>
+                       </property>
+                       <property name="text">
+                        <string>风暴潮增水概率分布图</string>
+                       </property>
+                       <property name="alignment">
+                        <set>Qt::AlignCenter</set>
+                       </property>
+                      </widget>
+                     </item>
+                     <item>
+                      <widget class="QLabel" name="label_30">
+                       <property name="sizePolicy">
+                        <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+                         <horstretch>2</horstretch>
+                         <verstretch>0</verstretch>
+                        </sizepolicy>
+                       </property>
+                       <property name="text">
+                        <string/>
+                       </property>
+                      </widget>
+                     </item>
+                     <item>
+                      <widget class="QPushButton" name="pushButton_5">
+                       <property name="sizePolicy">
+                        <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+                         <horstretch>0</horstretch>
+                         <verstretch>0</verstretch>
+                        </sizepolicy>
+                       </property>
+                       <property name="styleSheet">
+                        <string notr="true">font: 75 10pt &quot;微软雅黑&quot;;</string>
+                       </property>
+                       <property name="text">
+                        <string/>
+                       </property>
+                      </widget>
+                     </item>
+                     <item>
+                      <widget class="QPushButton" name="pushButton_6">
+                       <property name="sizePolicy">
+                        <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+                         <horstretch>0</horstretch>
+                         <verstretch>0</verstretch>
+                        </sizepolicy>
+                       </property>
+                       <property name="styleSheet">
+                        <string notr="true">font: 75 10pt &quot;微软雅黑&quot;;</string>
+                       </property>
+                       <property name="text">
+                        <string/>
+                       </property>
+                      </widget>
+                     </item>
+                    </layout>
+                   </item>
+                   <item>
+                    <widget class="QGraphicsView" name="graphicsView_4">
+                     <property name="sizePolicy">
+                      <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+                       <horstretch>1</horstretch>
+                       <verstretch>0</verstretch>
+                      </sizepolicy>
+                     </property>
+                    </widget>
+                   </item>
+                  </layout>
+                 </item>
+                </layout>
+               </widget>
+              </widget>
+             </item>
+            </layout>
+           </widget>
+          </item>
+         </layout>
+        </item>
+        <item row="0" column="1">
+         <layout class="QVBoxLayout" name="verticalLayout_6" stretch="0,0">
+          <item>
+           <widget class="QFrame" name="frame">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+              <horstretch>6</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="frameShape">
+             <enum>QFrame::StyledPanel</enum>
+            </property>
+            <property name="frameShadow">
+             <enum>QFrame::Raised</enum>
+            </property>
+            <layout class="QVBoxLayout" name="verticalLayout_5">
+             <item>
+              <layout class="QVBoxLayout" name="verticalLayout_2">
+               <item>
+                <layout class="QHBoxLayout" name="horizontalLayout_4" stretch="10,1">
+                 <item>
+                  <widget class="QLabel" name="label_2">
+                   <property name="styleSheet">
+                    <string notr="true">font: 75 14pt &quot;微软雅黑&quot;;</string>
+                   </property>
+                   <property name="text">
+                    <string>                 风暴增水过程曲线图</string>
+                   </property>
+                   <property name="alignment">
+                    <set>Qt::AlignCenter</set>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QComboBox" name="comboBox_2">
+                   <property name="styleSheet">
+                    <string notr="true">font: 75 11pt &quot;微软雅黑&quot;;</string>
+                   </property>
+                   <item>
+                    <property name="text">
+                     <string>惠州</string>
+                    </property>
+                   </item>
+                   <item>
+                    <property name="text">
+                     <string>盐田</string>
+                    </property>
+                   </item>
+                   <item>
+                    <property name="text">
+                     <string>大梅沙</string>
+                    </property>
+                   </item>
+                   <item>
+                    <property name="text">
+                     <string>深圳东山</string>
+                    </property>
+                   </item>
+                   <item>
+                    <property name="text">
+                     <string>深圳机场</string>
+                    </property>
+                   </item>
+                   <item>
+                    <property name="text">
+                     <string>深圳南澳</string>
+                    </property>
+                   </item>
+                   <item>
+                    <property name="text">
+                     <string>赤湾</string>
+                    </property>
+                   </item>
+                   <item>
+                    <property name="text">
+                     <string>前海湾</string>
+                    </property>
+                   </item>
+                  </widget>
+                 </item>
+                </layout>
+               </item>
+               <item>
+                <widget class="QGraphicsView" name="graphicsView">
+                 <property name="sizePolicy">
+                  <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+                   <horstretch>6</horstretch>
+                   <verstretch>0</verstretch>
+                  </sizepolicy>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </item>
+            </layout>
+           </widget>
+          </item>
+          <item>
+           <widget class="QFrame" name="frame_2">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+              <horstretch>6</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="frameShape">
+             <enum>QFrame::StyledPanel</enum>
+            </property>
+            <property name="frameShadow">
+             <enum>QFrame::Raised</enum>
+            </property>
+            <layout class="QVBoxLayout" name="verticalLayout_4">
+             <item>
+              <layout class="QVBoxLayout" name="verticalLayout_3">
+               <item>
+                <layout class="QHBoxLayout" name="horizontalLayout_5" stretch="10,0,0">
+                 <item>
+                  <widget class="QLabel" name="label_3">
+                   <property name="styleSheet">
+                    <string notr="true">font: 75 14pt &quot;微软雅黑&quot;;</string>
+                   </property>
+                   <property name="text">
+                    <string>               总潮位过程曲线图</string>
+                   </property>
+                   <property name="alignment">
+                    <set>Qt::AlignCenter</set>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QPushButton" name="pushButton_7">
+                   <property name="text">
+                    <string/>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QPushButton" name="pushButton_8">
+                   <property name="text">
+                    <string/>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
+               </item>
+               <item>
+                <widget class="QGraphicsView" name="graphicsView_2">
+                 <property name="sizePolicy">
+                  <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+                   <horstretch>6</horstretch>
+                   <verstretch>0</verstretch>
+                  </sizepolicy>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </item>
+            </layout>
+           </widget>
+          </item>
+         </layout>
+        </item>
+       </layout>
+      </item>
+     </layout>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QMenuBar" name="menubar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>1530</width>
+     <height>23</height>
+    </rect>
+   </property>
+  </widget>
+  <widget class="QStatusBar" name="statusbar"/>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

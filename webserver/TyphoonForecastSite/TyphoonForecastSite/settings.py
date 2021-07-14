@@ -94,7 +94,9 @@ DATABASES = {
         # by cwb
         # 'USER': 'root',  # 账号
         # 'PASSWORD': '123456',
-        'HOST': '127.0.0.1',  # HOST
+        # 'HOST': '127.0.0.1',  # HOST
+        # 访问宿主的mysql服务,
+        'HOST': 'host.docker.internal',
         'POST': 3306,  # 端口
         'OPTIONS': {
             "init_command": "SET foreign_key_checks = 0;",
