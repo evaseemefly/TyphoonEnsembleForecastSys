@@ -6,7 +6,7 @@ import pathlib
 # 按 Ctrl+F5 执行或将其替换为您的代码。
 # 按 Double Shift 在所有地方搜索类、文件、工具窗口、操作和设置。
 
-def test_docker_shared_dir(dir: str):
+def todo_docker_shared_dir(dir: str):
     '''
         测试一下 docker 与 宿主机的共享目录
     :return:
@@ -21,7 +21,7 @@ def test_docker_shared_dir(dir: str):
 def print_hi(name):
     # 在下面的代码行中使用断点来调试脚本。
     print(f'Hi, {name}')  # 按 F9 切换断点。
-    test_docker_shared_dir('/my_data')
+    todo_docker_shared_dir('/my_shared_data')
 
 
 # 按间距中的绿色按钮以运行脚本。
