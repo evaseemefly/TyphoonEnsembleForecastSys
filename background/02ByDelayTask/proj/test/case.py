@@ -16,6 +16,10 @@ from conf.settings import TEST_ENV_SETTINGS
 from datetime import datetime
 
 ROOT_DIR = TEST_ENV_SETTINGS.get('TY_GROUP_PATH_ROOT_DIR')
+TY_CODE = TEST_ENV_SETTINGS.get('TY_CODE')
+TY_TIMESTAMP = TEST_ENV_SETTINGS.get('TY_TIMESTAMP')
+# 'TY2022_2021010416'
+TY_STAMP = 'TY' + TY_CODE + "_" + TY_TIMESTAMP
 
 
 def case_group_ty_path():
@@ -23,15 +27,21 @@ def case_group_ty_path():
         + 21-04-13 测试 集合路径
     @return:
     """
-    gmt_start = datetime(2020, 9, 15, 17)
-    gmt_end = datetime(2020, 9, 18, 0)
-    ty_detail: TyphoonForecastDetailModel = TyphoonForecastDetailModel(code='2022',
+    # todo:[*] 21-07-19 使用 TD04 编号的热带风暴 作为输入的台风
+    # gmt_start = datetime(2020, 9, 15, 17)
+    # gmt_end = datetime(2020, 9, 18, 0)
+    gmt_start = datetime(2021, 7, 8, 5)
+    gmt_end = datetime(2021, 7, 8, 17)  # 目前使用的结束时间为从台风网上爬取的时间的结束时间(预报)
+    ty_detail: TyphoonForecastDetailModel = TyphoonForecastDetailModel(code=TY_CODE,
                                                                        organ_code=ForecastOrganizationEnum.NMEFC.value,
                                                                        gmt_start=gmt_start,
                                                                        gmt_end=gmt_end,
                                                                        forecast_source=TyphoonForecastSourceEnum.DEFAULT.value)
-    ty_timestamp: str = 'TY2022_2021010416'
-    dir_path: str = str(pathlib.Path(ROOT_DIR) / ty_timestamp / 'GROUP')
+    ty_timestamp: str = TY_STAMP
+    #  21-07-19 之前的路径
+    # dir_path: str = str(pathlib.Path(ROOT_DIR) / ty_timestamp / 'GROUP')
+    # TODO:[*] 21-07-19 更新后的适配当前存储路径的路径
+    dir_path: str = str(pathlib.Path(ROOT_DIR) / 'pathfiles' / ty_timestamp / 'GROUP')
     # GroupTyphoonPath(TEST_ENV_SETTINGS.get('TY_GROUP_PATH_ROOT_DIR'), '2022', '2020042710').read_forecast_data()
     list_match_files: List[str] = get_match_files('^[A-Z]+\d+_\d+_[a-z]{1}\d{1}_[a-z]{1}_?\d+',
                                                   dir_path)
@@ -86,9 +96,9 @@ def test_get_gp_model():
 
 
 def main():
-    # case_group_ty_path()
+    case_group_ty_path()
     # 21-04-25 批量处理海洋站潮位数据
-    case_station()
+    # case_station()
     # 测试查询 gp
     # case_get_gp()
     # test_get_gp_model()

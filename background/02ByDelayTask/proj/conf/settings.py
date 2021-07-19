@@ -10,7 +10,13 @@
 # 测试环境配置
 TEST_ENV_SETTINGS = {
     # 'TY_GROUP_PATH_ROOT_DIR': r'E:\02data\03typhoon',  # win
-    'TY_GROUP_PATH_ROOT_DIR': r'/Users/liusihan/data/typhoon_data/'  # mac
+    'TY_GROUP_PATH_ROOT_DIR': r'E:\02data\05docker-data\docker-shared\ty_docker',
+    # 加入了 docker 的映射路径，目前docker环境有一些问题，暂时使用此种方式
+    # 'TY_GROUP_PATH_ROOT_DIR': r'/Users/liusihan/data/typhoon_data/'  # mac
+    # 'TY_GROUP_PATH_ROOT_DIR': r'/my_shared_data/pathfiles/',
+    'TY_CODE': 'TD04',
+    # 'TY_TIMESTAMP': '2021010416'
+    'TY_TIMESTAMP': '2021071908'
 }
 
 # 数据库的配置，配置借鉴自 django 的 settings 的结构
