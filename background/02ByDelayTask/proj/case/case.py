@@ -72,9 +72,15 @@ def case_station():
     forecast_dt_start: datetime = gmt_start
     ty_timestamp: str = TY_STAMP
     ty_id: int = 1
-    dir_path: str = str(pathlib.Path(ROOT_DIR) / ty_timestamp / 'STATION')
+    # TODO:[*] 21-07-20 注意此处需要修改为明杰的存储规则
+    # EG:     'E:\\02data\\05docker-data\\docker-shared\\ty_docker\\TYTD04_2021071908\\STATION'
+    # 实际地址: E:\02data\05docker-data\docker-shared\ty_docker\result\TYTD04_2021071908
+    dir_path: str = str(pathlib.Path(ROOT_DIR) / 'result' / ty_timestamp)
     if len(query_gp) > 0:
         target_gp = query_gp[0]
+    # TODO:[*] 21-07-20 注意此处，由于有可能存在非台风的编号，也就是例如 TD04 这种是，所以不能直接匹配多个数字
+    # old: Surge_TY2022_2021010416_c0_p_10.dat
+    # new: Surge_TYTD04_2021071908_f6_p_05.dat
     list_match_files: List[str] = get_match_files('^Surge_[A-Z]+\d+_\d+_[a-z]{1}\d{1}_[a-z]{1}_?\d+.dat',
                                                   dir_path)
     to_station_realdata(list_match_files, ty_detail, forecast_dt_start=forecast_dt_start, ty_id=ty_id)
@@ -104,10 +110,10 @@ def test_get_gp_model():
 def main():
     # case_group_ty_path()
     # 21-04-25 批量处理海洋站潮位数据
-    case_station()
+    # case_station()
     # 测试查询 gp
     # case_get_gp()
-    # test_get_gp_model()
+    test_get_gp_model()
     pass
 
 
