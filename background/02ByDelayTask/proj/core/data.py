@@ -129,6 +129,7 @@ def to_station_realdata(list_files: List[str], ty_detail: TyphoonForecastDetailM
 def get_gp(is_many: bool = True, **kwargs) -> List[TyphoonGroupPathModel]:
     """
         + 21-04-24 根据传入的条件找到对应的 tyGroupPath 数组
+        TODO:[*] 21-07-20 注意 params: ts is str， path_marking is int，可以统一为一个参数
     @param kwargs:
     @return:
     """

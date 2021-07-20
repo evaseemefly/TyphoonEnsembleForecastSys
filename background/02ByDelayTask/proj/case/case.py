@@ -25,6 +25,7 @@ TY_STAMP = 'TY' + TY_CODE + "_" + TY_TIMESTAMP
 def case_group_ty_path():
     """
         + 21-04-13 测试 集合路径
+        - 21-07-20 测试通过
     @return:
     """
     # todo:[*] 21-07-19 使用 TD04 编号的热带风暴 作为输入的台风
@@ -53,18 +54,23 @@ def case_station():
         批量写入 station 的 case
     @return:
     """
-    query_gp = get_gp(ty_code='2022', ts='2021010416', path_type='c', path_marking=2021010416, bp=0, is_increase=True)
-    gmt_start = datetime(2020, 9, 15, 17)
-    gmt_end = datetime(2020, 9, 18, 0)
-    ty_detail: TyphoonForecastDetailModel = TyphoonForecastDetailModel(code='2022',
+    # TODO:[-] 21-07-20 注意此处的 path_marking 手动指定为 0即可，或者去掉也可以
+    query_gp = get_gp(ty_code=TY_CODE, ts=TY_TIMESTAMP, path_type='c', path_marking=0, bp=0,
+                      is_increase=True)
+    # gmt_start = datetime(2020, 9, 15, 17)
+    # gmt_end = datetime(2020, 9, 18, 0)
+    gmt_start = datetime(2021, 7, 8, 5)
+    gmt_end = datetime(2021, 7, 8, 17)  # 目前使用的结束时间为从台风网上爬取的时间的结束时间(预报)
+    ty_detail: TyphoonForecastDetailModel = TyphoonForecastDetailModel(code=TY_CODE,
                                                                        organ_code=ForecastOrganizationEnum.NMEFC.value,
                                                                        gmt_start=gmt_start,
                                                                        gmt_end=gmt_end,
                                                                        forecast_source=TyphoonForecastSourceEnum.DEFAULT.value)
     # 对应的 tyGroupPathModel ，主要用来获取 -> id
     target_gp = None
-    forecast_dt_start: datetime = datetime(2020, 9, 15, 17)
-    ty_timestamp: str = 'TY2022_2021010416'
+    # TODO:[-] 21-07-20 预报起始时间与 gmt_start 相同
+    forecast_dt_start: datetime = gmt_start
+    ty_timestamp: str = TY_STAMP
     ty_id: int = 1
     dir_path: str = str(pathlib.Path(ROOT_DIR) / ty_timestamp / 'STATION')
     if len(query_gp) > 0:
@@ -96,9 +102,9 @@ def test_get_gp_model():
 
 
 def main():
-    case_group_ty_path()
+    # case_group_ty_path()
     # 21-04-25 批量处理海洋站潮位数据
-    # case_station()
+    case_station()
     # 测试查询 gp
     # case_get_gp()
     # test_get_gp_model()
