@@ -41,7 +41,7 @@ def case_group_ty_path():
     #  21-07-19 之前的路径
     # dir_path: str = str(pathlib.Path(ROOT_DIR) / ty_timestamp / 'GROUP')
     # TODO:[*] 21-07-19 更新后的适配当前存储路径的路径
-    dir_path: str = str(pathlib.Path(ROOT_DIR) / 'pathfiles' / ty_timestamp / 'GROUP')
+    dir_path: str = str(pathlib.Path(ROOT_DIR) / 'pathfiles' / ty_timestamp)
     # GroupTyphoonPath(TEST_ENV_SETTINGS.get('TY_GROUP_PATH_ROOT_DIR'), '2022', '2020042710').read_forecast_data()
     list_match_files: List[str] = get_match_files('^[A-Z]+\d+_\d+_[a-z]{1}\d{1}_[a-z]{1}_?\d+',
                                                   dir_path)

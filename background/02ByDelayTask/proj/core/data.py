@@ -40,11 +40,14 @@ def get_match_files(re_str: str, dir_path: str = None) -> List[str]:
     """
     list_files: List[str] = []
     if dir_path:
+        # 'E:\\01data\\01docker-data\\05container-shared-data\\01docker-ty\\pathfiles\\TYTD04_2021071908\\GROUP'
         target_path = dir_path
-        for file_name in os.listdir(target_path):
-            pattern = re.compile(re_str)
-            if re.match(pattern, file_name):
-                list_files.append(file_name)
+        # TODO:[8] 21-07-20 此处需要加入抛出异常
+        if pathlib.Path(dir_path).is_dir():
+            for file_name in os.listdir(target_path):
+                pattern = re.compile(re_str)
+                if re.match(pattern, file_name):
+                    list_files.append(file_name)
     return list_files
 
 
@@ -379,8 +382,11 @@ class GroupTyphoonPath(IBaseOpt):
         :param kwargs:
         :return:
         """
-
-        final_path_str = str(pathlib.Path(self.root_path) / self.relative_path / 'GROUP')
+        # todo:[*] 21-07-20 此处暂时使用明杰的目录结构，修改了之前的目录结构
+        # eg: ROOT_PATH\pathfiles\TYTD04_2021071908
+        # 之前为 : ROOT_PATH\ ty_timestamp \group
+        # final_path_str = str(pathlib.Path(self.root_path) / self.relative_path / 'GROUP')
+        final_path_str = str(pathlib.Path(self.root_path) / 'pathfiles' / self.relative_path)
         return final_path_str
 
     @property
@@ -517,6 +523,8 @@ class GroupTyphoonPath(IBaseOpt):
         # /Users/liusihan/data/typhoon_data/TY2022_2020042710/TY1822_2020042710
         # 实际 full_path :
         # /Users/liusihan/data/typhoon_data/TY2022_2020042710/TY1822_2020052818/TY1822_2020052818_r6_p05
+        # TODO:[*] 21-07-20 与实际存储路径不符
+        # 'E:\\01data\\01docker-data\\05container-shared-data\\01docker-ty\\TYTD04_2021071908\\GROUP\\TYTD04_2021071908_c0_p00'
         full_path = str(pathlib.Path(self.save_dir_path) / file_name)
         df_temp = self.init_forecast_data(group_path_file=full_path)
         list_ty_path_mid: List[GroupTyphoonPathMidModel] = []
