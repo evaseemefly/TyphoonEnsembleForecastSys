@@ -113,7 +113,7 @@ def main():
     # case_station()
     # 测试查询 gp
     # case_get_gp()
-    test_get_gp_model()
+    # test_get_gp_model()
     pass
 
 
