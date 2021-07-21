@@ -154,7 +154,8 @@ STORE_OPTIONS = {
 }
 # TODO:[-] 21-05-24 手动添加 gdal lib 的地址
 # TODO:[-] 21-03-27 mac 可以去掉此部分
-# GDAL_LIBRARY_PATH = r'C:\Users\evase\.conda\envs\new_oil_gdal\Library\bin\gdal300'
 # + 21-07-21 P7530
+GDAL_LIBRARY_PATH = r'C:\Users\evase\.conda\envs\new_oil_gdal\Library\bin\gdal301'
+# P5750
 # TODO:[*] 21-07-21 注意此处有可能会出现无法找到该dll的文件的情况
-GDAL_LIBRARY_PATH = r'D:\01Setup\ANACONDA\envs\new_oil_gdal\Library\bin\gdal301'
+# GDAL_LIBRARY_PATH = r'D:\01Setup\ANACONDA\envs\new_oil_gdal\Library\bin\gdal301'
