@@ -94,9 +94,9 @@ DATABASES = {
         # by cwb
         # 'USER': 'root',  # 账号
         # 'PASSWORD': '123456',
-        # 'HOST': '127.0.0.1',  # HOST
+        'HOST': '127.0.0.1',  # HOST
         # 访问宿主的mysql服务,
-        'HOST': 'host.docker.internal',
+        # 'HOST': 'host.docker.internal',
         'POST': 3306,  # 端口
         'OPTIONS': {
             "init_command": "SET foreign_key_checks = 0;",
@@ -155,3 +155,6 @@ STORE_OPTIONS = {
 # TODO:[-] 21-05-24 手动添加 gdal lib 的地址
 # TODO:[-] 21-03-27 mac 可以去掉此部分
 # GDAL_LIBRARY_PATH = r'C:\Users\evase\.conda\envs\new_oil_gdal\Library\bin\gdal300'
+# + 21-07-21 P7530
+# TODO:[*] 21-07-21 注意此处有可能会出现无法找到该dll的文件的情况
+GDAL_LIBRARY_PATH = r'D:\01Setup\ANACONDA\envs\new_oil_gdal\Library\bin\gdal301'
