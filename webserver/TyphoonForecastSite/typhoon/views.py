@@ -4,6 +4,9 @@ from django.core.paginator import Paginator
 from rest_framework.response import Response
 from rest_framework.request import Request
 
+# --- 第三方库
+import arrow
+
 # -- 本项目
 from common.view_base import BaseView
 from typhoon.views_base import TyGroupBaseView
@@ -205,3 +208,24 @@ class TyGroupDateDistView(TyGroupBaseView):
                 print(e.args)
 
         return Response(self.json_data, status=self._status)
+
+
+class TyList(BaseView):
+    '''
+        根据传入的参数获取对应台风列表
+    '''
+
+    def get(self, request: Request) -> Response:
+        year = request.GET.get('year', None)
+        year = '2021'
+        year_start_arrow: arrow.Arrow = arrow.Arrow(int(year), 1, 1)
+        year_end_arrow: arrow.Arrow = arrow.Arrow(int(year), 12, 31, 23, 59)
+        ty_match_list: List[TyphoonForecastDetailModel] = TyphoonForecastDetailModel.objects.filter(
+            gmt_start__gte=year_start_arrow.datetime, gmt_end__lte=year_end_arrow.datetime).all()
+        try:
+            self.json_data = TyphoonForecastDetailSerializer(ty_match_list, many=True).data
+            self._status = 200
+        except Exception as ex:
+            self.json_data = ex.args
+        return Response(self.json_data, self._status)
+        pass
