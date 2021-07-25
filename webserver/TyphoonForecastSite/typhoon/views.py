@@ -11,9 +11,9 @@ import arrow
 from common.view_base import BaseView
 from typhoon.views_base import TyGroupBaseView
 from .models import TyphoonForecastDetailModel, TyphoonGroupPathModel, TyphoonForecastRealDataModel
-from .mid_models import TyphoonComplexGroupRealDataMidModel
+from .mid_models import TyphoonComplexGroupRealDataMidModel, TyphoonGroupDistMidModel
 from .serializers import TyphoonForecastDetailSerializer, TyphoonGroupPathSerializer, TyphoonForecastRealDataSerializer, \
-    TyphoonComplexGroupRealDataModelSerializer
+    TyphoonComplexGroupRealDataModelSerializer, TyphoonDistGroupPathMidSerializer
 from TyphoonForecastSite.settings import MY_PAGINATOR
 from util.const import DEFAULT_NULL_KEY, UNLESS_TY_CODE
 
@@ -229,3 +229,45 @@ class TyList(BaseView):
             self.json_data = ex.args
         return Response(self.json_data, self._status)
         pass
+
+
+class TyCaseList(BaseView):
+    '''
+        + 21-07-25
+        desc: 根据 ty_code 获取该台风对应的全部 case : ty_code_tmestamp
+    '''
+
+    def get(self, request: Request) -> Response:
+        ty_code: str = request.GET.get('ty_code', None)
+        ty_group_dist_list: List[TyphoonGroupDistMidModel] = []
+        if ty_code is not None:
+            # ty_group_dist_list = TyphoonGroupPathModel.objects.filter(ty_code=ty_code).distinct('ty_id').all()
+            # ERROR1:
+            # ty_group_dist_list = TyphoonGroupPathModel.objects.filter(ty_code=ty_code).values('timestamp',
+            #                                                                                   'ty_code',
+            #                                                                                   'gmt_created').distinct(
+            #     'timestamp')
+            # 方式1:
+            # [{'ty_code':'xxx'}]
+            ty_dist_ty_timestamp: List[dict] = list(
+                TyphoonGroupPathModel.objects.filter(ty_code=ty_code).values('timestamp').distinct())
+
+            # 方式2:
+            # ty_group_dist_list = TyphoonGroupPathModel.objects.raw(
+            #     f'SELECT * FROM `typhoon_forecast_grouppath` as gp WHERE gp.ty_code="{ty_code}" GROUP BY gp.`timestamp` ORDER BY gp.`timestamp` DESC')[
+            #     0]
+            # 查找到不同的 timstamp 后，再继续找到该 timestmap 对应的 group_info 的 gmt_created
+            if len(ty_dist_ty_timestamp) > 0:
+                for temp in ty_dist_ty_timestamp:
+                    temp_ts = temp.get('timestamp')
+                    temp_gp_model = TyphoonGroupPathModel.objects.filter(ty_code=ty_code, timestamp=temp_ts).order_by(
+                        'gmt_created').first()
+                    temp_mid = TyphoonGroupDistMidModel(ty_id=temp_gp_model.ty_id, ty_code=temp_gp_model.ty_code,
+                                                        timestamp=temp_gp_model.timestamp,
+                                                        gmt_created=temp_gp_model.gmt_created)
+                    ty_group_dist_list.append(temp_mid)
+        if len(ty_group_dist_list) > 0:
+            json_data = TyphoonDistGroupPathMidSerializer(ty_group_dist_list, many=True)
+            self.json_data = json_data.data
+            self._status = 200
+        return Response(self.json_data, self._status)

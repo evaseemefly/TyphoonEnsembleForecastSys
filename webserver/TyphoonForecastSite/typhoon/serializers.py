@@ -19,6 +19,16 @@ class TyphoonGroupPathSerializer(serializers.Serializer):
     bp = serializers.FloatField()
     is_bp_increase = serializers.BooleanField()
 
+class TyphoonDistGroupPathMidSerializer(serializers.Serializer):
+    """
+        + 21-07-25:
+            对应 typhoon/mid_models -> TyphoonGroupDistMidModel
+    """
+    ty_id = serializers.IntegerField()
+    ty_code = serializers.CharField()
+    timestamp=serializers.CharField()
+    gmt_created = serializers.DateTimeField()
+
 
 class TyphoonForecastRealDataSerializer(serializers.Serializer):
     ty_id = serializers.IntegerField()
