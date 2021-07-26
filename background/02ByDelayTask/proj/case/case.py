@@ -22,7 +22,7 @@ TY_TIMESTAMP = TEST_ENV_SETTINGS.get('TY_TIMESTAMP')
 TY_STAMP = 'TY' + TY_CODE + "_" + TY_TIMESTAMP
 
 
-def case_group_ty_path():
+def case_group_ty_path(gmt_start, gmt_end):
     """
         + 21-04-13 测试 集合路径
         - 21-07-20 测试通过
@@ -31,14 +31,15 @@ def case_group_ty_path():
     # todo:[*] 21-07-19 使用 TD04 编号的热带风暴 作为输入的台风
     # gmt_start = datetime(2020, 9, 15, 17)
     # gmt_end = datetime(2020, 9, 18, 0)
-    gmt_start = datetime(2021, 7, 8, 5)
-    gmt_end = datetime(2021, 7, 8, 17)  # 目前使用的结束时间为从台风网上爬取的时间的结束时间(预报)
+
+    ty_timestamp: str = TY_STAMP
     ty_detail: TyphoonForecastDetailModel = TyphoonForecastDetailModel(code=TY_CODE,
                                                                        organ_code=ForecastOrganizationEnum.NMEFC.value,
                                                                        gmt_start=gmt_start,
                                                                        gmt_end=gmt_end,
-                                                                       forecast_source=TyphoonForecastSourceEnum.DEFAULT.value)
-    ty_timestamp: str = TY_STAMP
+                                                                       forecast_source=TyphoonForecastSourceEnum.DEFAULT.value,
+                                                                       timestamp=ty_timestamp)
+
     #  21-07-19 之前的路径
     # dir_path: str = str(pathlib.Path(ROOT_DIR) / ty_timestamp / 'GROUP')
     # TODO:[*] 21-07-19 更新后的适配当前存储路径的路径
@@ -108,7 +109,9 @@ def test_get_gp_model():
 
 
 def main():
-    # case_group_ty_path()
+    gmt_start = datetime(2021, 7, 8, 5)
+    gmt_end = datetime(2021, 7, 8, 17)  # 目前使用的结束时间为从台风网上爬取的时间的结束时间(预报)
+    case_group_ty_path(gmt_start, gmt_end)
     # 21-04-25 批量处理海洋站潮位数据
     case_station()
     # 测试查询 gp

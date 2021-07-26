@@ -12,7 +12,7 @@ from django.contrib.gis.geos import GEOSGeometry
 from django.utils.timezone import now
 
 # ----
-from util.const import DEFAULT_FK, UNLESS_INDEX, DEFAULT_CODE, DEFAULT_STEP
+from util.const import DEFAULT_FK, UNLESS_INDEX, DEFAULT_CODE, DEFAULT_STEP, DEFAULT_TIMTSTAMP_STR
 
 
 class IIdModel(models.Model):
@@ -86,6 +86,13 @@ class ISpliceModel(models.Model):
     """
     is_splice = models.BooleanField(default=False)
     splice_step = models.IntegerField(default=DEFAULT_STEP, null=True)
+
+    class Meta:
+        abstract = True
+
+
+class ITimeStamp(models.Model):
+    timestamp = models.CharField(default=DEFAULT_TIMTSTAMP_STR, max_length=100)
 
     class Meta:
         abstract = True

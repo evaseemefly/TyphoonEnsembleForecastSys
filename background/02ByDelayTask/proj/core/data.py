@@ -518,6 +518,8 @@ class GroupTyphoonPath(IBaseOpt):
         ty_detail = kwargs.get('ty_detail')
         # TY1822_2020042710_c0_p_05
         file_name: str = kwargs.get('file_name')
+        # ['TYTD04', '2021071908', 'c0', 'p00']
+        file_splits: List[str] = file_name.split('_')
         # TODO:[-] 21-04-20 BUG: 此处会造成首次读取文件后 df 不会更新的bug
         # if df_temp is None:
         # eg:
@@ -525,7 +527,8 @@ class GroupTyphoonPath(IBaseOpt):
         # 实际 full_path :
         # /Users/liusihan/data/typhoon_data/TY2022_2020042710/TY1822_2020052818/TY1822_2020052818_r6_p05
         # TODO:[*] 21-07-20 与实际存储路径不符
-        # 'E:\\01data\\01docker-data\\05container-shared-data\\01docker-ty\\TYTD04_2021071908\\GROUP\\TYTD04_2021071908_c0_p00'
+        # full_path : 'E:\\01data\\01docker-data\\05container-shared-data\\01docker-ty\\TYTD04_2021071908\\GROUP\\TYTD04_2021071908_c0_p00'
+        # file_name : TYTD04_2021071908_c0_p00
         full_path = str(pathlib.Path(self.save_dir_path) / file_name)
         df_temp = self.init_forecast_data(group_path_file=full_path)
         list_ty_path_mid: List[GroupTyphoonPathMidModel] = []
@@ -547,7 +550,10 @@ class GroupTyphoonPath(IBaseOpt):
                 series_temp: pd.Series = df_temp.iloc[index]
                 # ['091517', '119.2', '18.9', '940.0', '37.0']
                 list_split: List[str] = series_temp.values[0].split(' ')
-                year_str = '2020'
+                # TODO:[-] 21-07-26 此处修改了之前的年份是写死的，现在改成由文件名获取
+                # 从 file_name 中提取年份
+                year_str = file_splits[1][:4]
+                # 注意此处的 forecast_dt 是 local 时间 需要 -> utc
                 forecast_dt: datetime = arrow.get(year_str + list_split[0], 'YYYYMMDDHH').datetime
                 coords: List[float] = [float(list_split[2]), float(list_split[1])]
                 lat: float = float(list_split[2])
@@ -560,7 +566,8 @@ class GroupTyphoonPath(IBaseOpt):
                                                                                          # coords=coords,
                                                                                          lat=lat, lon=lon,
                                                                                          bp=bp,
-                                                                                         gale_radius=radius)
+                                                                                         gale_radius=radius,
+                                                                                         timestamp=self.ty_timestmap)
                 index_forecast_dt = index_forecast_dt + 1
                 list_ty_realdata.append(ty_realdata)
                 # list_ty_path_mid.append(ty_path_mid)

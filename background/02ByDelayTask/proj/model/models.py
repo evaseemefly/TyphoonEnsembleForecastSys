@@ -54,7 +54,15 @@ class IModel(BaseMeta):
     gmt_modified = Column(DATETIME(fsp=6), default=datetime.utcnow())
 
 
-class TyphoonForecastRealDataModel(IIdModel, IDel, IModel):
+class ITimeStamp(BaseMeta):
+    """
+        + 21-07-26 时间戳抽象父类
+    """
+    __abstract__ = True
+    timestamp = Column(VARCHAR(100), nullable=False)
+
+
+class TyphoonForecastRealDataModel(IIdModel, IDel, IModel, ITimeStamp):
     """
         台风逐时预报信息
     """
@@ -85,7 +93,7 @@ class StationForecastRealDataModel(IIdModel, IDel, IModel):
     surge = Column(Float, nullable=False)
 
 
-class TyphoonForecastDetailModel(IDel, IIdModel, IModel):
+class TyphoonForecastDetailModel(IDel, IIdModel, IModel, ITimeStamp):
     __tablename__ = 'typhoon_forecast_detailinfo'
 
     code = Column(VARCHAR(200), nullable=False)
