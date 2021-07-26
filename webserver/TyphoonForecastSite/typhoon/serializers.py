@@ -1,4 +1,6 @@
 from rest_framework import serializers
+
+
 # from rest_framework_gis.serializers import GeoFeatureModelSerializer, GeoFeatureModelListSerializer, GeoModelSerializer, \
 #     GeometryField
 
@@ -10,14 +12,16 @@ class TyphoonForecastDetailSerializer(serializers.Serializer):
     gmt_end = serializers.DateTimeField()
     is_forecast = serializers.BooleanField()
 
+
 class TyphoonGroupPathSerializer(serializers.Serializer):
     ty_id = serializers.IntegerField()
     ty_code = serializers.CharField()
     area = serializers.IntegerField()
     ty_path_type = serializers.CharField()
-    ty_path_marking =serializers.IntegerField()
+    ty_path_marking = serializers.IntegerField()
     bp = serializers.FloatField()
     is_bp_increase = serializers.BooleanField()
+
 
 class TyphoonDistGroupPathMidSerializer(serializers.Serializer):
     """
@@ -26,8 +30,10 @@ class TyphoonDistGroupPathMidSerializer(serializers.Serializer):
     """
     ty_id = serializers.IntegerField()
     ty_code = serializers.CharField()
-    timestamp=serializers.CharField()
+    timestamp = serializers.CharField()
     gmt_created = serializers.DateTimeField()
+    forecast_start = serializers.DateTimeField()
+    forecast_end = serializers.DateTimeField()
 
 
 class TyphoonForecastRealDataSerializer(serializers.Serializer):
@@ -48,4 +54,4 @@ class TyphoonComplexGroupRealDataModelSerializer(serializers.Serializer):
     ty_path_marking = serializers.IntegerField()
     bp = serializers.FloatField()
     is_bp_increase = serializers.BooleanField()
-    list_realdata=serializers.ListField(child=TyphoonForecastRealDataSerializer())
+    list_realdata = serializers.ListField(child=TyphoonForecastRealDataSerializer())

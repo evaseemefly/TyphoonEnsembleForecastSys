@@ -23,8 +23,11 @@ class TyphoonGroupDistMidModel:
           desc:
                 主要用来存储 台风编号信息及时间戳及创建时间等信息，供检索使用
     """
-    def __init__(self, ty_id: int, ty_code: str, timestamp: str, gmt_created: datetime):
+
+    def __init__(self, ty_id: int, ty_code: str, timestamp: str, gmt_created: datetime, start: datetime, end: datetime):
         self.ty_id = ty_id
         self.ty_code = ty_code
         self.timestamp = timestamp
         self.gmt_created = gmt_created
+        self.forecast_start = start
+        self.forecast_end = end
