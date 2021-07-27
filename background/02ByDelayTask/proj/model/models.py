@@ -76,9 +76,10 @@ class TyphoonForecastRealDataModel(IIdModel, IDel, IModel, ITimeStamp):
     lon = Column(Float, nullable=False)
     bp = Column(Float, nullable=False)
     gale_radius = Column(Float, nullable=False)
+    # timestamp = Column(VARCHAR(100), nullable=False)
 
 
-class StationForecastRealDataModel(IIdModel, IDel, IModel):
+class StationForecastRealDataModel(IIdModel, IDel, IModel,ITimeStamp):
     """
         台站逐时潮位信息
     """

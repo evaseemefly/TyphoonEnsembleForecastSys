@@ -22,6 +22,9 @@ class TyphoonGroupPathSerializer(serializers.Serializer):
     bp = serializers.FloatField()
     is_bp_increase = serializers.BooleanField()
 
+class TyphoonContainsCodeAndStSerializer(serializers.Serializer):
+    ty_code=serializers.CharField()
+    timestamp=serializers.CharField()
 
 class TyphoonDistGroupPathMidSerializer(serializers.Serializer):
     """

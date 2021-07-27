@@ -118,7 +118,7 @@ def to_station_realdata(list_files: List[str], ty_detail: TyphoonForecastDetailM
             if pg is not None:
 
                 ty_group = StationRealDataFile(ROOT_PATH, file_name, ts_str, pg.id, forecast_dt_start)
-                ty_group.read_forecast_data(file_name=file_name_source)
+                ty_group.read_forecast_data(file_name=file_name_source, timestamp=ts_str)
                 ty_group.to_store(ty_detail=ty_detail)
             else:
                 # 若为 None 应抛出异常
@@ -684,13 +684,15 @@ class StationRealDataFile(ITyphoonPath):
         :param kwargs:
         :return:
         """
-
-        final_path_str = str(pathlib.Path(self.root_path) / self.relative_path / 'STATION')
+        # TODO:[-] 21-07-27 此处使用明杰的目录结构
+        # final_path_str = str(pathlib.Path(self.root_path) / self.relative_path / 'STATION')
+        final_path_str = str(pathlib.Path(self.root_path) / 'result' / self.relative_path)
         return final_path_str
 
     def read_forecast_data(self, **kwargs):
         # TODO:[*] 21-04-23 此处存在一个如何获取 tyGroupPathModel 的问题
         df_temp: pd.DataFrame = self.dict_data.get("DF")
+        timestamp_str: str = kwargs.get('timestamp')
         ty_detail = kwargs.get('ty_detail')
         file_name: str = kwargs.get('file_name')
         full_path: str = str(pathlib.Path(self.save_dir_path) / file_name)
@@ -711,7 +713,8 @@ class StationRealDataFile(ITyphoonPath):
                     # forecast_start=
                     station_realdata = StationForecastRealDataModel(ty_code=self.ty_code, gp_id=self.gp_id,
                                                                     station_code=station_code, forecast_dt=current_dt,
-                                                                    forecast_index=index_row, surge=val_row)
+                                                                    forecast_index=index_row, surge=val_row,
+                                                                    timestamp=timestamp_str)
                     index_row = index_row + 1
                     current_dt = current_dt + delta
                     # 对当前时间进行 hours +1
@@ -742,7 +745,7 @@ class StationRealDataFile(ITyphoonPath):
         try:
             # 获取 ty_group_path 的 id
             if self.dict_data['LIST_TY_REALDATA']:
-                list_ty_realdata: List[TyphoonForecastRealDataModel] = self.dict_data.get('LIST_TY_REALDATA')
+                list_ty_realdata: List[StationForecastRealDataModel] = self.dict_data.get('LIST_TY_REALDATA')
                 for ty_realdata in list_ty_realdata:
                     # ty_realdata.gp_id = ty_group_path.id
                     ty_realdata.ty_id = ty_detail.id

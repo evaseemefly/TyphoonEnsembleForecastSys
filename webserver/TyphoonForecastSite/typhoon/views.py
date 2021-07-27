@@ -13,11 +13,11 @@ import arrow
 from common.view_base import BaseView
 from typhoon.views_base import TyGroupBaseView
 from .models import TyphoonForecastDetailModel, TyphoonGroupPathModel, TyphoonForecastRealDataModel
-from .mid_models import TyphoonComplexGroupRealDataMidModel, TyphoonGroupDistMidModel
+from .mid_models import TyphoonComplexGroupRealDataMidModel, TyphoonGroupDistMidModel, TyphoonContainsCodeAndStMidModel
 from .serializers import TyphoonForecastDetailSerializer, TyphoonGroupPathSerializer, TyphoonForecastRealDataSerializer, \
-    TyphoonComplexGroupRealDataModelSerializer, TyphoonDistGroupPathMidSerializer
+    TyphoonComplexGroupRealDataModelSerializer, TyphoonDistGroupPathMidSerializer, TyphoonContainsCodeAndStSerializer
 from TyphoonForecastSite.settings import MY_PAGINATOR
-from util.const import DEFAULT_NULL_KEY, UNLESS_TY_CODE
+from util.const import DEFAULT_NULL_KEY, UNLESS_TY_CODE, DEFAULT_TIMTSTAMP_STR
 
 DEFAULT_PAGE_INDEX = MY_PAGINATOR.get('PAGE_INDEX')
 DEFAULT_PAGE_COUNT = MY_PAGINATOR.get('PAGE_COUNT')
@@ -213,19 +213,26 @@ class TyGroupDateDistView(TyGroupBaseView):
 
 
 class TyList(BaseView):
-    '''
+    """
         根据传入的参数获取对应台风列表
-    '''
+    """
 
     def get(self, request: Request) -> Response:
         year = request.GET.get('year', None)
-        year = '2021'
+        # year = '2021'
         year_start_arrow: arrow.Arrow = arrow.Arrow(int(year), 1, 1)
         year_end_arrow: arrow.Arrow = arrow.Arrow(int(year), 12, 31, 23, 59)
-        ty_match_list: List[TyphoonForecastDetailModel] = TyphoonForecastDetailModel.objects.filter(
-            gmt_start__gte=year_start_arrow.datetime, gmt_end__lte=year_end_arrow.datetime).all()
+        ty_match_query: List[TyphoonForecastDetailModel] = TyphoonForecastDetailModel.objects.filter(
+            gmt_start__gte=year_start_arrow.datetime, gmt_end__lte=year_end_arrow.datetime).exclude(
+            timestamp=DEFAULT_TIMTSTAMP_STR)
+        ty_match_mids: List[dict] = ty_match_query.values('code', 'timestamp').distinct()
+        # + 21-07-27 因为返回的直接是字典数组所以不必多此一举做序列化了
+        # ty_match_mid_list = [
+        #     TyphoonContainsCodeAndStMidModel(ty_code=temp.get('code'), timestamp_str=temp.get('timestamp')) for
+        #     temp in ty_match_mids]
         try:
-            self.json_data = TyphoonForecastDetailSerializer(ty_match_list, many=True).data
+            # self.json_data = TyphoonForecastDetailSerializer(ty_match_list, many=True).data
+            self.json_data = ty_match_mids
             self._status = 200
         except Exception as ex:
             self.json_data = ex.args

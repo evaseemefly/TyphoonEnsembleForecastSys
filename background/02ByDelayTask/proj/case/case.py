@@ -12,6 +12,7 @@ from core.data import GroupTyphoonPath, get_match_files, to_ty_group, to_station
 from model.models import TyphoonForecastDetailModel
 from core.file import StationSurgeRealDataFile
 from common.enum import ForecastOrganizationEnum, TyphoonForecastSourceEnum
+from common.const import UNLESS_INDEX
 from conf.settings import TEST_ENV_SETTINGS
 from datetime import datetime
 
@@ -38,7 +39,7 @@ def case_group_ty_path(gmt_start, gmt_end):
                                                                        gmt_start=gmt_start,
                                                                        gmt_end=gmt_end,
                                                                        forecast_source=TyphoonForecastSourceEnum.DEFAULT.value,
-                                                                       timestamp=ty_timestamp)
+                                                                       timestamp=TY_TIMESTAMP)
 
     #  21-07-19 之前的路径
     # dir_path: str = str(pathlib.Path(ROOT_DIR) / ty_timestamp / 'GROUP')
@@ -50,7 +51,7 @@ def case_group_ty_path(gmt_start, gmt_end):
     to_ty_group(list_match_files, ty_detail)
 
 
-def case_station():
+def case_station(start: datetime, end: datetime, ty_id=UNLESS_INDEX):
     """
         批量写入 station 的 case
     @return:
@@ -60,8 +61,8 @@ def case_station():
                       is_increase=True)
     # gmt_start = datetime(2020, 9, 15, 17)
     # gmt_end = datetime(2020, 9, 18, 0)
-    gmt_start = datetime(2021, 7, 8, 5)
-    gmt_end = datetime(2021, 7, 8, 17)  # 目前使用的结束时间为从台风网上爬取的时间的结束时间(预报)
+    gmt_start = start
+    gmt_end = end  # 目前使用的结束时间为从台风网上爬取的时间的结束时间(预报)
     ty_detail: TyphoonForecastDetailModel = TyphoonForecastDetailModel(code=TY_CODE,
                                                                        organ_code=ForecastOrganizationEnum.NMEFC.value,
                                                                        gmt_start=gmt_start,
@@ -72,7 +73,8 @@ def case_station():
     # TODO:[-] 21-07-20 预报起始时间与 gmt_start 相同
     forecast_dt_start: datetime = gmt_start
     ty_timestamp: str = TY_STAMP
-    ty_id: int = 1
+    ty_id: int = ty_id if ty_id != UNLESS_INDEX else 8
+    # ty_id: int = 8
     # TODO:[*] 21-07-20 注意此处需要修改为明杰的存储规则
     # EG:     'E:\\02data\\05docker-data\\docker-shared\\ty_docker\\TYTD04_2021071908\\STATION'
     # 实际地址: E:\02data\05docker-data\docker-shared\ty_docker\result\TYTD04_2021071908
@@ -112,9 +114,9 @@ def main():
     # TODO:[-] 21-07-27 预报的起始时间，目前使用的是 pathfile -> c0_p00 中的路径起止时间
     gmt_start = datetime(2021, 7, 21, 0)
     gmt_end = datetime(2021, 7, 23, 0)  # 目前使用的结束时间为从台风网上爬取的时间的结束时间(预报)
-    case_group_ty_path(gmt_start, gmt_end)
+    # case_group_ty_path(gmt_start, gmt_end)
     # 21-04-25 批量处理海洋站潮位数据
-    # case_station()
+    case_station(gmt_start, gmt_end)
     # 测试查询 gp
     # case_get_gp()
     # test_get_gp_model()
