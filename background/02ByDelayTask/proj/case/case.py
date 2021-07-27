@@ -108,9 +108,9 @@ def test_get_gp_model():
 
 
 def main():
-    # case_group_ty_path()
+    case_group_ty_path()
     # 21-04-25 批量处理海洋站潮位数据
-    case_station()
+    # case_station()
     # 测试查询 gp
     # case_get_gp()
     # test_get_gp_model()
