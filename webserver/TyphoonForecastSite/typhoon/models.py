@@ -3,7 +3,8 @@ from django.contrib.gis.geos import GEOSGeometry
 from django.utils.timezone import now
 
 # ----
-from util.const import DEFAULT_FK, UNLESS_INDEX, DEFAULT_CODE
+from util.const import DEFAULT_FK, UNLESS_INDEX, DEFAULT_CODE, DEFAULT_TIMTSTAMP_STR
+from common.imodels import ITimeStamp
 
 
 # Create your models here.
@@ -33,7 +34,14 @@ class IModel(models.Model):
         abstract = True
 
 
-class TyphoonForecastRealDataModel(IIdModel, IDelModel, IModel):
+# class ITimeStamp(models.Model):
+#     timestamp = models.CharField(default=DEFAULT_TIMTSTAMP_STR, max_length=100)
+#
+#     class Meta:
+#         abstract = True
+
+
+class TyphoonForecastRealDataModel(IIdModel, IDelModel, IModel, ITimeStamp):
     """
         台风逐时预报信息
     """
@@ -52,7 +60,7 @@ class TyphoonForecastRealDataModel(IIdModel, IDelModel, IModel):
         db_table = 'typhoon_forecast_realdata'
 
 
-class TyphoonForecastDetailModel(IIdModel, IDelModel, IModel):
+class TyphoonForecastDetailModel(IIdModel, IDelModel, IModel, ITimeStamp):
     code = models.CharField(max_length=200)
     organ_code = models.IntegerField(default=UNLESS_INDEX)
     gmt_start = models.DateTimeField(default=now)
@@ -89,6 +97,7 @@ class TyphoonComplexGroupRealDataModel(models.Model):
     ty_path_marking = models.IntegerField()
     bp = models.FloatField()
     is_bp_increase = models.BooleanField(default=False)
+
     # list_realdata=models.ListField(TyphoonForecastRealDataModel)
     class Meta:
         abstract = True

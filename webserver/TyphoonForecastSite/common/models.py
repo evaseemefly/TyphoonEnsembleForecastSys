@@ -1,4 +1,6 @@
 from django.db import models
+# ----
+from util.const import DEFAULT_TIMTSTAMP_STR
 
 
 # Create your models here.
@@ -21,3 +23,6 @@ class IDictModel(models.Model):
 class DictBaseModel(IDictModel):
     class Meta:
         db_table = 'common_dict'
+
+
+

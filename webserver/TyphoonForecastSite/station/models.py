@@ -2,7 +2,7 @@ from django.db import models
 from django.utils.timezone import now
 # 同项目的其他组件
 # from typhoon.models import IDelModel, IIdModel, IModel
-from common.imodels import IDelModel, IIdModel, IModel
+from common.imodels import IDelModel, IIdModel, IModel, ITimeStamp, ITimeStamp
 from util.const import DEFAULT_FK, UNLESS_INDEX, DEFAULT_CODE, ABS_KEY
 
 
@@ -21,7 +21,7 @@ class StationInfoModel(IModel, IDelModel, IIdModel):
         db_table = 'station_info'
 
 
-class StationForecastRealDataModel(IIdModel, IDelModel, IModel):
+class StationForecastRealDataModel(IIdModel, IDelModel, IModel, ITimeStamp):
     # ty_id = models.IntegerField(default=DEFAULT_FK)
     ty_code = models.CharField(max_length=200)
     gp_id = models.IntegerField(default=DEFAULT_FK)
