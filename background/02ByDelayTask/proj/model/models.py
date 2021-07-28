@@ -89,7 +89,7 @@ class StationForecastRealDataModel(IIdModel, IDel, IModel,ITimeStamp):
     station_code = Column(VARCHAR(200), nullable=False)
     # lat = Column(Float, nullable=False)
     # lon = Column(Float, nullable=False)
-    forecast_dt = Column(DATETIME(fsp=6))
+    forecast_dt = Column(DATETIME(fsp=2))
     forecast_index = Column(Integer, nullable=False)
     surge = Column(Float, nullable=False)
 
