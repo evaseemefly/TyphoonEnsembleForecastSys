@@ -60,14 +60,22 @@ class RasterBaseView(BaseView):
 
         return query.first()
 
+    def _query_base_tif(self, ty_code: str, ty_timestamp: str) -> QuerySet:
+        query: QuerySet = ForecastTifModel.objects.filter(ty_code=ty_code, timestamp=ty_timestamp)
+        return query
+
     def _query_tif(self, **kwargs) -> ForecastTifModel:
         gcid: int = kwargs.get('gcid')
         ty_code: str = kwargs.get('ty_code')
         ty_timestamp: str = kwargs.get('timestamp')
         forecast_dt: datetime = kwargs.get('forecast_dt', None)
 
-        query = ForecastTifModel.objects.filter(gcid=gcid, ty_code=ty_code, timestamp=ty_timestamp,
-                                                forecast_dt=forecast_dt)
+        query = self._query_base_tif(ty_code=ty_code, ty_timestamp=ty_timestamp)
+        if len(query) > 0:
+            query = query.filter(gcid=gcid, forecast_dt=forecast_dt)
+        # TODO:[-] 21-07-30 可以去掉 gcid 因为查询时并不需要
+        # query = ForecastTifModel.objects.filter(gcid=gcid, ty_code=ty_code, timestamp=ty_timestamp,
+        #                                         forecast_dt=forecast_dt)
         res: CoverageInfoModel = None
         if query and len(query) > 0:
             res = query.first()
@@ -86,8 +94,10 @@ class RasterBaseView(BaseView):
         query_coverage: CoverageInfoModel = self.get_coverage(ty_code=ty_code, timestamp=ty_timestamp)
         # 获取 coverage_id 作为 tb:tif 的 gcid
         coverage_id: int = query_coverage.id
-        res_tif: ForecastTifModel = self._query_tif(gcid=coverage_id, ty_code=ty_code, timestamp=ty_timestamp,
-                                                    forecast_dt=forecast_dt)
+        # TODO:[-] 21-07-30 可以去掉 gcid 因为查询时并不需要
+        res_tif: ForecastTifModel = self._query_base_tif(ty_code=ty_code, ty_timestamp=ty_timestamp).first()
+        # res_tif: ForecastTifModel = self._query_tif(gcid=coverage_id, ty_code=ty_code, timestamp=ty_timestamp,
+        #                                             forecast_dt=forecast_dt)
 
         store_url: str = STORE_OPTIONS.get('URL')
         store_host: int = STORE_OPTIONS.get('HOST')

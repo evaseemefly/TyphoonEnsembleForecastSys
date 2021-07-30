@@ -16,9 +16,11 @@ TEST_ENV_SETTINGS = {
     # 加入了 docker 的映射路径，目前docker环境有一些问题，暂时使用此种方式
     # 'TY_GROUP_PATH_ROOT_DIR': r'/Users/liusihan/data/typhoon_data/'  # mac
     # 'TY_GROUP_PATH_ROOT_DIR': r'/my_shared_data/pathfiles/',
-    'TY_CODE': '2107',
+    'TY_CODE': '2022',
     # 'TY_TIMESTAMP': '2021010416'
-    'TY_TIMESTAMP': '2021072110'
+    'TY_TIMESTAMP': '2021010416',
+    # TODO:[-] 21-07-30 暂时加入的台风的年份的头两位
+    'YEAR_HEADER': '20'
 }
 
 # 数据库的配置，配置借鉴自 django 的 settings 的结构

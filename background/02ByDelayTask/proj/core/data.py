@@ -30,6 +30,7 @@ from core.file import StationSurgeRealDataFile
 
 # root 的根目录
 ROOT_PATH = TEST_ENV_SETTINGS.get('TY_GROUP_PATH_ROOT_DIR')
+YEAR_HEADER: str = TEST_ENV_SETTINGS.get('YEAR_HEADER')
 
 
 def get_match_files(re_str: str, dir_path: str = None) -> List[str]:
@@ -519,6 +520,7 @@ class GroupTyphoonPath(IBaseOpt):
         # TY1822_2020042710_c0_p_05
         file_name: str = kwargs.get('file_name')
         # ['TYTD04', '2021071908', 'c0', 'p00']
+        # ['TY2022', '2021010416', 'c0', 'p00']
         file_splits: List[str] = file_name.split('_')
         # TODO:[-] 21-04-20 BUG: 此处会造成首次读取文件后 df 不会更新的bug
         # if df_temp is None:
@@ -552,7 +554,12 @@ class GroupTyphoonPath(IBaseOpt):
                 list_split: List[str] = series_temp.values[0].split(' ')
                 # TODO:[-] 21-07-26 此处修改了之前的年份是写死的，现在改成由文件名获取
                 # 从 file_name 中提取年份
-                year_str = file_splits[1][:4]
+                # TODO:[-] 21-07-30 注意此处有一个大坑 取年份需要通过台风编号获取，此处目前的办法是只能将 年份暂时写死
+                # year_header
+                # # ['TY2022', '2021010416', 'c0', 'p00']
+                # year_str = file_splits[1][:4]
+                # TY2022 -> 20
+                year_str = YEAR_HEADER + file_splits[0][2:-2]
                 # 注意此处的 forecast_dt 是 local 时间 需要 -> utc
                 # step: str -> arrow,set local -> to utc -> to datetime
                 forecast_dt: datetime = arrow.get(year_str + list_split[0], 'YYYYMMDDHH', tzinfo='local').to(

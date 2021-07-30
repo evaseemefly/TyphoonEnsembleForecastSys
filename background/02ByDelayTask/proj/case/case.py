@@ -112,11 +112,13 @@ def test_get_gp_model():
 
 def main():
     # TODO:[-] 21-07-27 预报的起始时间，目前使用的是 pathfile -> c0_p00 中的路径起止时间
-    gmt_start = datetime(2021, 7, 21, 0)
-    gmt_end = datetime(2021, 7, 23, 0)  # 目前使用的结束时间为从台风网上爬取的时间的结束时间(预报)
+    # ! 注意时间是 utc 时间，文件里面读取的为 local 时间 ！
+    gmt_start = datetime(2020, 9, 15, 9)
+    gmt_end = datetime(2020, 9, 17, 9)  # 目前使用的结束时间为从台风网上爬取的时间的结束时间(预报)
     # case_group_ty_path(gmt_start, gmt_end)
     # 21-04-25 批量处理海洋站潮位数据
-    case_station(gmt_start, gmt_end)
+    # 注意 此处的 ty_id 由 case_group_ty_path 处理后创建的一个 ty id
+    case_station(gmt_start, gmt_end, ty_id=12)
     # 测试查询 gp
     # case_get_gp()
     # test_get_gp_model()
