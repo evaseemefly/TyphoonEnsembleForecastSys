@@ -150,7 +150,12 @@ STORE_OPTIONS = {
     'URL': 'localhost',
     'HOST': 82,  # TODO:[-] 21-01-03 暂时将 nginx 的端口改为了 82 ，注意！
     'STORE_COMMON_BASE': 'images',  # 对应 nginx 的映射的根目录
-    'HEAD': 'nmefc_download'  # nginx 实际存储的 起始路径
+    'HEAD': 'nmefc_download',  # nginx 实际存储的 起始路径
+
+}
+# TODO:[-] 21-08-01 由于不同的数据中间还会继续分层，所以引入了 STORE_RELATIVE_PATH_OPTIONS
+STORE_RELATIVE_PATH_OPTIONS={
+    'TY_GROUP_CASE':'TY_GROUP_RESULT'
 }
 # TODO:[-] 21-05-24 手动添加 gdal lib 的地址
 # TODO:[-] 21-03-27 mac 可以去掉此部分

@@ -28,7 +28,7 @@ from rest_framework.decorators import (APIView, api_view,
 from common.view_base import BaseView
 from util.const import DEFAULT_NULL_KEY
 from .models import CoverageInfoModel, ForecastTifModel
-from TyphoonForecastSite.settings import STORE_OPTIONS
+from TyphoonForecastSite.settings import STORE_OPTIONS, STORE_RELATIVE_PATH_OPTIONS
 from util.exception import NoneError
 
 from common.interface import ICheckExisted
@@ -81,7 +81,7 @@ class RasterBaseView(BaseView):
             res = query.first()
         return res
 
-    def get_tif_url(self, request: Request, **kwargs) -> str:
+    def get_tif_url(self, request: Request, checkCoverage=False, **kwargs) -> str:
         """
              获取指定的 tif url
         @param request: 可选参数 ty_code | timestamp | forecast_dt
@@ -89,13 +89,19 @@ class RasterBaseView(BaseView):
         """
         ty_code = kwargs.get('ty_code', None)
         ty_timestamp = kwargs.get('timestamp', None)
+        coverage_type = kwargs.get('coverage_type')
         # + 21-05-07 新加入的 forecast_dt
         forecast_dt: datetime = kwargs.get('forecast_dt', None)
-        query_coverage: CoverageInfoModel = self.get_coverage(ty_code=ty_code, timestamp=ty_timestamp)
-        # 获取 coverage_id 作为 tb:tif 的 gcid
-        coverage_id: int = query_coverage.id
+        query_coverage = None
+        if checkCoverage:
+            query_coverage: CoverageInfoModel = self.get_coverage(ty_code=ty_code, timestamp=ty_timestamp)
+            # 获取 coverage_id 作为 tb:tif 的 gcid
+            coverage_id: int = query_coverage.id
         # TODO:[-] 21-07-30 可以去掉 gcid 因为查询时并不需要
-        res_tif: ForecastTifModel = self._query_base_tif(ty_code=ty_code, ty_timestamp=ty_timestamp).first()
+        query: QuerySet = self._query_base_tif(ty_code=ty_code, ty_timestamp=ty_timestamp)
+        if coverage_type:
+            query = query.filter(coverage_type=coverage_type.value)
+        res_tif: ForecastTifModel = query.first()
         # res_tif: ForecastTifModel = self._query_tif(gcid=coverage_id, ty_code=ty_code, timestamp=ty_timestamp,
         #                                             forecast_dt=forecast_dt)
 
@@ -103,9 +109,11 @@ class RasterBaseView(BaseView):
         store_host: int = STORE_OPTIONS.get('HOST')
         store_common_base: str = STORE_OPTIONS.get('STORE_COMMON_BASE')
         store_head: str = STORE_OPTIONS.get('HEAD')
-        url_base = f'http://{store_url}:{store_host}/{store_common_base}/{store_head}'
+        # + 21-08-01 由于不同的数据中间还会继续分层，所以引入了 STORE_RELATIVE_PATH_OPTIONS
+        store_relative_path: str = STORE_RELATIVE_PATH_OPTIONS.get('TY_GROUP_CASE')
+        url_base = f'http://{store_url}:{store_host}/{store_common_base}/{store_head}/{store_relative_path}/'
         url_file = None
-        if query_coverage is not None:
+        if res_tif is not None:
             file_full_name: str = f'{res_tif.file_name}.{res_tif.file_ext}'
             url_file = str(pathlib.Path(res_tif.relative_path) / file_full_name)
         else:

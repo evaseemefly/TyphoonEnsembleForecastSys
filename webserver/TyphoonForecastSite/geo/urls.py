@@ -12,12 +12,14 @@ from django.conf.urls import url, include
 from rest_framework import routers
 
 # 本项目
-from .views import GeoTiffView
+from .views import GeoTiffView, GeoTiffMaxSurgeView
 
 app_name = '[geo]'
 
 urlpatterns = [
     # 根据查询条件获取 typhoonDetailModel 的列表
     url(r'^geotiff/url$', GeoTiffView.as_view()),
+    # + 21-08-01 加入了获取 max_surge 的 tif 列表
+    url(r'^geotiff/surge/max/$', GeoTiffMaxSurgeView.as_view()),
 
 ]
