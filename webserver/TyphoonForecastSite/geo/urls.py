@@ -20,6 +20,6 @@ urlpatterns = [
     # 根据查询条件获取 typhoonDetailModel 的列表
     url(r'^geotiff/url$', GeoTiffView.as_view()),
     # + 21-08-01 加入了获取 max_surge 的 tif 列表
-    url(r'^geotiff/surge/max/$', GeoTiffMaxSurgeView.as_view()),
+    url(r'^geotiff/surge/max$', GeoTiffMaxSurgeView.as_view()),
 
 ]
