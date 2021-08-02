@@ -202,8 +202,8 @@ class ISurgeCoverageFile(IBaseSurgeFile, metaclass=ABCMeta):
 
     """
 
-    @abc.abstractmethod
     @property
+    @abstractmethod
     def coverage_type(self) -> LayerType:
         """
             需要子类实现的 抽象 属性方法

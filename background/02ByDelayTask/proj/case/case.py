@@ -8,7 +8,7 @@
 # @Software: PyCharm
 from typing import List
 import pathlib
-from core.data import GroupTyphoonPath, get_match_files, to_ty_group, to_station_realdata, get_gp
+from core.data import GroupTyphoonPath, get_match_files, to_ty_group, to_station_realdata, get_gp, to_ty_field_surge
 from model.models import TyphoonForecastDetailModel
 from core.file import StationSurgeRealDataFile
 from common.enum import ForecastOrganizationEnum, TyphoonForecastSourceEnum
@@ -90,6 +90,29 @@ def case_station(start: datetime, end: datetime, ty_id=UNLESS_INDEX):
     pass
 
 
+def case_field_surge(ty_code: str, ty_stamp: str, gmt_start, gmt_end):
+    """
+        处理对应台风+时间戳的逐时风暴增水
+    @param ty_code:
+    @param ty_timestamp:
+    @return:
+    """
+    re_str: str = '^field\w*.nc'
+    dir_path: str = str(pathlib.Path(ROOT_DIR) / 'result' / ty_stamp)
+    list_match_files: List[str] = get_match_files(re_str, dir_path)
+    ty_detail: TyphoonForecastDetailModel = TyphoonForecastDetailModel(code=TY_CODE,
+                                                                       organ_code=ForecastOrganizationEnum.NMEFC.value,
+                                                                       gmt_start=gmt_start,
+                                                                       gmt_end=gmt_end,
+                                                                       forecast_source=TyphoonForecastSourceEnum.DEFAULT.value,
+                                                                       timestamp=TY_TIMESTAMP)
+    # 注意此处会包含 _converted.nc 的文件需要剔除该文件
+    filter_list_files: List[str] = [file
+                                    for file in list_match_files if file.find('converted') < 0]
+    to_ty_field_surge(filter_list_files, ty_detail, dir_path=dir_path)
+    pass
+
+
 def case_get_gp():
     """
         测试 get 指定 gp
@@ -118,7 +141,9 @@ def main():
     # case_group_ty_path(gmt_start, gmt_end)
     # 21-04-25 批量处理海洋站潮位数据
     # 注意 此处的 ty_id 由 case_group_ty_path 处理后创建的一个 ty id
-    case_station(gmt_start, gmt_end, ty_id=12)
+    # case_station(gmt_start, gmt_end, ty_id=12)
+    # TODO:[-] 21-08-02 加入了 测试 逐时风暴增水的 case
+    case_field_surge(TY_CODE, TY_STAMP)
     # 测试查询 gp
     # case_get_gp()
     # test_get_gp_model()

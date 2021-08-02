@@ -15,6 +15,7 @@ import numpy as np
 from datetime import datetime, timedelta
 import arrow
 from typing import List
+import xarray as xar
 # sqlaclemy
 # from sqlalchemy import Query
 
@@ -26,7 +27,7 @@ from common.common_dict import DICT_STATION
 from conf.settings import TEST_ENV_SETTINGS
 from core.db import DbFactory
 
-from core.file import StationSurgeRealDataFile
+from core.file import StationSurgeRealDataFile, FieldSurgeCoverageFile
 
 # root 的根目录
 ROOT_PATH = TEST_ENV_SETTINGS.get('TY_GROUP_PATH_ROOT_DIR')
@@ -88,7 +89,7 @@ def to_ty_group(list_files: List[str], ty_detail: TyphoonForecastDetailModel, **
             ty_group.to_store(ty_detail=ty_detail)
 
 
-def to_ty_field_surge(list_files:List[str],ty_detail: TyphoonForecastDetailModel, **kwargs):
+def to_ty_field_surge(list_files: List[str], ty_detail: TyphoonForecastDetailModel, **kwargs):
     """
         + 21-08-02 自动化处理诸时场nc的全流程
     @param list_files:
@@ -96,9 +97,13 @@ def to_ty_field_surge(list_files:List[str],ty_detail: TyphoonForecastDetailModel
     @param kwargs:
     @return:
     """
+    # eg: fieldSurge_TY2022_2021010416_c0_p00_201809150900.nc
+    dir_path: str = kwargs.get('dir_path')
     for file_temp in list_files:
+        field_surge_file = FieldSurgeCoverageFile(dir_path, file_temp)
         pass
     pass
+
 
 def to_station_realdata(list_files: List[str], ty_detail: TyphoonForecastDetailModel, **kwargs):
     forecast_dt_start: datetime = kwargs.get('forecast_dt_start')
@@ -780,3 +785,84 @@ class StationRealDataFile(ITyphoonPath):
             print(f'{ex.args}')
 
         return is_stored
+
+
+class FieldSurgeDataInfo:
+    """
+        逐时潮位 ds info 类
+        用来处理逐时 ds -> db
+           foreach    -> tif
+    """
+    def __init__(self, file: FieldSurgeCoverageFile, dir_path: str):
+        self.file = file
+        self.dir_path = dir_path
+        self.ds: xar.Dataset = None
+
+    def to_do(self, **kwargs):
+        """
+            处理逐时风暴增水场文件
+        @return:
+        """
+        gmt_start: datetime = kwargs.get('gmt_start')
+        self.read_nc()
+        self._gen_dt_range(gmt_start)
+        is_converted: bool = self.to_converted_nc()
+        if is_converted:
+            self.converted_nc_2_db()
+            self.enumerate_2_tif()
+
+        pass
+
+    def read_nc(self) -> xar.Dataset:
+        # step:
+        # 1- 获取实际路径
+        # 2- 判断是否存在指定文件
+        # 3- 文件存在则读取，并返回 xarray.Dataset
+        ds: xar.Dataset = None
+        full_path: str = str(pathlib.Path(self.dir_path) / self.file.file_name)
+        if pathlib.Path(full_path).is_file():
+            ds = xar.open_dataset(full_path, decode_times=False)
+        return ds
+
+    def _gen_dt_range(self, gmt_start: datetime, hours=48):
+        """
+            根据 gmt_start -> hours 生成时间数组作为 Dataset 的纬度
+        @param gmt_start:
+        @param hours:
+        @return:
+        """
+        np_dt_range = np.array([gmt_start + timedelta(hours=i) for i in range(hours)])
+        self.ds.coords['times'] = np_dt_range
+
+    def to_converted_nc(self) -> bool:
+        """
+            将 ds 生成转换后的 nc文件
+            若生成成功返回 true
+        @return:
+        """
+        is_converted: bool = False
+        new_file_name: str = None
+        if self.file.find('.') >= 0:
+            new_file_name = self.file.split('.')[0] + '_converted' + self.file.split('.')[1]
+            new_full_path: str = str(pathlib.Path(self.dir_path) / new_file_name)
+            if self.ds:
+                converted_ds: xar.Dataset = self.ds
+                converted_ds = converted_ds.rename_vars({'latitude': 'y', 'longitude': 'x'})
+                converted_ds = converted_ds.swap_dims({'lat': 'y', 'lon': 'x'})
+                converted_ds.rio.set_spatial_dims("x", "y", inplace=True)
+                converted_ds = converted_ds.rio.write_crs("epsg:4326", inplace=True)
+                converted_ds['y'] = converted_ds['y'][::-1]
+                self.ds.to_netcdf(new_full_path)
+                self.ds = converted_ds
+                is_converted = True
+        return is_converted
+
+    def converted_nc_2_db(self):
+        pass
+
+    def enumerate_2_tif(self):
+        """
+            将 self.ds 遍历 -> .tif
+        @return:
+        """
+        pass
