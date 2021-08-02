@@ -18,3 +18,15 @@ class ForecastOrganizationEnum(Enum):
 @unique
 class TyphoonForecastSourceEnum(Enum):
     DEFAULT = 201
+
+
+@unique
+class LayerType(Enum):
+    """
+        + 21-08-02
+        图层枚举
+        对应 tb:dict_base -> pid =1100
+    """
+    MAXSURGECOVERAGE = 1101  # 最大增水场 nc
+    MAXSURGETIF = 1102
+    FIELDSURGECOVERAGE = 1103  # 诸时场 nc

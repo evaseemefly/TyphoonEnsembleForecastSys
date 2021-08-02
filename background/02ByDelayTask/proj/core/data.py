@@ -88,6 +88,18 @@ def to_ty_group(list_files: List[str], ty_detail: TyphoonForecastDetailModel, **
             ty_group.to_store(ty_detail=ty_detail)
 
 
+def to_ty_field_surge(list_files:List[str],ty_detail: TyphoonForecastDetailModel, **kwargs):
+    """
+        + 21-08-02 自动化处理诸时场nc的全流程
+    @param list_files:
+    @param ty_detail:
+    @param kwargs:
+    @return:
+    """
+    for file_temp in list_files:
+        pass
+    pass
+
 def to_station_realdata(list_files: List[str], ty_detail: TyphoonForecastDetailModel, **kwargs):
     forecast_dt_start: datetime = kwargs.get('forecast_dt_start')
     ty_id: int = kwargs.get('ty_id')
