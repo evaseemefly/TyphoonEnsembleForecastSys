@@ -90,11 +90,13 @@ def case_station(start: datetime, end: datetime, ty_id=UNLESS_INDEX):
     pass
 
 
-def case_field_surge(ty_code: str, ty_stamp: str, gmt_start, gmt_end):
+def case_field_surge(ty_code: str, ty_stamp: str, gmt_start: datetime, gmt_end: datetime):
     """
         处理对应台风+时间戳的逐时风暴增水
     @param ty_code:
-    @param ty_timestamp:
+    @param ty_stamp:
+    @param gmt_start:
+    @param gmt_end:
     @return:
     """
     re_str: str = '^field\w*.nc'
@@ -109,7 +111,7 @@ def case_field_surge(ty_code: str, ty_stamp: str, gmt_start, gmt_end):
     # 注意此处会包含 _converted.nc 的文件需要剔除该文件
     filter_list_files: List[str] = [file
                                     for file in list_match_files if file.find('converted') < 0]
-    to_ty_field_surge(filter_list_files, ty_detail, dir_path=dir_path)
+    to_ty_field_surge(filter_list_files, ty_detail, dir_path=dir_path, gmt_start=gmt_start)
     pass
 
 
@@ -143,7 +145,7 @@ def main():
     # 注意 此处的 ty_id 由 case_group_ty_path 处理后创建的一个 ty id
     # case_station(gmt_start, gmt_end, ty_id=12)
     # TODO:[-] 21-08-02 加入了 测试 逐时风暴增水的 case
-    case_field_surge(TY_CODE, TY_STAMP)
+    case_field_surge(TY_CODE, TY_STAMP, gmt_start, gmt_end)
     # 测试查询 gp
     # case_get_gp()
     # test_get_gp_model()

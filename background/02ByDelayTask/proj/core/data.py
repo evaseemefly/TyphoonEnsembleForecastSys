@@ -16,6 +16,7 @@ from datetime import datetime, timedelta
 import arrow
 from typing import List
 import xarray as xar
+import rioxarray
 # sqlaclemy
 # from sqlalchemy import Query
 
@@ -94,13 +95,16 @@ def to_ty_field_surge(list_files: List[str], ty_detail: TyphoonForecastDetailMod
         + 21-08-02 自动化处理诸时场nc的全流程
     @param list_files:
     @param ty_detail:
-    @param kwargs:
+    @param kwargs: need: gmt_start
     @return:
     """
+    gmt_start = kwargs.get('gmt_start')
     # eg: fieldSurge_TY2022_2021010416_c0_p00_201809150900.nc
     dir_path: str = kwargs.get('dir_path')
     for file_temp in list_files:
         field_surge_file = FieldSurgeCoverageFile(dir_path, file_temp)
+        field_surge_data: FieldSurgeDataInfo = FieldSurgeDataInfo(field_surge_file, dir_path)
+        field_surge_data.to_do(gmt_start=gmt_start)
         pass
     pass
 
@@ -793,10 +797,30 @@ class FieldSurgeDataInfo:
         用来处理逐时 ds -> db
            foreach    -> tif
     """
+
     def __init__(self, file: FieldSurgeCoverageFile, dir_path: str):
         self.file = file
         self.dir_path = dir_path
         self.ds: xar.Dataset = None
+
+    @property
+    def full_file_name(self) -> str:
+        """
+            文件全名称
+            xxx.nc
+        @return:
+        """
+        return self.file.file_name
+
+    @property
+    def file_name(self) -> str:
+        """
+            根据 self.file -> file_name -> 只获取 file_name 不包含 .nc
+        @return:
+        """
+        file_name_str: str = self.full_file_name
+        file_name_temp: str = file_name_str.split('.')[0]
+        return file_name_temp
 
     def to_do(self, **kwargs):
         """
@@ -804,13 +828,12 @@ class FieldSurgeDataInfo:
         @return:
         """
         gmt_start: datetime = kwargs.get('gmt_start')
-        self.read_nc()
+        self.ds = self.read_nc()
         self._gen_dt_range(gmt_start)
-        is_converted: bool = self.to_converted_nc()
-        if is_converted:
+        converted_file_name: str = self.to_converted_nc()
+        if converted_file_name:
             self.converted_nc_2_db()
             self.enumerate_2_tif()
-
         pass
 
     def read_nc(self) -> xar.Dataset:
@@ -834,7 +857,7 @@ class FieldSurgeDataInfo:
         np_dt_range = np.array([gmt_start + timedelta(hours=i) for i in range(hours)])
         self.ds.coords['times'] = np_dt_range
 
-    def to_converted_nc(self) -> bool:
+    def to_converted_nc(self) -> str:
         """
             将 ds 生成转换后的 nc文件
             若生成成功返回 true
@@ -842,8 +865,8 @@ class FieldSurgeDataInfo:
         """
         is_converted: bool = False
         new_file_name: str = None
-        if self.file.find('.') >= 0:
-            new_file_name = self.file.split('.')[0] + '_converted' + self.file.split('.')[1]
+        if self.full_file_name.find('.') >= 0:
+            new_file_name = self.full_file_name.split('.')[0] + '_converted.' + self.full_file_name.split('.')[1]
             new_full_path: str = str(pathlib.Path(self.dir_path) / new_file_name)
             if self.ds:
                 converted_ds: xar.Dataset = self.ds
@@ -855,7 +878,7 @@ class FieldSurgeDataInfo:
                 self.ds.to_netcdf(new_full_path)
                 self.ds = converted_ds
                 is_converted = True
-        return is_converted
+        return new_file_name
 
     def converted_nc_2_db(self):
         pass
@@ -865,4 +888,18 @@ class FieldSurgeDataInfo:
             将 self.ds 遍历 -> .tif
         @return:
         """
+        if self.ds:
+            file_name_coverage: str = self.file_name
+            # 遍历生成 tif
+            for temp in self.ds['times']:
+                dt_temp = pd.to_datetime(temp.values)
+                dt_str = arrow.get(dt_temp).format('YYYYMMDDHHmm')
+                print(dt_str)
+                ds_xr_temp = self.ds.sel(times=pd.to_datetime(temp.values))
+                p = pathlib.Path(self.dir_path)
+                file_name = f'{file_name_coverage}_{dt_str}.tif'
+                full_path = str(p / file_name)
+                print(f'最后输出的目录为{full_path}')
+                ds_xr_temp.rio.to_raster(full_path)
+                print('-------------')
         pass
