@@ -22,7 +22,7 @@ from geoalchemy2 import Geometry
 from conf.settings import DATABASES
 from core.db import DbFactory
 
-from common.const import DEFAULT_FK, UNLESS_INDEX, DEFAULT_CODE
+from common.const import DEFAULT_FK, UNLESS_INDEX, DEFAULT_CODE, DEFAULT_PATH_TYPE
 
 engine = DbFactory().engine
 
@@ -79,7 +79,7 @@ class TyphoonForecastRealDataModel(IIdModel, IDel, IModel, ITimeStamp):
     # timestamp = Column(VARCHAR(100), nullable=False)
 
 
-class StationForecastRealDataModel(IIdModel, IDel, IModel,ITimeStamp):
+class StationForecastRealDataModel(IIdModel, IDel, IModel, ITimeStamp):
     """
         台站逐时潮位信息
     """
@@ -118,3 +118,66 @@ class TyphoonGroupPathModel(IDel, IIdModel, IModel):
     ty_path_marking = Column(Integer, nullable=False)
     bp = Column(Float, nullable=False)
     is_bp_increase = Column(TINYINT(1), nullable=False, server_default=text("'0'"), default=0)  # 气压是否为增量
+
+
+class ITyPathModel(BaseMeta):
+    """
+        所有 file 包含台风路径信息的 父类
+        maxSurge_TY2022_2021010416_c0_p00.nc  -> c0
+    """
+    __abstract__ = True
+    ty_path_type = Column(VARCHAR(5), nullable=False, default=DEFAULT_PATH_TYPE)
+    ty_path_marking = Column(Integer, nullable=False, default=0)
+
+
+class IBpModel(BaseMeta):
+    """
+        所有 file 包含 台风气压信息的 父类
+        maxSurge_TY2022_2021010416_c0_p00.nc  -> p00
+    """
+    __abstract__ = True
+    bp = Column(Float, nullable=False, default=0)
+    is_bp_increase = Column(TINYINT(1), nullable=False, default=0)  # 气压是否为增量
+
+
+class ISpliceModel(BaseMeta):
+    """
+        是否已经进行切片 的 coverage
+        若 is_splice = False 则 splice_step 可以为 NULL
+    """
+    __abstract__ = True
+    is_splice = Column(TINYINT(1), nullable=False, default=0)
+    splice_step = Column(Integer, nullable=True)
+
+
+class IIsSourceModel(BaseMeta):
+    __abstract__ = True
+    is_source = Column(TINYINT(1), nullable=False, default=1)
+
+
+class IFileModel(BaseMeta):
+    """
+        所有 file 的抽象父类 model
+    """
+    __abstract__ = True
+
+    root_path = Column(VARCHAR(500), nullable=False)
+    file_name = Column(VARCHAR(200), nullable=False)
+    relative_path = Column(VARCHAR(500), nullable=False)
+    file_size = Column(Float, nullable=False)
+    file_ext = Column(VARCHAR(10), nullable=False)
+
+
+class CoverageInfoModel(IDel, IIdModel, IModel, ITyPathModel, IBpModel, ISpliceModel, IIsSourceModel, IFileModel):
+    __tablename__ = 'geo_coverageinfo'
+    forecast_area = Column(Integer, nullable=False, default=0)
+    coverage_type = Column(Integer, nullable=False, default=0)
+    ty_code = Column(VARCHAR(100), nullable=False)
+    timestamp = Column(VARCHAR(100), nullable=False)
+
+class ForecastTifModel(IDel, IIdModel, IModel, ITyPathModel, IBpModel, ISpliceModel, IFileModel):
+    __tablename__ = 'geo_forecast_tif'
+    coverage_type = Column(Integer, nullable=False, default=0)
+    ty_code = Column(VARCHAR(100), nullable=False)
+    timestamp = Column(VARCHAR(100), nullable=False)
+    forecast_dt = Column(DATETIME(fsp=6), default=datetime.utcnow())

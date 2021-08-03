@@ -8,6 +8,7 @@
 # @Software: PyCharm
 from datetime import datetime
 from typing import List
+from numpy import datetime64
 
 
 class GroupTyphoonPathMidModel:
@@ -45,3 +46,22 @@ class StationRealDataMidModel:
         self.gmt_end = gmt_end
         self.source = forecast_source
         self.is_forecast = is_forecast
+
+class TifFileMidModel:
+    def __init__(self,forecast_dt:datetime64,tif_file_full_name:str,full_path:str):
+        # <class 'numpy.datetime64'>
+        self.forecast_dt_64:datetime64=forecast_dt
+        self.tif_file_full_name=tif_file_full_name
+        self.full_path=full_path
+
+    @property
+    def file_name(self):
+        return self.tif_file_full_name.split('.')[0]
+
+    @property
+    def file_ext(self):
+        return self.tif_file_full_name.split('.')[0]
+
+    @property
+    def forecast_dt(self):
+        return self.forecast_dt_64.astype(datetime)

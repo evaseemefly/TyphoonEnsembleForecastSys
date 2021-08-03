@@ -39,6 +39,10 @@ class IBaseSurgeFile(metaclass=ABCMeta):
         return list_split
 
     @property
+    def file_name_only(self) -> str:
+        return self.file_name.split('.')[0]
+
+    @property
     def ty_code(self) -> str:
         """
             获取 台风 code

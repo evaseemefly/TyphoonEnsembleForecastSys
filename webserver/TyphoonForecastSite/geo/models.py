@@ -12,6 +12,7 @@ class CoverageInfoModel(IDelModel, IIdModel, IModel, ITyPathModel, IBpModel, ISp
     coverage_type = models.IntegerField(default=DEFAULT_FK)
     ty_code = models.CharField(max_length=200)
     timestamp = models.CharField(max_length=100)
+    is_source=models.BooleanField(default=True)
 
     class Meta:
         db_table = 'geo_coverageinfo'

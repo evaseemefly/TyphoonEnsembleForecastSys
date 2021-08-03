@@ -20,9 +20,9 @@ import rioxarray
 # sqlaclemy
 # from sqlalchemy import Query
 
-from model.mid_models import GroupTyphoonPathMidModel, TyphoonForecastDetailMidModel
+from model.mid_models import GroupTyphoonPathMidModel, TyphoonForecastDetailMidModel, TifFileMidModel
 from model.models import TyphoonGroupPathModel, TyphoonForecastDetailModel, TyphoonForecastRealDataModel, \
-    StationForecastRealDataModel
+    StationForecastRealDataModel, CoverageInfoModel, ForecastTifModel
 from common.const import UNLESS_CODE, UNLESS_RANGE
 from common.common_dict import DICT_STATION
 from conf.settings import TEST_ENV_SETTINGS
@@ -798,10 +798,16 @@ class FieldSurgeDataInfo:
            foreach    -> tif
     """
 
+    dict_data = {
+        'coverage_file': None,
+        'tif_files': []
+    }
+
     def __init__(self, file: FieldSurgeCoverageFile, dir_path: str):
-        self.file = file
+        self.file: FieldSurgeCoverageFile = file
         self.dir_path = dir_path
         self.ds: xar.Dataset = None
+        self.session = DbFactory().Session
 
     @property
     def full_file_name(self) -> str:
@@ -832,8 +838,8 @@ class FieldSurgeDataInfo:
         self._gen_dt_range(gmt_start)
         converted_file_name: str = self.to_converted_nc()
         if converted_file_name:
-            self.converted_nc_2_db()
             self.enumerate_2_tif()
+            self.to_store()
         pass
 
     def read_nc(self) -> xar.Dataset:
@@ -878,10 +884,44 @@ class FieldSurgeDataInfo:
                 self.ds.to_netcdf(new_full_path)
                 self.ds = converted_ds
                 is_converted = True
+                self.dict_data['converted_file'] = new_file_name
         return new_file_name
 
-    def converted_nc_2_db(self):
-        pass
+    def to_store(self):
+        """
+            将以上步骤持久化保存
+            step:
+                -1 保存 coverage_file un_converted
+                -2 保存 coverage_file converted
+                -3 批量保存 tifs
+        @return:
+        """
+        try:
+            converted_full_name = self.dict_data.get('converted_file')
+            # step: 1 保存 coverage_file un_converted
+            ty_coverage_info = CoverageInfoModel(ty_code=self.file.ty_code, timestamp=self.file.ty_timestamp,
+                                                 root_path=ROOT_PATH, file_name=self.file.file_name_only,
+                                                 relative_path=self.file.ty_timestamp)
+            # step: 2 保存 coverage_file converted
+            ty_coverage_info_converted = CoverageInfoModel(ty_code=self.file.ty_code, timestamp=self.file.ty_timestamp,
+                                                           root_path=ROOT_PATH, file_name=converted_full_name,
+                                                           relative_path=self.file.ty_timestamp, is_source=False)
+            self.session.add(ty_coverage_info)
+            self.session.add(ty_coverage_info_converted)
+            # step: 3 保存 geo_tif
+            list_tif_files: List[TifFileMidModel] = self.dict_data.get('tif_files')
+            for temp_tif_file in list_tif_files:
+                tif_model = ForecastTifModel(ty_code=self.file.ty_code, timestamp=self.file.ty_timestamp,
+                                             root_path=ROOT_PATH, file_name=temp_tif_file.file_name,
+                                             relative_path=self.file.ty_timestamp,
+                                             forecast_dt=temp_tif_file.forecast_dt)
+                self.session.add(tif_model)
+            self.session.commit()
+
+        except Exception as ex:
+            print(f'{ex.args}')
+
+            pass
 
     def enumerate_2_tif(self):
         """
@@ -901,5 +941,7 @@ class FieldSurgeDataInfo:
                 full_path = str(p / file_name)
                 print(f'最后输出的目录为{full_path}')
                 ds_xr_temp.rio.to_raster(full_path)
-                print('-------------')
+                temp_file_info = TifFileMidModel(temp.values, file_name, full_path)
+                self.dict_data.get('tif_files').append(temp_file_info)
+                # print('-------------')
         pass
