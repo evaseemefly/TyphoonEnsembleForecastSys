@@ -8,3 +8,5 @@ class LayerTypeEnum(Enum):
     TYPHOON_GROUPPATH_LAYER = 1003
     SURGE_MAX_COVERAGE = 1101  # + 21-07-30 新加入的 对应 tb:dict_base 表的枚举
     SURGE_MAX_TIF = 1102
+    SURGE_FIELD_COVERAGE = 1103  # 诸时场 nc
+    SURGE_FIELD_TIF = 1104  # 逐时场的单个时间提取tif

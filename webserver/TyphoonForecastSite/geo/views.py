@@ -61,3 +61,21 @@ class GeoTiffMaxSurgeView(RasterBaseView):
         except  Exception as e:
             self.json_data = e.args
         return Response(self.json_data, status=self._status)
+
+
+class GeoTiffFieldSurgeView(RasterBaseView):
+    def get(self, request: Request) -> Response:
+        ty_code: str = request.GET.get('ty_code', None)
+        ty_timestamp_str: str = request.GET.get('ty_timestamp', None)
+        COVERAGE_TYPE_VAL: int = LayerTypeEnum.SURGE_FIELD_TIF.value
+        forecast_dt: datetime = request.GET.get('forecast_dt', None)
+        try:
+            tif_url = self.get_tif_url(request, ty_code=ty_code, timestamp=ty_timestamp_str,
+                                       coverage_type=LayerTypeEnum.SURGE_FIELD_TIF, forecast_dt=forecast_dt)
+            self.json_data = tif_url
+            self._status = 200
+        except NoneError as noneErr:
+            self.json_data = noneErr.args
+        except  Exception as e:
+            self.json_data = e.args
+        return Response(self.json_data, status=self._status)

@@ -12,7 +12,7 @@ from django.conf.urls import url, include
 from rest_framework import routers
 
 # 本项目
-from .views import GeoTiffView, GeoTiffMaxSurgeView
+from .views import GeoTiffView, GeoTiffMaxSurgeView, GeoTiffFieldSurgeView
 
 app_name = '[geo]'
 
@@ -21,5 +21,6 @@ urlpatterns = [
     url(r'^geotiff/url$', GeoTiffView.as_view()),
     # + 21-08-01 加入了获取 max_surge 的 tif 列表
     url(r'^geotiff/surge/max$', GeoTiffMaxSurgeView.as_view()),
+    url(r'^geotiff/surge/field$', GeoTiffFieldSurgeView.as_view()),
 
 ]
