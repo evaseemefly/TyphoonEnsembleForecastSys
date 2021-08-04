@@ -25,6 +25,8 @@ from model.models import TyphoonGroupPathModel, TyphoonForecastDetailModel, Typh
     StationForecastRealDataModel, CoverageInfoModel, ForecastTifModel
 from common.const import UNLESS_CODE, UNLESS_RANGE
 from common.common_dict import DICT_STATION
+from common.enum import LayerType
+
 from conf.settings import TEST_ENV_SETTINGS
 from core.db import DbFactory
 
@@ -901,11 +903,13 @@ class FieldSurgeDataInfo:
             # step: 1 保存 coverage_file un_converted
             ty_coverage_info = CoverageInfoModel(ty_code=self.file.ty_code, timestamp=self.file.ty_timestamp,
                                                  root_path=ROOT_PATH, file_name=self.file.file_name_only,
-                                                 relative_path=self.file.ty_timestamp)
+                                                 relative_path=self.file.ty_timestamp,
+                                                 coverage_type=LayerType.FIELDSURGECOVERAGE.value)
             # step: 2 保存 coverage_file converted
             ty_coverage_info_converted = CoverageInfoModel(ty_code=self.file.ty_code, timestamp=self.file.ty_timestamp,
                                                            root_path=ROOT_PATH, file_name=converted_full_name,
-                                                           relative_path=self.file.ty_timestamp, is_source=False)
+                                                           relative_path=self.file.ty_timestamp, is_source=False,
+                                                           coverage_type=LayerType.FIELDSURGECOVERAGE.value)
             self.session.add(ty_coverage_info)
             self.session.add(ty_coverage_info_converted)
             # step: 3 保存 geo_tif
@@ -914,7 +918,9 @@ class FieldSurgeDataInfo:
                 tif_model = ForecastTifModel(ty_code=self.file.ty_code, timestamp=self.file.ty_timestamp,
                                              root_path=ROOT_PATH, file_name=temp_tif_file.file_name,
                                              relative_path=self.file.ty_timestamp,
-                                             forecast_dt=temp_tif_file.forecast_dt)
+                                             forecast_dt=temp_tif_file.forecast_dt,
+                                             file_ext=temp_tif_file.file_ext,
+                                             coverage_type=LayerType.FIELDSURGETIF.value)
                 self.session.add(tif_model)
             self.session.commit()
 

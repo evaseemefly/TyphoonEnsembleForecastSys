@@ -19,7 +19,7 @@ class CoverageInfoModel(IDelModel, IIdModel, IModel, ITyPathModel, IBpModel, ISp
 
 
 class ForecastTifModel(IDelModel, IIdModel, IModel, ITyPathModel, IBpModel, ISpliceModel, IFileModel):
-    gcid = models.IntegerField(default=DEFAULT_FK)
+    # gcid = models.IntegerField(default=DEFAULT_FK)
     coverage_type = models.IntegerField(default=DEFAULT_FK)
     ty_code = models.CharField(max_length=200)
     timestamp = models.CharField(max_length=100)

@@ -30,3 +30,4 @@ class LayerType(Enum):
     MAXSURGECOVERAGE = 1101  # 最大增水场 nc
     MAXSURGETIF = 1102
     FIELDSURGECOVERAGE = 1103  # 诸时场 nc
+    FIELDSURGETIF = 1104  # 逐时场的单个时间提取tif
