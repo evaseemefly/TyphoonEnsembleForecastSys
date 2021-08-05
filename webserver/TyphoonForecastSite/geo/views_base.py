@@ -118,7 +118,7 @@ class RasterBaseView(BaseView):
         if res_tif is not None:
             file_full_name: str = f'{res_tif.file_name}.{res_tif.file_ext}'
             # TODO:[-] 21-08-04 注意实际存储的最后一级的路径是 : xxxx/TY_GROUP_RESULT/TY2022_2021010416/xxxx , 需要加入 TY+ty_code_timestamp
-            file_ts_relative_path: str = f'TY{res_tif.ty_code}_{res_tif.relative_path}'
+            file_ts_relative_path: str = f'{res_tif.relative_path}'
             url_file = str(pathlib.Path(file_ts_relative_path) / file_full_name)
         else:
             raise NoneError(f'ty_code:{ty_code}|ty_timestamp:{ty_timestamp} 查无结果')

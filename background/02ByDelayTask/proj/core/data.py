@@ -914,10 +914,12 @@ class FieldSurgeDataInfo:
             self.session.add(ty_coverage_info_converted)
             # step: 3 保存 geo_tif
             list_tif_files: List[TifFileMidModel] = self.dict_data.get('tif_files')
+            # TODO:[-] 21-08-05 注意此处存储的时候存在一个bug，逐时的 file.ty_timestamp 不包含 TY2022_,需要手动加上
+            field_relative_path: str = f'TY{self.file.ty_code}_{self.file.ty_timestamp}'
             for temp_tif_file in list_tif_files:
                 tif_model = ForecastTifModel(ty_code=self.file.ty_code, timestamp=self.file.ty_timestamp,
                                              root_path=ROOT_PATH, file_name=temp_tif_file.file_name,
-                                             relative_path=self.file.ty_timestamp,
+                                             relative_path=field_relative_path,
                                              forecast_dt=temp_tif_file.forecast_dt,
                                              file_ext=temp_tif_file.file_ext,
                                              coverage_type=LayerType.FIELDSURGETIF.value)
