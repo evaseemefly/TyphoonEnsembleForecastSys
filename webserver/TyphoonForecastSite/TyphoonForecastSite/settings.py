@@ -170,7 +170,7 @@ GDAL_LIBRARY_PATH = r'D:\01Setup\ANACONDA\envs\new_oil_gdal\Library\bin\gdal301'
 
 
 # TODO:[-] 21-07-25 P5750 环境备份
-GDAL_LIBRARY_PATH = r'C:\Users\evase\.conda\envs\new_oil_gdal\Library\bin\gdal301'
+# GDAL_LIBRARY_PATH = r'C:\Users\evase\.conda\envs\new_oil_gdal\Library\bin\gdal301'
 
 # TODO:[-] 21-07-22 P5750 环境备份
 # GDAL_LIBRARY_PATH = r'C:\Users\evase\Anaconda3\envs\new_oil_gdal\Library\bin\gdal301'
