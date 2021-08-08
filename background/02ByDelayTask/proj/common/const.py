@@ -14,3 +14,6 @@ DEFAULT_PATH_TYPE = 'c'  # 默认的台风路径类型 c 为中间路径
 UNLESS_RANGE = -999
 DEFAULT_FK = -1
 UNLESS_INDEX = -1
+
+# 默认概率
+DEFAULT_PRO=0.5

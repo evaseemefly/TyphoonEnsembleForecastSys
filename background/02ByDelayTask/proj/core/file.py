@@ -236,3 +236,39 @@ class FieldSurgeCoverageFile(ISurgeCoverageFile):
     @property
     def coverage_type(self) -> LayerType:
         return LayerType.FIELDSURGENC
+
+
+class ProSurgeCoverageFile(ISurgeCoverageFile):
+    """
+        概率分布场 nc 文件
+        eg: file_name: proSurge_TY2022_2021010416_gt1_0m.nc
+    """
+
+    @property
+    def coverage_type(self) -> LayerType:
+        """
+            当前的 coverage_type ,使用 dict , get 的方式实现 switch
+        @return:
+        """
+        dict_surge_pro_val = {
+            0.5: LayerType.PROSURGECOVERAGEGT05,
+            1.0: LayerType.PROSURGECOVERAGEGT10,
+            1.5: LayerType.PROSURGECOVERAGEGT15
+        }
+        return dict_surge_pro_val.get(self.surge_val)
+
+    @property
+    def surge_val(self):
+        """
+            根据 file_name 获取概率分布的潮位值
+        @return:
+        """
+        # eg: file_name_only : proSurge_TY2022_2021010416_gt1_0m
+        try:
+            # ['proSurge', 'TY2022', '2021010416', 'gt1', '0m']
+            # gt1
+            # 0m
+            return float(f'{self.file_name_only.split("_")[-2][-1:]}.{self.file_name_only.split("_")[-1][:-1]}')
+        except Exception as e:
+            print(e.args)
+            raise Exception

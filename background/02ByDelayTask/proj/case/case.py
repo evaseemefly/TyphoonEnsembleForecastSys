@@ -115,6 +115,31 @@ def case_field_surge(ty_code: str, ty_stamp: str, gmt_start: datetime, gmt_end: 
     pass
 
 
+def cast_pro_surge(ty_code: str, ty_stamp: str, gmt_start: datetime, gmt_end: datetime):
+    """
+        概率增水场
+    @param ty_code:
+    @param ty_stamp:
+    @param gmt_start:
+    @param gmt_end:
+    @return:
+    """
+    # 概率场的正则匹配表达式
+    re_str: str = '^proSurge\w*.tif'
+    dir_path: str = str(pathlib.Path(ROOT_DIR) / 'result' / ty_stamp)
+    list_match_files: List[str] = get_match_files(re_str, dir_path)
+    ty_detail: TyphoonForecastDetailModel = TyphoonForecastDetailModel(code=ty_code,
+                                                                       organ_code=ForecastOrganizationEnum.NMEFC.value,
+                                                                       gmt_start=gmt_start,
+                                                                       gmt_end=gmt_end,
+                                                                       forecast_source=TyphoonForecastSourceEnum.DEFAULT.value,
+                                                                       timestamp=TY_TIMESTAMP)
+    # 注意此处会包含 _converted.nc 的文件需要剔除该文件
+    filter_list_files: List[str] = list_match_files
+    to_ty_field_surge(filter_list_files, ty_detail, dir_path=dir_path, gmt_start=gmt_start)
+    pass
+
+
 def case_get_gp():
     """
         测试 get 指定 gp

@@ -22,7 +22,7 @@ from geoalchemy2 import Geometry
 from conf.settings import DATABASES
 from core.db import DbFactory
 
-from common.const import DEFAULT_FK, UNLESS_INDEX, DEFAULT_CODE, DEFAULT_PATH_TYPE
+from common.const import DEFAULT_FK, UNLESS_INDEX, DEFAULT_CODE, DEFAULT_PATH_TYPE, DEFAULT_PRO
 
 engine = DbFactory().engine
 
@@ -175,9 +175,18 @@ class CoverageInfoModel(IDel, IIdModel, IModel, ITyPathModel, IBpModel, ISpliceM
     ty_code = Column(VARCHAR(100), nullable=False)
     timestamp = Column(VARCHAR(100), nullable=False)
 
+
 class ForecastTifModel(IDel, IIdModel, IModel, ITyPathModel, IBpModel, ISpliceModel, IFileModel):
     __tablename__ = 'geo_forecast_tif'
     coverage_type = Column(Integer, nullable=False, default=0)
     ty_code = Column(VARCHAR(100), nullable=False)
     timestamp = Column(VARCHAR(100), nullable=False)
     forecast_dt = Column(DATETIME(fsp=6), default=datetime.utcnow())
+
+
+class ForecastProTifModel(IDel, IIdModel, IModel, ITyPathModel, ISpliceModel, IFileModel):
+    __tablename__ = 'geo_forecast_pro_tif'
+    coverage_type = Column(Integer, nullable=False, default=0)
+    ty_code = Column(VARCHAR(100), nullable=False)
+    timestamp = Column(VARCHAR(100), nullable=False)
+    pro = Column(Float, nullable=False, default=DEFAULT_PRO)

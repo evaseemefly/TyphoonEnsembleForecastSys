@@ -30,7 +30,7 @@ from common.enum import LayerType
 from conf.settings import TEST_ENV_SETTINGS
 from core.db import DbFactory
 
-from core.file import StationSurgeRealDataFile, FieldSurgeCoverageFile
+from core.file import StationSurgeRealDataFile, FieldSurgeCoverageFile, ProSurgeCoverageFile
 
 # root 的根目录
 ROOT_PATH = TEST_ENV_SETTINGS.get('TY_GROUP_PATH_ROOT_DIR')
@@ -106,6 +106,24 @@ def to_ty_field_surge(list_files: List[str], ty_detail: TyphoonForecastDetailMod
     for file_temp in list_files:
         field_surge_file = FieldSurgeCoverageFile(dir_path, file_temp)
         field_surge_data: FieldSurgeDataInfo = FieldSurgeDataInfo(field_surge_file, dir_path)
+        field_surge_data.to_do(gmt_start=gmt_start)
+        pass
+    pass
+
+
+def to_ty_pro_surge(list_files: List[str], **kwargs):
+    """
+        + 21-08-08 自动化处理 概率分布场nc
+    @param list_files:
+    @param kwargs:
+    @return:
+    """
+    gmt_start = kwargs.get('gmt_start')
+    # eg: fieldSurge_TY2022_2021010416_c0_p00_201809150900.nc
+    dir_path: str = kwargs.get('dir_path')
+    for file_temp in list_files:
+        field_surge_file = ProSurgeCoverageFile(dir_path, file_temp)
+        field_surge_data: ProSurgeDataInfo = ProSurgeDataInfo(field_surge_file, dir_path)
         field_surge_data.to_do(gmt_start=gmt_start)
         pass
     pass
@@ -953,3 +971,55 @@ class FieldSurgeDataInfo:
                 self.dict_data.get('tif_files').append(temp_file_info)
                 # print('-------------')
         pass
+
+
+class ProSurgeDataInfo:
+    """
+        潮位概率分布 ds info 类
+        用来处理逐时 ds -> db
+           foreach    -> tif
+    """
+
+    dict_data = {
+        'coverage_file': None,
+        'tif_files': []
+    }
+
+    def __init__(self, file: ProSurgeCoverageFile, dir_path: str):
+        self.file: FieldSurgeCoverageFile = file
+        self.dir_path = dir_path
+        self.ds: xar.Dataset = None
+        self.session = DbFactory().Session
+
+    @property
+    def full_file_name(self) -> str:
+        """
+            文件全名称
+            xxx.nc
+        @return:
+        """
+        return self.file.file_name
+
+    @property
+    def file_name(self) -> str:
+        """
+            根据 self.file -> file_name -> 只获取 file_name 不包含 .nc
+        @return:
+        """
+        file_name_str: str = self.full_file_name
+        file_name_temp: str = file_name_str.split('.')[0]
+        return file_name_temp
+
+    def to_do(self, **kwargs):
+        pass
+
+    def read_nc(self) -> xar.Dataset:
+        # step:
+        # 1- 获取实际路径
+        # 2- 判断是否存在指定文件
+        # 3- 文件存在则读取，并返回 xarray.Dataset
+        ds: xar.Dataset = None
+        full_path: str = str(pathlib.Path(self.dir_path) / self.file.file_name)
+        if pathlib.Path(full_path).is_file():
+            ds = xar.open_dataset(full_path, decode_times=False)
+        return ds
