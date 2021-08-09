@@ -181,7 +181,7 @@ class ForecastTifModel(IDel, IIdModel, IModel, ITyPathModel, IBpModel, ISpliceMo
     coverage_type = Column(Integer, nullable=False, default=0)
     ty_code = Column(VARCHAR(100), nullable=False)
     timestamp = Column(VARCHAR(100), nullable=False)
-    forecast_dt = Column(DATETIME(fsp=6), default=datetime.utcnow())
+    forecast_dt = Column(DATETIME(fsp=6), default=datetime.utcnow(), nullable=True)
 
 
 class ForecastProTifModel(IDel, IIdModel, IModel, ITyPathModel, ISpliceModel, IFileModel):

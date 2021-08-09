@@ -8,7 +8,8 @@
 # @Software: PyCharm
 from typing import List
 import pathlib
-from core.data import GroupTyphoonPath, get_match_files, to_ty_group, to_station_realdata, get_gp, to_ty_field_surge
+from core.data import GroupTyphoonPath, get_match_files, to_ty_group, to_station_realdata, get_gp, to_ty_field_surge, \
+    to_ty_pro_surge
 from model.models import TyphoonForecastDetailModel
 from core.file import StationSurgeRealDataFile
 from common.enum import ForecastOrganizationEnum, TyphoonForecastSourceEnum
@@ -111,11 +112,11 @@ def case_field_surge(ty_code: str, ty_stamp: str, gmt_start: datetime, gmt_end: 
     # 注意此处会包含 _converted.nc 的文件需要剔除该文件
     filter_list_files: List[str] = [file
                                     for file in list_match_files if file.find('converted') < 0]
-    to_ty_field_surge(filter_list_files, ty_detail, dir_path=dir_path, gmt_start=gmt_start)
+    to_ty_field_surge(filter_list_files, dir_path=dir_path, gmt_start=gmt_start)
     pass
 
 
-def cast_pro_surge(ty_code: str, ty_stamp: str, gmt_start: datetime, gmt_end: datetime):
+def case_pro_surge(ty_code: str, ty_stamp: str, gmt_start: datetime, gmt_end: datetime):
     """
         概率增水场
     @param ty_code:
@@ -125,7 +126,8 @@ def cast_pro_surge(ty_code: str, ty_stamp: str, gmt_start: datetime, gmt_end: da
     @return:
     """
     # 概率场的正则匹配表达式
-    re_str: str = '^proSurge\w*.tif'
+    # TODO:[-] 此处注意若再次执行时会出现 xxx_converted.nc的文件，需要忽略，所以加入了 xxm.nc 的正则，忽略了m_converted.nc 这种已经转换后的文件
+    re_str: str = '^proSurge\w*m.nc'
     dir_path: str = str(pathlib.Path(ROOT_DIR) / 'result' / ty_stamp)
     list_match_files: List[str] = get_match_files(re_str, dir_path)
     ty_detail: TyphoonForecastDetailModel = TyphoonForecastDetailModel(code=ty_code,
@@ -136,7 +138,7 @@ def cast_pro_surge(ty_code: str, ty_stamp: str, gmt_start: datetime, gmt_end: da
                                                                        timestamp=TY_TIMESTAMP)
     # 注意此处会包含 _converted.nc 的文件需要剔除该文件
     filter_list_files: List[str] = list_match_files
-    to_ty_field_surge(filter_list_files, ty_detail, dir_path=dir_path, gmt_start=gmt_start)
+    to_ty_pro_surge(filter_list_files, dir_path=dir_path, gmt_start=gmt_start)
     pass
 
 
@@ -170,7 +172,9 @@ def main():
     # 注意 此处的 ty_id 由 case_group_ty_path 处理后创建的一个 ty id
     # case_station(gmt_start, gmt_end, ty_id=12)
     # TODO:[-] 21-08-02 加入了 测试 逐时风暴增水的 case
-    case_field_surge(TY_CODE, TY_STAMP, gmt_start, gmt_end)
+    # case_field_surge(TY_CODE, TY_STAMP, gmt_start, gmt_end)
+    # TODO:[-] 21-08-09 加入了 测试 概率增水的 case
+    case_pro_surge(TY_CODE, TY_STAMP, gmt_start, gmt_end)
     # 测试查询 gp
     # case_get_gp()
     # test_get_gp_model()

@@ -20,9 +20,10 @@ import rioxarray
 # sqlaclemy
 # from sqlalchemy import Query
 
-from model.mid_models import GroupTyphoonPathMidModel, TyphoonForecastDetailMidModel, TifFileMidModel
+from model.mid_models import GroupTyphoonPathMidModel, TyphoonForecastDetailMidModel, TifFileMidModel, \
+    TifProFileMidModel
 from model.models import TyphoonGroupPathModel, TyphoonForecastDetailModel, TyphoonForecastRealDataModel, \
-    StationForecastRealDataModel, CoverageInfoModel, ForecastTifModel
+    StationForecastRealDataModel, CoverageInfoModel, ForecastTifModel, ForecastProTifModel
 from common.const import UNLESS_CODE, UNLESS_RANGE
 from common.common_dict import DICT_STATION
 from common.enum import LayerType
@@ -986,7 +987,7 @@ class ProSurgeDataInfo:
     }
 
     def __init__(self, file: ProSurgeCoverageFile, dir_path: str):
-        self.file: FieldSurgeCoverageFile = file
+        self.file: ProSurgeCoverageFile = file
         self.dir_path = dir_path
         self.ds: xar.Dataset = None
         self.session = DbFactory().Session
@@ -1011,9 +1012,12 @@ class ProSurgeDataInfo:
         return file_name_temp
 
     def to_do(self, **kwargs):
+        if self.to_converted_nc(True):
+            self.to_tif()
+            self.to_store()
         pass
 
-    def read_nc(self) -> xar.Dataset:
+    def _read_nc(self) -> xar.Dataset:
         # step:
         # 1- 获取实际路径
         # 2- 判断是否存在指定文件
@@ -1022,4 +1026,106 @@ class ProSurgeDataInfo:
         full_path: str = str(pathlib.Path(self.dir_path) / self.file.file_name)
         if pathlib.Path(full_path).is_file():
             ds = xar.open_dataset(full_path, decode_times=False)
-        return ds
+        self.ds = ds
+
+    def _to_stand(self) -> bool:
+        """
+            对当前的 ds 标准化
+            若标准化失败返回 false | 成功返回 true
+        @return:
+        """
+        is_standed: bool = False
+        if self.ds is None:
+            self._read_nc()
+        temp_ds: xar.Dataset = self.ds
+        try:
+            temp_ds = temp_ds.rename_vars({'latitude': 'y', 'longitude': 'x'})
+            temp_ds = temp_ds.swap_dims({'lat': 'y', 'lon': 'x'})
+            temp_ds.rio.set_spatial_dims("x", "y", inplace=True)
+            temp_ds = temp_ds.rio.write_crs("epsg:4326", inplace=True)
+            temp_ds = temp_ds.reindex(y=temp_ds.y[::-1])
+            self.ds = temp_ds
+            is_standed = True
+        except Exception as e:
+            print(e.args)
+        return is_standed
+
+    def to_converted_nc(self, to_save: bool = True) -> bool:
+        """
+            将当前 ds_xr 标准化后存储为新的 dataset
+        @param to_save: true 存储为新的 nc eg:xx_converted.nc
+        @return:
+        """
+        if self.ds is None:
+            self._read_nc()
+        is_ok: bool = self._to_stand()
+        if to_save and is_ok:
+            new_file_name: str = self.file_name + '_converted.nc'
+            new_full_path: str = str(pathlib.Path(self.dir_path) / new_file_name)
+            self.ds.to_netcdf(new_full_path)
+            self.dict_data['converted_file'] = new_full_path
+        return is_ok
+
+    def to_tif(self) -> bool:
+        """
+
+        @return:
+        """
+        is_ok: bool = False
+        # TODO:[-] 21-08-09 由于 pro -> tif 只有一个 tif，所以每次需要将 tif_files 清空，不然会有重复出现的情况
+        self.dict_data['tif_files'] = []
+        try:
+            file_name_coverage: str = self.file_name
+            p = pathlib.Path(self.dir_path)
+            file_name = f'{file_name_coverage}.tif'
+            full_path = str(p / file_name)
+            print(f'最后输出的目录为{full_path}')
+            self.ds.rio.to_raster(full_path)
+            temp_file_info = TifProFileMidModel(file_name, full_path)
+            self.dict_data.get('tif_files').append(temp_file_info)
+            is_ok = True
+        except Exception as e:
+            print(e.args)
+        return is_ok
+
+    def to_store(self):
+        """
+            step:
+                -1 保存 source coverage file
+                -2 保存 converted coverage file
+                -3 保存 tif
+        @return:
+        """
+        try:
+            converted_full_name = self.dict_data.get('converted_file')
+            # step: 1 保存 coverage_file un_converted
+            ty_coverage_info = CoverageInfoModel(ty_code=self.file.ty_code, timestamp=self.file.ty_timestamp,
+                                                 root_path=ROOT_PATH, file_name=self.file.file_name_only,
+                                                 relative_path=self.file.ty_timestamp,
+                                                 coverage_type=self.file.coverage_type.value)
+            # step: 2 保存 coverage_file converted
+            # TODO:[*] 21-08-09 注意此处的 converted_full_name 是包含后缀的，需要去掉后缀
+            converted_full_name_only = converted_full_name.split('.')[0]
+            ty_coverage_info_converted = CoverageInfoModel(ty_code=self.file.ty_code, timestamp=self.file.ty_timestamp,
+                                                           root_path=ROOT_PATH, file_name=converted_full_name_only,
+                                                           relative_path=self.file.ty_timestamp, is_source=False,
+                                                           coverage_type=self.file.coverage_type.value)
+            self.session.add(ty_coverage_info)
+            self.session.add(ty_coverage_info_converted)
+            # step: 3 保存 geo_tif
+            list_tif_files: List[TifFileMidModel] = self.dict_data.get('tif_files')
+            # TODO:[-] 21-08-05 注意此处存储的时候存在一个bug，逐时的 file.ty_timestamp 不包含 TY2022_,需要手动加上
+            field_relative_path: str = f'TY{self.file.ty_code}_{self.file.ty_timestamp}'
+            for temp_tif_file in list_tif_files:
+                tif_model = ForecastProTifModel(ty_code=self.file.ty_code, timestamp=self.file.ty_timestamp,
+                                                root_path=ROOT_PATH, file_name=temp_tif_file.file_name,
+                                                relative_path=field_relative_path,
+                                                file_ext=temp_tif_file.file_ext,
+                                                coverage_type=self.file.coverage_type.value)
+                self.session.add(tif_model)
+            self.session.commit()
+
+        except Exception as ex:
+            print(f'{ex.args}')
+
+            pass

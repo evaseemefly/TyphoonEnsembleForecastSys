@@ -79,3 +79,25 @@ class TifFileMidModel:
         @return:
         """
         return self.forecast_dt_64.astype('datetime64[s]').astype(datetime)
+
+
+class TifProFileMidModel:
+    def __init__(self, tif_file_full_name: str, full_path: str):
+        self.tif_file_full_name = tif_file_full_name
+        self.full_path = full_path
+
+    @property
+    def file_name(self):
+        """
+            eg:
+        @return:
+        """
+        return self.tif_file_full_name.split('.')[0]
+
+    @property
+    def file_ext(self):
+        """
+            eg: tif
+        @return:
+        """
+        return self.tif_file_full_name.split('.')[1]

@@ -253,7 +253,10 @@ class ProSurgeCoverageFile(ISurgeCoverageFile):
         dict_surge_pro_val = {
             0.5: LayerType.PROSURGECOVERAGEGT05,
             1.0: LayerType.PROSURGECOVERAGEGT10,
-            1.5: LayerType.PROSURGECOVERAGEGT15
+            1.5: LayerType.PROSURGECOVERAGEGT15,
+            2.0: LayerType.PROSURGECOVERAGEGT20,
+            2.5: LayerType.PROSURGECOVERAGEGT25,
+            3.0: LayerType.PROSURGECOVERAGEGT30
         }
         return dict_surge_pro_val.get(self.surge_val)
 
