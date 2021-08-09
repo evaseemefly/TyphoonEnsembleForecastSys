@@ -923,12 +923,13 @@ class FieldSurgeDataInfo:
             ty_coverage_info = CoverageInfoModel(ty_code=self.file.ty_code, timestamp=self.file.ty_timestamp,
                                                  root_path=ROOT_PATH, file_name=self.file.file_name_only,
                                                  relative_path=self.file.ty_timestamp,
-                                                 coverage_type=LayerType.FIELDSURGECOVERAGE.value)
+                                                 coverage_type=LayerType.FIELDSURGECOVERAGE.value, file_ext='nc')
             # step: 2 保存 coverage_file converted
             ty_coverage_info_converted = CoverageInfoModel(ty_code=self.file.ty_code, timestamp=self.file.ty_timestamp,
                                                            root_path=ROOT_PATH, file_name=converted_full_name,
                                                            relative_path=self.file.ty_timestamp, is_source=False,
-                                                           coverage_type=LayerType.FIELDSURGECOVERAGE.value)
+                                                           coverage_type=LayerType.FIELDSURGECOVERAGE.value,
+                                                           file_ext='nc')
             self.session.add(ty_coverage_info)
             self.session.add(ty_coverage_info_converted)
             # step: 3 保存 geo_tif
@@ -982,7 +983,7 @@ class ProSurgeDataInfo:
     """
 
     dict_data = {
-        'coverage_file': None,
+        'coverage_file': None,  # 注意存储的是文件名，非 full_path
         'tif_files': []
     }
 
@@ -1063,7 +1064,8 @@ class ProSurgeDataInfo:
             new_file_name: str = self.file_name + '_converted.nc'
             new_full_path: str = str(pathlib.Path(self.dir_path) / new_file_name)
             self.ds.to_netcdf(new_full_path)
-            self.dict_data['converted_file'] = new_full_path
+            # 注意 此处 converted_file 存储的是文件名
+            self.dict_data['converted_file'] = new_file_name
         return is_ok
 
     def to_tif(self) -> bool:
@@ -1102,14 +1104,16 @@ class ProSurgeDataInfo:
             ty_coverage_info = CoverageInfoModel(ty_code=self.file.ty_code, timestamp=self.file.ty_timestamp,
                                                  root_path=ROOT_PATH, file_name=self.file.file_name_only,
                                                  relative_path=self.file.ty_timestamp,
-                                                 coverage_type=self.file.coverage_type.value)
+                                                 coverage_type=self.file.coverage_type.value,
+                                                 file_ext='nc')
             # step: 2 保存 coverage_file converted
             # TODO:[*] 21-08-09 注意此处的 converted_full_name 是包含后缀的，需要去掉后缀
             converted_full_name_only = converted_full_name.split('.')[0]
             ty_coverage_info_converted = CoverageInfoModel(ty_code=self.file.ty_code, timestamp=self.file.ty_timestamp,
                                                            root_path=ROOT_PATH, file_name=converted_full_name_only,
                                                            relative_path=self.file.ty_timestamp, is_source=False,
-                                                           coverage_type=self.file.coverage_type.value)
+                                                           coverage_type=self.file.coverage_type.value,
+                                                           file_ext='nc')
             self.session.add(ty_coverage_info)
             self.session.add(ty_coverage_info_converted)
             # step: 3 保存 geo_tif
@@ -1121,7 +1125,7 @@ class ProSurgeDataInfo:
                                                 root_path=ROOT_PATH, file_name=temp_tif_file.file_name,
                                                 relative_path=field_relative_path,
                                                 file_ext=temp_tif_file.file_ext,
-                                                coverage_type=self.file.coverage_type.value)
+                                                coverage_type=self.file.coverage_type.value, pro=self.file.surge_val)
                 self.session.add(tif_model)
             self.session.commit()
 
