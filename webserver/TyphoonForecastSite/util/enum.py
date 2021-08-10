@@ -10,3 +10,4 @@ class LayerTypeEnum(Enum):
     SURGE_MAX_TIF = 1102
     SURGE_FIELD_COVERAGE = 1103  # 诸时场 nc
     SURGE_FIELD_TIF = 1104  # 逐时场的单个时间提取tif
+    SURGE_PRO_COVERAGE = 1105  # 概率增水

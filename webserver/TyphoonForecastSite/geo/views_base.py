@@ -26,15 +26,29 @@ from rest_framework.decorators import (APIView, api_view,
 
 # 本项目中的
 from common.view_base import BaseView
+from common.models import DictBaseModel
 from util.const import DEFAULT_NULL_KEY
-from .models import CoverageInfoModel, ForecastTifModel
+from .models import CoverageInfoModel, ForecastTifModel, ForecastProTifModel
 from TyphoonForecastSite.settings import STORE_OPTIONS, STORE_RELATIVE_PATH_OPTIONS
 from util.exception import NoneError
+from util.enum import LayerTypeEnum
 
 from common.interface import ICheckExisted
 
 
 class RasterBaseView(BaseView):
+    # @staticmethod()
+    def _get_pro_tif_types_ids(self) -> List[int]:
+        """
+            获取 概率增水的 coverage_type 数组
+        :return:
+        """
+        ids: List[int] = []
+        # [{'code': 1301}, {'code': 1302}, {'code': 1303}, {'code': 1304}]
+        ids = DictBaseModel.objects.filter(pid=LayerTypeEnum.SURGE_PRO_COVERAGE.value).values('code')
+        ids: List[int] = [temp.get('code') for temp in ids]
+        return ids
+
     def get_coverage(self, id: int = DEFAULT_NULL_KEY, **kwargs) -> CoverageInfoModel:
         """
             获取 对应的 coverage
@@ -81,6 +95,16 @@ class RasterBaseView(BaseView):
             res = query.first()
         return res
 
+    def _query_pro_tif(self, **kwargs) -> QuerySet:
+        ty_code: str = kwargs.get('ty_code')
+        ty_timestamp: str = kwargs.get('ty_timestamp')
+        pro_val: float = float(kwargs.get('pro'))
+        # res_pro_tif: ForecastProTifModel = None
+        query: QuerySet = ForecastProTifModel.objects.filter(ty_code=ty_code, timestamp=ty_timestamp, pro=pro_val)
+        # if len(query) > 0:
+        #     res_pro_tif = query
+        return query
+
     def get_tif_url(self, request: Request, checkCoverage=False, **kwargs) -> str:
         """
              获取指定的 tif url
@@ -92,17 +116,25 @@ class RasterBaseView(BaseView):
         coverage_type = kwargs.get('coverage_type')
         # + 21-05-07 新加入的 forecast_dt
         forecast_dt: datetime = kwargs.get('forecast_dt', None)
+        pro: datetime = kwargs.get('pro', None)
         query_coverage = None
         if checkCoverage:
-            query_coverage: CoverageInfoModel = self.get_coverage(ty_code=ty_code, timestamp=ty_timestamp)
+            query_coverage: CoverageInfoModel = self.get_coverage(ty_code=ty_code, timestamp=ty_timestamp, pro=pro)
             # 获取 coverage_id 作为 tb:tif 的 gcid
             coverage_id: int = query_coverage.id
         # TODO:[-] 21-07-30 可以去掉 gcid 因为查询时并不需要
-        query: QuerySet = self._query_base_tif(ty_code=ty_code, ty_timestamp=ty_timestamp)
-        if coverage_type:
-            query = query.filter(coverage_type=coverage_type.value)
-        if forecast_dt:
-            query = query.filter(forecast_dt=forecast_dt)
+        ids_pro_tif_coverage: List[int] = self._get_pro_tif_types_ids()
+        query: QuerySet = None
+        if coverage_type in ids_pro_tif_coverage:
+            # 若为 概率增水场，则只需要查询概率增水场的 tif 即可
+            query: QuerySet = self._query_pro_tif(ty_code=ty_code, ty_timestamp=ty_timestamp, pro=pro)
+        else:
+            # 非概率增水场执行以下操作
+            query: QuerySet = self._query_base_tif(ty_code=ty_code, ty_timestamp=ty_timestamp)
+            if coverage_type:
+                query = query.filter(coverage_type=coverage_type.value)
+            if forecast_dt:
+                query = query.filter(forecast_dt=forecast_dt)
         res_tif: ForecastTifModel = query.first()
         # res_tif: ForecastTifModel = self._query_tif(gcid=coverage_id, ty_code=ty_code, timestamp=ty_timestamp,
         #                                             forecast_dt=forecast_dt)
@@ -111,8 +143,11 @@ class RasterBaseView(BaseView):
         store_host: int = STORE_OPTIONS.get('HOST')
         store_common_base: str = STORE_OPTIONS.get('STORE_COMMON_BASE')
         store_head: str = STORE_OPTIONS.get('HEAD')
+
         # + 21-08-01 由于不同的数据中间还会继续分层，所以引入了 STORE_RELATIVE_PATH_OPTIONS
         store_relative_path: str = STORE_RELATIVE_PATH_OPTIONS.get('TY_GROUP_CASE')
+        # TODO:[*] 21-08-10 此处需要注意，store_relative_path 不包含 /result/ 需要手动在后面加上，暂时手动加上，注意 p5750 的环境
+        # http://localhost:82/images/nmefc_download/TY_GROUP_RESULT//TY2022_2021010416\\proSurge_TY2022_2021010416_gt0_5m.tif
         url_base = f'http://{store_url}:{store_host}/{store_common_base}/{store_head}/{store_relative_path}/'
         url_file = None
         if res_tif is not None:

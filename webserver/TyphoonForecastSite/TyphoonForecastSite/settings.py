@@ -154,8 +154,8 @@ STORE_OPTIONS = {
 
 }
 # TODO:[-] 21-08-01 由于不同的数据中间还会继续分层，所以引入了 STORE_RELATIVE_PATH_OPTIONS
-STORE_RELATIVE_PATH_OPTIONS={
-    'TY_GROUP_CASE':'TY_GROUP_RESULT'
+STORE_RELATIVE_PATH_OPTIONS = {
+    'TY_GROUP_CASE': 'TY_GROUP_RESULT/result/'
 }
 # TODO:[-] 21-05-24 手动添加 gdal lib 的地址
 # TODO:[-] 21-03-27 mac 可以去掉此部分

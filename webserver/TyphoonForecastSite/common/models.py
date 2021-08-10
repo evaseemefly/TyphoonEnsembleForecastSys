@@ -21,8 +21,13 @@ class IDictModel(models.Model):
 
 
 class DictBaseModel(IDictModel):
+    type_code = models.CharField(max_length=20)
+    name = models.CharField(max_length=20)
     class Meta:
-        db_table = 'common_dict'
+        db_table = 'dict_base'
+
+
+
 
 
 
