@@ -8,7 +8,7 @@
 # @File    : imodels.py
 # @Software: PyCharm
 from django.db import models
-from django.contrib.gis.geos import GEOSGeometry
+# from django.contrib.gis.geos import GEOSGeometry
 from django.utils.timezone import now
 
 # ----
