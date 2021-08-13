@@ -99,8 +99,10 @@ class RasterBaseView(BaseView):
         ty_code: str = kwargs.get('ty_code')
         ty_timestamp: str = kwargs.get('ty_timestamp')
         pro_val: float = float(kwargs.get('pro'))
+        coverage_type = kwargs.get('coverage_type')
         # res_pro_tif: ForecastProTifModel = None
-        query: QuerySet = ForecastProTifModel.objects.filter(ty_code=ty_code, timestamp=ty_timestamp, pro=pro_val)
+        query: QuerySet = ForecastProTifModel.objects.filter(ty_code=ty_code, timestamp=ty_timestamp,
+                                                             coverage_type=coverage_type)
         # if len(query) > 0:
         #     res_pro_tif = query
         return query
@@ -127,7 +129,8 @@ class RasterBaseView(BaseView):
         query: QuerySet = None
         if coverage_type in ids_pro_tif_coverage:
             # 若为 概率增水场，则只需要查询概率增水场的 tif 即可
-            query: QuerySet = self._query_pro_tif(ty_code=ty_code, ty_timestamp=ty_timestamp, pro=pro)
+            query: QuerySet = self._query_pro_tif(ty_code=ty_code, ty_timestamp=ty_timestamp, pro=pro,
+                                                  coverage_type=coverage_type)
         else:
             # 非概率增水场执行以下操作
             query: QuerySet = self._query_base_tif(ty_code=ty_code, ty_timestamp=ty_timestamp)
