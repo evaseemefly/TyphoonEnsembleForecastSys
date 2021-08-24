@@ -48,6 +48,18 @@ class StationForecastRealDataModel(IIdModel, IDelModel, IModel, ITimeStamp):
     class Meta:
         db_table = 'station_forecast_realdata'
 
+
+class StationAstronomicTideRealDataModel(IIdModel, IDelModel, IModel):
+    '''
+        + 21-08-24 天文潮位表
+    '''
+    station_code = models.CharField(max_length=10, default=DEFAULT_CODE)
+    forecast_dt = models.DateTimeField(default=now)
+    surge = models.FloatField()
+
+    class Meta:
+        db_table = 'station_astronomictidee _realdata'
+
 # class StationComplexModel(IIdModel):
 #     ty_code = models.CharField(max_length=200)
 #     gp_id = models.IntegerField(default=DEFAULT_FK)
