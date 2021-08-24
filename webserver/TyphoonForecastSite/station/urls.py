@@ -11,7 +11,8 @@ from django.conf.urls import url, include
 from rest_framework import routers
 
 # 本项目
-from .views import StationListView, StationSurgeRangeValueListView,StationSurgeRealListRangeValueView
+from .views import StationListView, StationSurgeRangeValueListView, StationSurgeRealListRangeValueView, \
+    StationAstronomicTideRealDataListView
 
 app_name = '[station]'
 
@@ -20,5 +21,6 @@ urlpatterns = [
     url(r'^station/list$', StationListView.as_view()),
     url(r'^station/realdata/range/list$', StationSurgeRangeValueListView.as_view()),
     url(r'^station/reallist/list$', StationSurgeRealListRangeValueView.as_view()),
+    url(r'^station/astronomictide/range/list$', StationAstronomicTideRealDataListView.as_view()),
 
 ]

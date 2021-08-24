@@ -18,9 +18,10 @@ from rest_framework.decorators import (APIView, api_view,
 
 # --
 # 本项目的
-from .models import StationForecastRealDataModel, StationInfoModel
+from .models import StationForecastRealDataModel, StationInfoModel, StationAstronomicTideRealDataModel
 from .serializers import StationForecastRealDataSerializer, StationForecastRealDataComplexSerializer, \
-    StationForecastRealDataRangeSerializer, StationForecastRealDataMixin, StationForecastRealDataRangeComplexSerializer
+    StationForecastRealDataRangeSerializer, StationForecastRealDataMixin, StationForecastRealDataRangeComplexSerializer, \
+    StationAstronomicTideRealDataSerializer
 # 公共的
 from TyphoonForecastSite.settings import MY_PAGINATOR
 from util.const import DEFAULT_NULL_KEY, UNLESS_TY_CODE, DEFAULT_CODE
@@ -29,7 +30,6 @@ from typhoon.views_base import TyGroupBaseView
 
 DEFAULT_PAGE_INDEX = MY_PAGINATOR.get('PAGE_INDEX')
 DEFAULT_PAGE_COUNT = MY_PAGINATOR.get('PAGE_COUNT')
-
 
 
 class StationListBaseView(TyGroupBaseView):
@@ -152,6 +152,8 @@ class StationListBaseView(TyGroupBaseView):
                 'forecast_dt')
         return qs_real_data
         pass
+
+    # def get_target_ty_forecast_daterange(self,ty_code:str,timestamp:str):
 
     def get_surge_all_group(self, station_code: str, ty_code: str, timestamp: str):
         """
@@ -319,3 +321,34 @@ class StationSurgeRealListRangeValueView(StationListBaseView):
         return Response(self.json_data, status=self._status)
 
     pass
+
+
+class StationAstronomicTideRealDataListView(StationListBaseView):
+    '''
+        + 21-08-24 天文潮位
+    '''
+
+    def get(self, request: Request) -> Response:
+        ty_code: str = request.GET.get('ty_code', None)
+        timestamp_str: str = request.GET.get('timestamp', None)
+        station_code: str = request.GET.get('station_code', None) if request.GET.get('station_code',
+                                                                                     None) is not None else DEFAULT_CODE
+        list_query = self.get_station_tide(ty_code, timestamp_str, station_code)
+        self.json_data = StationAstronomicTideRealDataSerializer(list_query, many=True).data
+        self._status = 200
+        return Response(self.json_data, status=self._status)
+        pass
+
+    def get_station_tide(self, ty_code: str, timestamp: str, station_code: str) -> List[
+        StationAstronomicTideRealDataModel]:
+        """
+            + 21-08-24
+            根据 台风编号 | 时间戳 | 获取该台风的预报起止时间
+            获取对应海洋站的天文潮
+        """
+        dt_range: List[datetime] = self.get_ty_dtrange(ty_code, timestamp)
+        query: QuerySet = None
+        if len(dt_range) > 0:
+            query: QuerySet = StationAstronomicTideRealDataModel.objects.filter(station_code=station_code).filter(
+                forecast_dt__lte=dt_range[1], forecast_dt__gte=dt_range[0])
+        return query[:]

@@ -10,6 +10,12 @@ class StationForecastRealDataSerializer(serializers.Serializer):
     surge = serializers.FloatField()
 
 
+class StationAstronomicTideRealDataSerializer(serializers.Serializer):
+    station_code = serializers.CharField()
+    forecast_dt = serializers.DateTimeField()
+    surge = serializers.FloatField()
+
+
 class StationForecastRealDataComplexSerializer(serializers.Serializer):
     ty_code = serializers.CharField()
     gp_id = serializers.IntegerField()

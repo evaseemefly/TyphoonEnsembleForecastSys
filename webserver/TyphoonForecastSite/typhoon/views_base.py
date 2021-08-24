@@ -82,6 +82,21 @@ class TyGroupBaseView(BaseView):
         end_time: datetime = start_time + timedelta(hours=24)
         return [start_time, end_time]
 
+    def get_ty_dtrange(self, tyCode: str, timestamp: str) -> List[datetime]:
+        """
+            + 21-08-24
+            获取对应 台风编号 | 时间戳 对应的台风的预报起始时间
+        """
+        query = TyphoonForecastDetailModel.objects.filter(code=tyCode, timestamp=timestamp)
+        target_ty: TyphoonForecastDetailModel = None
+        dt_range: List[datetime] = []
+        if len(query) > 0:
+            target_ty = query.first()
+        if target_ty is not None:
+            dt_range.append(target_ty.gmt_start)
+            dt_range.append(target_ty.gmt_end)
+        return dt_range
+
 
 class TyGroupCommonView(ICheckExisted):
     # @staticmethod
