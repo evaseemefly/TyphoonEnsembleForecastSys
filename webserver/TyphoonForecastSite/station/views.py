@@ -27,6 +27,8 @@ from TyphoonForecastSite.settings import MY_PAGINATOR
 from util.const import DEFAULT_NULL_KEY, UNLESS_TY_CODE, DEFAULT_CODE
 from common.view_base import BaseView
 from typhoon.views_base import TyGroupBaseView
+# 自定义装饰器
+from util.customer_wrapt import get_time
 
 DEFAULT_PAGE_INDEX = MY_PAGINATOR.get('PAGE_INDEX')
 DEFAULT_PAGE_COUNT = MY_PAGINATOR.get('PAGE_COUNT')
@@ -120,6 +122,7 @@ class StationListBaseView(TyGroupBaseView):
             where=['station_forecast_realdata.station_code=station_info.code'])
         return query
 
+    @get_time
     def get_surge_list(self, station_code: str, gp_id: int) -> List[StationForecastRealDataModel]:
         """
             + 21-05-26 根据 station_code 与 gp_id 该站点的时序数据
@@ -131,6 +134,7 @@ class StationListBaseView(TyGroupBaseView):
                                                                                               gp_id=gp_id).all()
         return res
 
+    @get_time
     def get_surge_realdata_dist_dt(self, station_code: str, ty_code: str, timestamp: str):
         """
             + 21-05-26 根据 station_code | ty_code | timestamp
@@ -155,6 +159,7 @@ class StationListBaseView(TyGroupBaseView):
 
     # def get_target_ty_forecast_daterange(self,ty_code:str,timestamp:str):
 
+    @get_time
     def get_surge_all_group(self, station_code: str, ty_code: str, timestamp: str):
         """
             + 21-05-26 根据 station_code | ty_code | timestamp
@@ -290,6 +295,7 @@ class StationSurgeRealListRangeValueView(StationListBaseView):
         + 21-05-26 加载潮位站 指定过程的 历史曲线以及范围曲线
     """
 
+    @get_time
     def get(self, request: Request) -> Response:
         """
             + 21-05-26 ty_code | timestamp -> gp_id
@@ -307,14 +313,18 @@ class StationSurgeRealListRangeValueView(StationListBaseView):
                                                                                      None) is not None else DEFAULT_CODE
         self.get_surge_list(station_code, gp_id)
         # 包含 forecast_dt + surge_max + surge_min
-        qs_surge_range = self.get_surge_all_group(station_code, ty_code, timestamp_str)
+        qs_surge_range = list(self.get_surge_all_group(station_code, ty_code, timestamp_str))
         # 包含 forecast_dt + surge
-        qs_surge_realdatalist = self.get_surge_realdata_dist_dt(station_code, ty_code, timestamp_str)
+        qs_surge_realdatalist = list(self.get_surge_realdata_dist_dt(station_code, ty_code, timestamp_str))
         # 将两者拼接
         for index in range(len(qs_surge_range)):
             temp_range = qs_surge_range[index]
             temp_realdata = qs_surge_realdatalist[index]
-            list_res.append({**temp_range, **temp_realdata})
+            # {'forecast_dt': datetime.datetime(2020, 9, 15, 9, 0, tzinfo=<UTC>), 'surge_max': 0.0, 'surge_min': 0.0, 'surge': 0.0}
+            # list_res.append({**temp_range, **temp_realdata})
+            list_res.append({'forecast_dt': temp_range['forecast_dt'], 'surge_max': temp_range['surge_max'],
+                             'surge_min': temp_range['surge_min'], 'surge': temp_realdata['surge']})
+            # list_res.append({})
         self._status = 200
         # 序列化
         self.json_data = StationForecastRealDataRangeComplexSerializer(list_res, many=True).data
