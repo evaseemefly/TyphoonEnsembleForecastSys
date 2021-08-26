@@ -18,10 +18,11 @@ from rest_framework.decorators import (APIView, api_view,
 
 # --
 # 本项目的
-from .models import StationForecastRealDataModel, StationInfoModel, StationAstronomicTideRealDataModel
+from .models import StationForecastRealDataModel, StationInfoModel, StationAstronomicTideRealDataModel, \
+    StationAlertTideModel
 from .serializers import StationForecastRealDataSerializer, StationForecastRealDataComplexSerializer, \
     StationForecastRealDataRangeSerializer, StationForecastRealDataMixin, StationForecastRealDataRangeComplexSerializer, \
-    StationAstronomicTideRealDataSerializer
+    StationAstronomicTideRealDataSerializer, StationAlertSerializer
 # 公共的
 from TyphoonForecastSite.settings import MY_PAGINATOR
 from util.const import DEFAULT_NULL_KEY, UNLESS_TY_CODE, DEFAULT_CODE
@@ -352,3 +353,16 @@ class StationAstronomicTideRealDataListView(StationListBaseView):
             query: QuerySet = StationAstronomicTideRealDataModel.objects.filter(station_code=station_code).filter(
                 forecast_dt__lte=dt_range[1], forecast_dt__gte=dt_range[0])
         return query[:]
+
+
+class StationAlertView(StationListBaseView):
+    def get(self, request: Request):
+        """
+            根据 station_code 获取对应海洋站的四色警戒潮位值
+        """
+        station_code: str = request.GET.get('station_code', None) if request.GET.get('station_code',
+                                                                                     None) is not None else DEFAULT_CODE
+        query = StationAlertTideModel.objects.filter(station_code=station_code, is_del=False)
+        self.json_data = StationAlertSerializer(query, many=True).data
+        self._status = 200
+        return Response(self.json_data, status=self._status)

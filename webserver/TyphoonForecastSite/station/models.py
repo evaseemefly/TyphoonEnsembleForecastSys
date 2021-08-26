@@ -60,6 +60,15 @@ class StationAstronomicTideRealDataModel(IIdModel, IDelModel, IModel):
     class Meta:
         db_table = 'station_astronomictidee _realdata'
 
+
+class StationAlertTideModel(IIdModel, IDelModel, IModel):
+    """
+        + 21-08-25 警戒潮位表
+    """
+    station_code = models.CharField(max_length=10, default=DEFAULT_CODE)
+    tide = models.FloatField()
+    alert = models.IntegerField()
+
 # class StationComplexModel(IIdModel):
 #     ty_code = models.CharField(max_length=200)
 #     gp_id = models.IntegerField(default=DEFAULT_FK)

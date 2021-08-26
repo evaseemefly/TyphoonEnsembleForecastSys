@@ -44,5 +44,14 @@ class StationForecastRealDataRangeComplexSerializer(serializers.Serializer):
     surge_min = serializers.FloatField()
 
 
+class StationAlertSerializer(serializers.Serializer):
+    """
+        + 21-05-26 海洋展潮位数据 混合 序列化器
+    """
+    station_code = serializers.CharField()
+    tide = serializers.FloatField()
+    alert = serializers.IntegerField()
+
+
 class StationForecastRealDataMixin(StationForecastRealDataComplexSerializer, StationForecastRealDataRangeSerializer):
     pass
