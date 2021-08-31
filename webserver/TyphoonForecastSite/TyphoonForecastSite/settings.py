@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     'common',
     'users',
     'geo',
+    'task',
 ]
 CORS_ALLOW_CREDENTIALS = True
 CORS_ORIGIN_ALLOW_ALL = True

@@ -11,3 +11,16 @@ class LayerTypeEnum(Enum):
     SURGE_FIELD_COVERAGE = 1103  # 诸时场 nc
     SURGE_FIELD_TIF = 1104  # 逐时场的单个时间提取tif
     SURGE_PRO_COVERAGE = 1105  # 概率增水
+
+@unique
+class TaskStateEnum(Enum):
+    '''
+        对应的是 user_jobuserrate -> state 以及 user_taskinfo -> state
+
+        # TODO:[*] 20-05-07 此处与枚举 users/models.py -> CHOICE_STATUS 相对应，此处如果处理使 enum -> 元祖
+    '''
+    RUNNING = 1
+    COMPLETED = 2
+    WAITTING = 3
+    ERROR = 4
+    UNUSED = 5

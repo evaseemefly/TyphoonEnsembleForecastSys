@@ -1,4 +1,4 @@
-from task.tasks import my_task
+from others.tasks import my_task
 
 
 def main():
