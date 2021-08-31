@@ -2,9 +2,8 @@ import os
 from celery import Celery
 from others.settings import BROKER_URL
 from util.enum import TaskStateEnum
-from task.models import CaseStatus
-from my_celery import app
-
+# from task.models import CaseStatus
+from others.my_celery import app
 
 
 # ERROR； ValueError: not enough values to unpack (expected 3, got 0)
@@ -18,7 +17,6 @@ def my_task(self, *args):
     # job.insert(10)
     print('耗时任务结束')
     print('--------------')
-
 
 # class JobInfo:
 #     def __init__(self, celery_id: str):
