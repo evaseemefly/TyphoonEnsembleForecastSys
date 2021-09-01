@@ -4,6 +4,16 @@ import requests
 from lxml import etree
 import arrow
 
+#
+import numpy as np
+from math import *
+from scipy import interpolate
+from geographiclib.geodesic import Geodesic
+import os
+# TODO:[-] 建议以后均使用 pathlib 模块来进行 path相关的操作
+import pathlib
+from datetime import *
+
 from model.models import CaseStatus
 from conf.settings import TEST_ENV_SETTINGS
 
@@ -11,10 +21,24 @@ SHARED_PATH = TEST_ENV_SETTINGS.get('TY_GROUP_PATH_ROOT_DIR')
 
 
 class IBaseJob(metaclass=ABCMeta):
+    def __init__(self, ty_code: str, timestamp: str = None):
+        """
+            实例化时就获取当前的时间戳
+        @param ty_code:
+        @param timestamp:
+        """
+        self.ty_code: str = ty_code
+        self.timestamp: int = timestamp if timestamp else arrow.utcnow().timestamp
+        self.list_cmd = []
+
     """
         基础 job 抽象类
 
     """
+
+    @property
+    def ty_stamp(self):
+        return f'TY{self.ty_code}_{self.timestamp}'
 
     @abstractmethod
     def to_store(self, **kwargs):
@@ -48,18 +72,33 @@ class GPUCalculate(IBaseJob):
 
 
 class JobGetTyDetail(IBaseJob):
-    def __init__(self, ty_code: str, timestamp: str = None):
-        """
-            实例化时就获取当前的时间戳
-        @param ty_code:
-        @param timestamp:
-        """
-        self.ty_code = ty_code
-        self.timestamp = timestamp if timestamp else arrow.utcnow().timestamp
-        # self.timestamp = arrow.utcnow().timestamp
+    def __init__(self, ty_code: str, timestamp: str = None, list_cmd=[]):
+        super(JobGetTyDetail, self).__init__(ty_code, timestamp)
+        self.list_cmd = list_cmd
+
+    # def __init__(self, ty_code: str, timestamp: str = None):
+    #     """
+    #         实例化时就获取当前的时间戳
+    #     @param ty_code:
+    #     @param timestamp:
+    #     """
+    #     self.ty_code = ty_code
+    #     self.timestamp = timestamp if timestamp else arrow.utcnow().timestamp
 
     def to_do(self, **kwargs):
-        out_cma = self.get_typath_cma(SHARED_PATH, self.ty_code)
+        # eg: ['TY2112_2021090116_CMA_original', ['2021082314', '2021082320'], ['125.3', '126.6'], ['31.3', '33.8'], ['998', '998'], ['15', '15'], '2112', 'OMAIS']
+        # 是一个嵌套数组
+        # list[0] TY2112_2021090116_CMA_original 是具体的编号
+        # List[1] ['2021082314', '2021082320'] 时间
+        # list[2] ['125.3', '126.6'] 经度
+        # list[3] ['31.3', '33.8']   维度
+        # list[4] ['998', '998']     气压
+        # list[5] ['15', '15']       暂时不用
+        list_cmd = self.get_typath_cma(SHARED_PATH, self.ty_code)
+        self.list_cmd = list_cmd
+        list_lon = list_cmd[2]
+        list_lat = list_cmd[3]
+        list_bp = list_cmd[4]
         pass
 
     def to_store(self, **kwargs):
@@ -137,7 +176,7 @@ class JobGetTyDetail(IBaseJob):
         kk = 0
         if times == []:  # 第一份
             forecast = selector.xpath('//*[@id="text"]/p/text()')
-            info = self.parse_first(forecast)
+            info = self._parse_first(forecast)
             # print(info)
             if info == None:
                 pass
@@ -150,10 +189,10 @@ class JobGetTyDetail(IBaseJob):
                 loncma = info[-5]
                 tcma = info[-6]
                 tyname = info[-7]
-                year = datetime.datetime.now().year
-                month = datetime.datetime.now().month
-                day = datetime.datetime.now().day
-                hour = datetime.datetime.now().hour
+                year = datetime.now().year
+                month = datetime.now().month
+                day = datetime.now().day
+                hour = datetime.now().hour
                 if month < 10:
                     smonth = '0' + str(month)
                 else:
@@ -170,7 +209,7 @@ class JobGetTyDetail(IBaseJob):
                 # TODO:[*] 21-09-01 以下替换为 self.timestamp
                 # caseno = "TY" + id.lower() + "_" + str(year) + smonth + sday + shrs
                 caseno = "TY" + id.lower() + "_" + timestamp_str
-                wdirp = wdir0 + 'pathfiles/' + caseno + '/'
+                wdirp = wdir0 + '/' + 'pathfiles/' + caseno + '/'
                 if not os.path.exists(wdirp):
                     os.makedirs(wdirp)
                 filename = caseno + "_CMA_original"
@@ -192,7 +231,7 @@ class JobGetTyDetail(IBaseJob):
                 page1 = requests.get(url1, timeout=60)
                 contents = page1.text.replace("<br>", "").split("\n")
                 # content=selector.xpath('/html/body/p/text()')
-                info = self.parse_info(contents, item)
+                info = self._parse_info(contents, item)
                 # file="./"+string+".txt"
                 if info == None:
                     pass
@@ -207,10 +246,10 @@ class JobGetTyDetail(IBaseJob):
                     tcma = info[-6]
                     tyname = info[-7]
 
-                    year = datetime.datetime.now().year
-                    month = datetime.datetime.now().month
-                    day = datetime.datetime.now().day
-                    hour = datetime.datetime.now().hour
+                    year = datetime.now().year
+                    month = datetime.now().month
+                    day = datetime.now().day
+                    hour = datetime.now().hour
                     if month < 10:
                         smonth = '0' + str(month)
                     else:
@@ -224,7 +263,7 @@ class JobGetTyDetail(IBaseJob):
                     else:
                         shrs = str(hour)
                     caseno = "TY" + id.lower() + "_" + str(year) + smonth + sday + shrs
-                    wdirp = wdir0 + 'pathfiles/' + caseno + '/'
+                    wdirp = wdir0 + '/' + 'pathfiles/' + caseno + '/'
                     if not os.path.exists(wdirp):
                         os.makedirs(wdirp)
                     filename = caseno + "_CMA_original"
@@ -242,7 +281,7 @@ class JobGetTyDetail(IBaseJob):
                             break  # 保证找到一条最新的预报结果后退出
         return outcma
 
-    def parse_info(self, list, time_issu):
+    def _parse_info(self, list, time_issu):
         result = []
         lon_all = []
         lat_all = []
@@ -283,7 +322,7 @@ class JobGetTyDetail(IBaseJob):
 
                 if line[:4] == "00HR":
 
-                    time1 = datetime.datetime.strptime(str(time), '%Y/%m/%d %H:%M:%S') + datetime.timedelta(hours=8)
+                    time1 = datetime.strptime(str(time), '%Y/%m/%d %H:%M:%S') + timedelta(hours=8)
                     if time1.month < 10:
                         month_str = "0" + str(time1.month)
                     else:
@@ -321,8 +360,8 @@ class JobGetTyDetail(IBaseJob):
                         hr = hr[:-1]
                     if hr[0] == "0":
                         hr = hr[1]
-                    time1 = datetime.datetime.strptime(str(time), '%Y/%m/%d %H:%M:%S') + datetime.timedelta(
-                        hours=8) + datetime.timedelta(hours=int(hr))
+                    time1 = datetime.strptime(str(time), '%Y/%m/%d %H:%M:%S') + timedelta(
+                        hours=8) + timedelta(hours=int(hr))
                     if time1.month < 10:
                         month_str = "0" + str(time1.month)
                     else:
@@ -368,7 +407,7 @@ class JobGetTyDetail(IBaseJob):
         else:
             return None
 
-    def parse_first(self, list):
+    def _parse_first(self, list):
         '''
 
         :param list:
@@ -381,9 +420,9 @@ class JobGetTyDetail(IBaseJob):
         speed_all = []
         tcma = []
         time_str = list[1].split()[2]
-        year = datetime.datetime.now().year
-        month = datetime.datetime.now().month
-        day = datetime.datetime.now().day
+        year = datetime.now().year
+        month = datetime.now().month
+        day = datetime.now().day
         if day < 10:
             day = "0" + str(day)
         else:
@@ -411,7 +450,7 @@ class JobGetTyDetail(IBaseJob):
 
             if line[:5] == " 00HR":
 
-                time1 = datetime.datetime.strptime(str(time), '%Y/%m/%d %H:%M:%S') + datetime.timedelta(hours=8)
+                time1 = datetime.strptime(str(time), '%Y/%m/%d %H:%M:%S') + timedelta(hours=8)
                 if time1.month < 10:
                     month_str = "0" + str(time1.month)
                 else:
@@ -449,8 +488,8 @@ class JobGetTyDetail(IBaseJob):
                     hr = hr[:-1]
                 if hr[0] == "0":
                     hr = hr[1]
-                time1 = datetime.datetime.strptime(str(time), '%Y/%m/%d %H:%M:%S') + datetime.timedelta(
-                    hours=8) + datetime.timedelta(hours=int(hr))
+                time1 = datetime.strptime(str(time), '%Y/%m/%d %H:%M:%S') + timedelta(
+                    hours=8) + timedelta(hours=int(hr))
                 if time1.month < 10:
                     month_str = "0" + str(time1.month)
                 else:
@@ -494,3 +533,407 @@ class JobGetTyDetail(IBaseJob):
             result.append(speed_all)
             result.append(id)
             return result
+
+
+class JobGeneratePathFile(IBaseJob):
+    def __init__(self, ty_code: str, timestamp: str = None, list_cmd=[]):
+        super(JobGeneratePathFile, self).__init__(ty_code, timestamp)
+        self.list_cmd = list_cmd
+
+    @property
+    def list_lons(self):
+        """
+            由 self.list_cmd 提取的 经度 数组
+        @return:
+        """
+        list_temp = []
+        if len(self.list_cmd) > 4:
+            list_temp = self.list_cmd[2]
+        return list_temp
+
+    @property
+    def list_lats(self):
+        """
+            由 self.list_cmd 提取的 纬度 数组
+        @return:
+        """
+        list_temp = []
+        if len(self.list_cmd) > 4:
+            list_temp = self.list_cmd[3]
+        return list_temp
+
+    @property
+    def list_bp(self):
+        """
+            由 self.list_cmd 提取的 气压 数组
+        @return:
+        """
+        list_temp = []
+        if len(self.list_cmd) > 4:
+            list_temp = self.list_cmd[4]
+        return list_temp
+
+    @property
+    def forecast_start_dt(self) -> datetime:
+        """
+            当前获取 台风 路径的 起始预报时间
+        @return:
+        """
+        dt_forecast_str = None
+        if len(self.list_cmd) > 4:
+            list_dt = self.list_cmd[1]
+            if len(list_dt) > 0:
+                dt_forecast_str = arrow.get(list_dt[0], 'YYYYMMDDHH').datetime
+        return dt_forecast_str
+
+    @property
+    def list_timeDiff(self):
+        list_temp = []
+        list_dt_range = []
+        if len(self.list_cmd) > 4:
+            # ['2021082314', '2021082320']
+            list_temp = self.list_cmd[1]
+            start_dt_str = list_temp[0]
+            start_dt_utc = arrow.get(start_dt_str, 'YYYYMMDDHH').shift(hours=-8)
+            second_dt_utc = arrow.get(list_temp[1], 'YYYYMMDDHH').shift(hours=-8)
+            # 时间差
+            hour_diff: int = int((second_dt_utc.timestamp - start_dt_utc.timestamp) / (60 * 60))
+            for temp in range(len(list_temp)):
+                list_dt_range.append(temp * hour_diff)
+
+        return list_dt_range
+
+    def to_do(self, **kwargs):
+        # list_cmd=kwargs.get('list_cmd')
+        # 此部分代码之前放在外侧，我移动至main函数内部调用
+        now_utc_str = arrow.utcnow().timestamp
+        dR = 0  # 大风半径增减值
+        r01 = 60
+        r02 = 100
+        r03 = 120
+        r04 = 150
+        r05 = 180
+        pNum = 145
+        hrs1, tlon1, tlat1, pres1 = self.interp6h(self.list_timeDiff, self.list_lons, self.list_lats, self.list_bp)
+        # ['TYTD03_2020042710_c0_p00', 'TYTD03_2020042710_c0_p05', 'TYTD03_2020042710_c0_p10',...]
+        filename_list = self.gen_typathfile(SHARED_PATH, self.forecast_start_dt, dR, self.ty_stamp, r01, r02, r03, r04,
+                                            r05, pNum,
+                                            tlon1,
+                                            tlat1, pres1)
+        self.output_controlfile(SHARED_PATH, filename_list)
+        pass
+
+    def to_store(self, **kwargs):
+        pass
+
+    def interp6h(self, horg, lonorg, latorg, porg):
+        """
+            将输入的 list<string> => ndarray
+        :param horg:
+        :param lonorg:
+        :param latorg:
+        :param porg:
+        :return:
+        """
+        h1org = np.arange(0, horg[-1] + 6, 6)
+        if len(horg) >= 4:
+            # TODO:[*] ValueError: x and y arrays must be equal in length along interpolation axis.
+            fx = interpolate.interp1d(horg, lonorg, kind="cubic")  # "quadratic","cubic"
+            fy = interpolate.interp1d(horg, latorg, kind="cubic")
+            fp = interpolate.interp1d(horg, porg, kind="cubic")
+        else:
+            fx = interpolate.interp1d(horg, lonorg)  # "quadratic","cubic"
+            fy = interpolate.interp1d(horg, latorg)
+            fp = interpolate.interp1d(horg, porg)
+        lon1org = fx(h1org)
+        lat1org = fy(h1org)
+        p1org = np.round(fp(h1org))
+        return h1org, lon1org, lat1org, p1org
+
+    #
+    def cal_time_radius_pres(self, p1org, storg, dR):
+        dorg = []
+        dorg2 = []
+        rorg = []
+        korg = len(p1org)
+        for i in range(korg):
+            if p1org[i] > 1000:
+                p1org[i] = 1000
+            #
+            rorg0 = round((1119 * (1010 - p1org[i]) ** -0.805))
+            if rorg0 > 80:
+                rorg0 = 80
+            elif rorg0 <= 20:
+                rorg0 = 20
+            rorg.append(round(rorg0 + dR))
+            st2 = storg + timedelta(days=i * 6 / 24)
+            dorg.append(st2.strftime('%m%d%H'))
+            dorg2.append(st2.strftime('%m/%d/%H'))
+            #
+            if rorg[i] > 80:
+                rorg[i] = 80
+            elif rorg[i] <= 20:
+                rorg[i] = 20
+        return (dorg, dorg2, p1org, rorg, korg)
+
+    #
+
+    # print(rads)
+
+    # Make typhoon path files
+    #
+    def output_pathfiles(self, wdir, filename, caseno, ri, dir, datex, tlonx, tlatx, presx, radsx, label):
+        kxi = len(tlonx)
+        fn = caseno + '_' + dir + str(ri) + '_p' + label
+        tyno = caseno[2:6]
+        filename.append(fn)
+        fi = open(wdir + fn, 'w+')
+        fi.write(tyno + '\n')
+        fi.write('0\n')
+        fi.write(str(kxi) + '\n')
+        for i in range(kxi):
+            fi.write(
+                datex[i] + ' ' + "{:.1f}".format(tlonx[i]) + ' ' + "{:.1f}".format(tlatx[i]) + ' ' + "{:.0f}".format(
+                    presx[i]) + ' ' + "{:.0f}".format(radsx[i]) + '\n')
+        fi.close()
+        return filename
+
+    # west=102,east=140,south=8,north=32 r01=60; r02=100; r03=120; r04=150; r05=180
+    def gen_typathfile(self, wdir0, st, dR, caseno, r01, r02, r03, r04, r05, pnum, tlon1, tlat1, pres1):
+        '''
+            生成 file name 集合
+        :param wdir0: 存储根目录
+        :param st:     预报的起始时间 datetime.datetime
+        :param dR:     大风半径的增减值
+        :param caseno: case 编号？
+        :param r01:    那五个什么半径？单位是什么？
+        :param r02:
+        :param r03:
+        :param r04:
+        :param r05:
+        :param pnum:   预报成员个数
+        :param tlon1:  起始经度——差值到6小时 数组
+        :param tlat1:  起始维度——差值到6小时 数组
+        :param pres1:  气压——差值到6小时 数组
+        :return:
+        '''
+        pres05 = pres1 + 5
+        pres10 = pres1 + 10
+        pres_05 = pres1 - 5
+        pres_10 = pres1 - 10
+        datef, datef2, pres1, rads, kxi = self.cal_time_radius_pres(pres1, st, dR)
+        datef, datef2, pres05, rads05, kxi = self.cal_time_radius_pres(pres05, st, dR)
+        datef, datef2, pres10, rads10, kxi = self.cal_time_radius_pres(pres10, st, dR)
+        datef, datef2, pres_05, rads_05, kxi = self.cal_time_radius_pres(pres_05, st, dR)
+        datef, datef2, pres_10, rads_10, kxi = self.cal_time_radius_pres(pres_10, st, dR)
+
+        nrr = round((pnum / 5 - 5) / 4 + 1)
+        minsp = 12;
+        coef = 0.7
+
+        rrs = np.array([0, r01, r02, r03, r04, r05])
+        x = np.arange(0, 120 + 24, 24)
+        x2 = np.arange(0, 120 + 6, 6)
+        rrmat = np.zeros((nrr, len(x) - 1))
+        rrmat6 = np.zeros((nrr, len(x2) - 1))
+        fr = interpolate.interp1d(x, rrs, kind="slinear")
+        rrs6 = np.round(fr(x2))
+        rrmat[0, :] = rrs[1:]
+        rrmat6[0, :] = rrs6[1:]
+        # rrmat6=np.round(rrmat6)
+
+        filename = []
+        kk = 0
+        #
+        wdir = wdir0 + '/' + 'pathfiles/' + caseno + '/'
+        # '/my_shared_data/pathfiles/TYTD03_2020042710/'
+        # TODO:[-] 21-07-18 此处修改为使用 pathlib 模块进行对路径的操作
+        # 注意可能会出现创建多及目录！
+        if not pathlib.Path(wdir).is_dir():
+            pathlib.Path(wdir).mkdir(parents=True)
+        # if not os.path.exists(wdir):
+        #     os.mkdir(wdir)
+        wdirx = wdir0 + '/' + 'result/' + caseno + '/'
+        if not pathlib.Path(wdirx).is_dir():
+            pathlib.Path(wdirx).mkdir(parents=True)
+        # if not os.path.exists(wdirx):
+        #     os.makedirs(wdirx)
+
+        for r in range(nrr - 1):
+            r = r + 1
+            rrmat[r, :] = np.round(rrmat[0, :] * r / nrr)
+            rrmat6[r, :] = np.round(rrmat6[0, :] * r / nrr)
+        # print(rrmat6)
+        for r in range(nrr):
+            # print(r)
+            spd0 = []
+            dista = []
+            angle = []
+            tlonl = tlon1.copy();
+            tlatl = tlat1.copy()
+            tlonr = tlon1.copy();
+            tlatr = tlat1.copy()
+            tlonf = tlon1.copy();
+            tlatf = tlat1.copy()
+            tlons = tlon1.copy();
+            tlats = tlat1.copy()
+
+            for j in range(kxi - 1):
+                # dista.append(geodistance(tlon1[j],tlat1[j],tlon1[j+1],tlat1[j+1]))
+                geodict = Geodesic.WGS84.Inverse(tlat1[j], tlon1[j], tlat1[j + 1], tlon1[j + 1])
+                dista.append(geodict['s12'] / 1000)
+                angle.append(geodict['azi1'] + 360)
+                spd0.append(round(dista[j] / 6))
+                if spd0[j] < minsp:
+                    rrmat6[r, j] = round(rrmat6[r, j] * coef)
+                    if j == kxi - 1:
+                        rrmat6[r, j + 1] = round(rrmat6[r, j + 1] * coef)
+                # left patb
+                geoxyl = Geodesic.WGS84.Direct(tlat1[j + 1], tlon1[j + 1], angle[j] - 360 + 270, rrmat6[r, j] * 1000)
+                tlonl[j + 1] = geoxyl['lon2']
+                tlatl[j + 1] = geoxyl['lat2']
+                # right path
+                geoxyr = Geodesic.WGS84.Direct(tlat1[j + 1], tlon1[j + 1], angle[j] - 360 + 90, rrmat6[r, j] * 1000)
+                tlonr[j + 1] = geoxyr['lon2']
+                tlatr[j + 1] = geoxyr['lat2']
+                # fast path
+                geoxyf = Geodesic.WGS84.Direct(tlat1[j + 1], tlon1[j + 1], angle[j] - 360, rrmat6[r, j] * 1000)
+                tlonf[j + 1] = geoxyf['lon2']
+                tlatf[j + 1] = geoxyf['lat2']
+                # slow path
+                geoxys = Geodesic.WGS84.Direct(tlat1[j + 1], tlon1[j + 1], angle[j] - 360 - 180, rrmat6[r, j] * 1000)
+                tlons[j + 1] = geoxys['lon2']
+                tlats[j + 1] = geoxys['lat2']
+                # print([tlonl[j],tlatl[j]])
+
+            if r == 0:
+                # -----------------------------center path------------------------------------#
+                filename = self.output_pathfiles(wdir, filename, caseno, r, 'c', datef, tlon1, tlat1, pres1, rads, '00')
+                filename = self.output_pathfiles(wdir, filename, caseno, r, 'c', datef, tlon1, tlat1, pres05, rads05,
+                                                 '05')
+                filename = self.output_pathfiles(wdir, filename, caseno, r, 'c', datef, tlon1, tlat1, pres10, rads10,
+                                                 '10')
+                filename = self.output_pathfiles(wdir, filename, caseno, r, 'c', datef, tlon1, tlat1, pres_05, rads_05,
+                                                 '_05')
+                filename = self.output_pathfiles(wdir, filename, caseno, r, 'c', datef, tlon1, tlat1, pres_10, rads_10,
+                                                 '_10')
+
+            # -----------------------------right path------------------------------------#
+            filename = self.output_pathfiles(wdir, filename, caseno, r, 'r', datef, tlonr, tlatr, pres1, rads, '00')
+            filename = self.output_pathfiles(wdir, filename, caseno, r, 'r', datef, tlonr, tlatr, pres05, rads05, '05')
+            filename = self.output_pathfiles(wdir, filename, caseno, r, 'r', datef, tlonr, tlatr, pres10, rads10, '10')
+            filename = self.output_pathfiles(wdir, filename, caseno, r, 'r', datef, tlonr, tlatr, pres_05, rads_05,
+                                             '_05')
+            filename = self.output_pathfiles(wdir, filename, caseno, r, 'r', datef, tlonr, tlatr, pres_10, rads_10,
+                                             '_10')
+
+            # -----------------------------left path------------------------------------#
+            filename = self.output_pathfiles(wdir, filename, caseno, r, 'l', datef, tlonl, tlatl, pres1, rads, '00')
+            filename = self.output_pathfiles(wdir, filename, caseno, r, 'l', datef, tlonl, tlatl, pres05, rads05, '05')
+            filename = self.output_pathfiles(wdir, filename, caseno, r, 'l', datef, tlonl, tlatl, pres10, rads10, '10')
+            filename = self.output_pathfiles(wdir, filename, caseno, r, 'l', datef, tlonl, tlatl, pres_05, rads_05,
+                                             '_05')
+            filename = self.output_pathfiles(wdir, filename, caseno, r, 'l', datef, tlonl, tlatl, pres_10, rads_10,
+                                             '_10')
+
+            # -----------------------------fast path------------------------------------#
+            filename = self.output_pathfiles(wdir, filename, caseno, r, 'f', datef, tlonf, tlatf, pres1, rads, '00')
+            filename = self.output_pathfiles(wdir, filename, caseno, r, 'f', datef, tlonf, tlatf, pres05, rads05, '05')
+            filename = self.output_pathfiles(wdir, filename, caseno, r, 'f', datef, tlonf, tlatf, pres10, rads10, '10')
+            filename = self.output_pathfiles(wdir, filename, caseno, r, 'f', datef, tlonf, tlatf, pres_05, rads_05,
+                                             '_05')
+            filename = self.output_pathfiles(wdir, filename, caseno, r, 'f', datef, tlonf, tlatf, pres_10, rads_10,
+                                             '_10')
+
+            # -----------------------------slow path------------------------------------#
+            filename = self.output_pathfiles(wdir, filename, caseno, r, 's', datef, tlons, tlats, pres1, rads, '00')
+            filename = self.output_pathfiles(wdir, filename, caseno, r, 's', datef, tlons, tlats, pres05, rads05, '05')
+            filename = self.output_pathfiles(wdir, filename, caseno, r, 's', datef, tlons, tlats, pres10, rads10, '10')
+            filename = self.output_pathfiles(wdir, filename, caseno, r, 's', datef, tlons, tlats, pres_05, rads_05,
+                                             '_05')
+            filename = self.output_pathfiles(wdir, filename, caseno, r, 's', datef, tlons, tlats, pres_10, rads_10,
+                                             '_10')
+
+        return filename
+
+    # -----------------------------output control file------------------------------------#
+    # output gpus_path_list.bat
+    def output_controlfile(self, wdir0, filename):
+        """
+            TODO:[*] 21-09-01 注意此处生成的批处理的内容将文件路径写死！
+            生成批处理文件
+                eg:
+                    sz_gpus_path_list.bat
+                    sz_start_gpu_model.bat
+        :param wdir0:
+        :param filename:
+        :return:
+        """
+        fi = open(wdir0 + 'sz_gpus_path_list.bat', 'w+')
+        fi.write('@echo off' + '\n')
+        fi.write('set date1=%date%' + '\n')
+        fi.write('set startmonth=%date:~5,2%' + '\n')
+        fi.write('set startday=%date:~8,2%' + '\n')
+        fi.write('set starthour=%time:~0,2%' + '\n')
+        fi.write('set startmin=%time:~3,2%' + '\n')
+        fi.write('set startsec=%time:~6,2%' + '\n')
+        fi.write('echo StartDate %date1%' + '\n')
+        fi.write('echo StartTime %time1%' + '\n')
+        fi.write('echo ' + filename[0] + '|CTSgpu_sz_plus.exe' + '\n')
+        for i in range(len(filename)):
+            fi.write('echo ' + filename[i] + '|CTSgpu_sz.exe' + '\n')
+        fi.write('set time2=%time%' + '\n')
+        fi.write('set date2=%date%' + '\n')
+
+        fi.write('set endmonth=%date:~5,2%' + '\n')
+        fi.write('set endday=%date:~8,2%' + '\n')
+        fi.write('set endhour=%time:~0,2%' + '\n')
+        fi.write('set endmin=%time:~3,2%' + '\n')
+        fi.write('set endsec=%time:~6,2%' + '\n')
+        fi.write('echo EndDate %date2%' + '\n')
+        fi.write('echo EndTime %time2%' + '\n')
+
+        fi.write('set intday=0' + '\n')
+        fi.write('set inthour=0' + '\n')
+        fi.write('set intmin=0' + '\n')
+        fi.write('set inttime=0' + '\n')
+
+        fi.write('if %endday% EQU %startday% (call:calc1 & goto :finalresult)' + '\n')
+
+        fi.write(':finalresult' + '\n')
+        fi.write('echo Elapsed time: %inttime%' + '\n')
+        fi.write('exit /b' + '\n')
+
+        fi.write(':calc1' + '\n')
+        fi.write(
+            'if /i %endsec% LSS %startsec% (set /a intsec=%endsec%+60-%startsec% & set /a endmin-=1) else (set /a intsec=%endsec%-%startsec%)' + '\n')
+        fi.write(
+            'if /i %endmin% LSS %startmin% (set /a intmin=%endmin%+60-%startmin% & set /a endhour-=1) else (set /a intmin=%endmin%-%startmin%)' + '\n')
+        fi.write('set /a inthour=%endhour%-%starthour%' + '\n')
+        fi.write('set /a intday=%endday%-%startday%' + '\n')
+        fi.write('set inttime=%intday% day %inthour% hours %intmin% min %intsec% sec' + '\n')
+        fi.close()
+        #
+        fi = open(wdir0 + 'sz_start_gpu_model.bat', 'w+')
+        fi.write('@echo off' + '\n')
+        fi.write('set PGI=C:\\PROGRA~1\\PGI' + '\n')
+        fi.write('set PATH=C:\\Program Files\\Java\\jre1.8.0_112\\bin;%PATH%' + '\n')
+        fi.write('set PATH=C:\\Program Files\\PGI\\flexlm;%PATH%' + '\n')
+        fi.write('set PATH=%PGI%\\win64\\2019\\cuda\\9.2\\bin;%PATH%' + '\n')
+        fi.write('set PATH=%PGI%\\win64\\2019\\cuda\\10.0\\bin;%PATH%' + '\n')
+        fi.write('set PATH=%PGI%\\win64\\2019\\cuda\\10.1\\bin;%PATH%' + '\n')
+        fi.write('set PATH=C:\\Program Files (x86)\\Windows Kits\\10\\bin\\x64;%PATH%' + '\n')
+        fi.write(
+            'set PATH=C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\Community\\VC\\Tools\\MSVC\\14.21.27702\\bin\\Hostx64\\x64;%PATH%' + '\n')
+        fi.write('set PATH=%PGI%\\win64\\19.9\\bin;%PATH%' + '\n')
+        fi.write('set PATH=%PATH%;.' + '\n')
+        fi.write('set FLEXLM_BATCH=1' + '\n')
+        fi.write('title PGI 19.9' + '\n')
+        fi.write('set TMP=C:\\temp' + '\n')
+        fi.write('set PS1=PGI$' + '\n')
+        fi.write('echo PGI 19.9' + '\n')
+
+        fi.write('cmd /k "cd /d D:\\szsurge\\ && call sz_gpus_path_list.bat && exit"' + '\n')
+        fi.close()
+
+        # print('Control files for Function B are done!')

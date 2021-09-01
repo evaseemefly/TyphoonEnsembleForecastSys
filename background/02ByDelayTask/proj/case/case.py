@@ -8,14 +8,14 @@
 # @Software: PyCharm
 from typing import List
 import pathlib
-from datetime import datetime
+from datetime import datetime,timedelta
 from core.data import GroupTyphoonPath, get_match_files, to_ty_group, to_station_realdata, get_gp, to_ty_field_surge, \
     to_ty_pro_surge
 from model.models import TyphoonForecastDetailModel
 from core.file import StationSurgeRealDataFile
 from common.enum import ForecastOrganizationEnum, TyphoonForecastSourceEnum
 from common.const import UNLESS_INDEX
-from task.jobs import JobGetTyDetail
+from task.jobs import JobGetTyDetail, JobGeneratePathFile
 from conf.settings import TEST_ENV_SETTINGS
 
 ROOT_DIR = TEST_ENV_SETTINGS.get('TY_GROUP_PATH_ROOT_DIR')
@@ -161,6 +161,10 @@ def case_job_craw_ty():
     """
     job_ty = JobGetTyDetail('2112')
     job_ty.to_do()
+    list_cmd = job_ty.list_cmd
+    timestamp_str = job_ty.timestamp
+    job_generate = JobGeneratePathFile('2112', str(job_ty.timestamp), list_cmd)
+    job_generate.to_do()
 
 
 def test_get_gp_model():
