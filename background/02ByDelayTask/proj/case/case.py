@@ -8,14 +8,15 @@
 # @Software: PyCharm
 from typing import List
 import pathlib
+from datetime import datetime
 from core.data import GroupTyphoonPath, get_match_files, to_ty_group, to_station_realdata, get_gp, to_ty_field_surge, \
     to_ty_pro_surge
 from model.models import TyphoonForecastDetailModel
 from core.file import StationSurgeRealDataFile
 from common.enum import ForecastOrganizationEnum, TyphoonForecastSourceEnum
 from common.const import UNLESS_INDEX
+from task.jobs import JobGetTyDetail
 from conf.settings import TEST_ENV_SETTINGS
-from datetime import datetime
 
 ROOT_DIR = TEST_ENV_SETTINGS.get('TY_GROUP_PATH_ROOT_DIR')
 TY_CODE = TEST_ENV_SETTINGS.get('TY_CODE')
@@ -152,6 +153,16 @@ def case_get_gp():
     pass
 
 
+def case_job_craw_ty():
+    """
+        + 21-09-01
+        手动抓取台风
+    @return:
+    """
+    job_ty = JobGetTyDetail('2112')
+    job_ty.to_do()
+
+
 def test_get_gp_model():
     """
         测试 根据 file_name 获取对应的 gp_model
@@ -174,7 +185,9 @@ def main():
     # TODO:[-] 21-08-02 加入了 测试 逐时风暴增水的 case
     # case_field_surge(TY_CODE, TY_STAMP, gmt_start, gmt_end)
     # TODO:[-] 21-08-09 加入了 测试 概率增水的 case
-    case_pro_surge(TY_CODE, TY_STAMP, gmt_start, gmt_end)
+    # case_pro_surge(TY_CODE, TY_STAMP, gmt_start, gmt_end)
+    # TODO:[-] 21-09-01 加入了 测试 手动抓取台风信息
+    case_job_craw_ty()
     # 测试查询 gp
     # case_get_gp()
     # test_get_gp_model()

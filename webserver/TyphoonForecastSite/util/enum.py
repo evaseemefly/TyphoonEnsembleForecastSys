@@ -12,6 +12,7 @@ class LayerTypeEnum(Enum):
     SURGE_FIELD_TIF = 1104  # 逐时场的单个时间提取tif
     SURGE_PRO_COVERAGE = 1105  # 概率增水
 
+
 @unique
 class TaskStateEnum(Enum):
     '''
@@ -19,8 +20,8 @@ class TaskStateEnum(Enum):
 
         # TODO:[*] 20-05-07 此处与枚举 users/models.py -> CHOICE_STATUS 相对应，此处如果处理使 enum -> 元祖
     '''
-    RUNNING = 1
-    COMPLETED = 2
-    WAITTING = 3
-    ERROR = 4
-    UNUSED = 5
+    RUNNING = 7101
+    COMPLETED = 7102
+    WAITTING = 7103
+    ERROR = 7104
+    UNUSED = 7105

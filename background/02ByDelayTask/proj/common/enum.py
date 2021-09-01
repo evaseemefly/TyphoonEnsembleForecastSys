@@ -44,3 +44,16 @@ class LayerType(Enum):
     PROSURGETIFGT20 = 1314
     PROSURGETIFGT25 = 1315
     PROSURGETIFGT30 = 1316
+
+@unique
+class TaskStateEnum(Enum):
+    '''
+        对应的是 user_jobuserrate -> state 以及 user_taskinfo -> state
+
+        # TODO:[*] 20-05-07 此处与枚举 users/models.py -> CHOICE_STATUS 相对应，此处如果处理使 enum -> 元祖
+    '''
+    RUNNING = 7101
+    COMPLETED = 7102
+    WAITTING = 7103
+    ERROR = 7104
+    UNUSED = 7105

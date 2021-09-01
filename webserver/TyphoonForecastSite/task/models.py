@@ -13,7 +13,7 @@ class CaseStatus(IModel, IDelModel, IIdModel):
     celery_id=models.CharField(default=DEFAULT_NULL_VAL,max_length=100)
     case_state = models.IntegerField(default=0)
     case_rate = models.IntegerField(default=0)
-    is_abs = models.BooleanField(default=False)
+    is_lock = models.BooleanField(default=False)
 
     class Meta:
         db_table = 'Task_CaseStatus'

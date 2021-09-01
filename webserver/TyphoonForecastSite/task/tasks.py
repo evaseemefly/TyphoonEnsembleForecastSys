@@ -28,6 +28,6 @@ class JobInfo:
         self.celery_id = celery_id
 
     def insert(self, rate: int, status: TaskStateEnum = TaskStateEnum.RUNNING):
-        insert_model = CaseStatus(celery_id=self.celery_id, case_state=status, case_rate=rate)
+        insert_model = CaseStatus(celery_id=self.celery_id, case_state=status.value, case_rate=rate)
         insert_model.save()
         pass

@@ -190,3 +190,14 @@ class ForecastProTifModel(IDel, IIdModel, IModel, ITyPathModel, ISpliceModel, IF
     ty_code = Column(VARCHAR(100), nullable=False)
     timestamp = Column(VARCHAR(100), nullable=False)
     pro = Column(Float, nullable=False, default=DEFAULT_PRO)
+
+
+class CaseStatus(IDel, IIdModel, IModel):
+    """
+        + 21-09-01 创建 case 的状态表
+    """
+    __tablename__ = 'task_casestatus'
+    celery_id = Column(Integer, nullable=False, default=0)
+    case_state = Column(Integer, nullable=False, default=0)
+    case_rate = Column(Integer, nullable=False, default=0)
+    is_lock = Column(TINYINT(1), nullable=False, default=1)
