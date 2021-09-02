@@ -167,8 +167,11 @@ def case_job_craw_ty():
     # job_generate.to_do()
     # ts_dt:datetime=
     # TODO:[-] + 21-09-02 txt -> nc 目前没问题，需要注意一下当前传入的 时间戳是 yyyymmddHH 的格式，与上面的不同
-    job_txt2nc=JobTxt2Nc('2109','2021080415')
-    job_txt2nc.to_do()
+    # job_txt2nc=JobTxt2Nc('2109','2021080415')
+    # job_txt2nc.to_do()
+    job_txt2ncpro=JobTxt2NcPro('2109','2021080415')
+    job_txt2ncpro.to_do()
+    pass
 
 
 

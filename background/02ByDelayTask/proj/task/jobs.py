@@ -16,6 +16,7 @@ from geographiclib.geodesic import Geodesic
 import pathlib
 from datetime import timedelta, datetime
 
+from typing import List
 from model.models import CaseStatus
 from conf.settings import TEST_ENV_SETTINGS
 
@@ -23,6 +24,11 @@ SHARED_PATH = TEST_ENV_SETTINGS.get('TY_GROUP_PATH_ROOT_DIR')
 
 
 class IBaseJob(metaclass=ABCMeta):
+    """
+        基础 job 抽象类
+
+    """
+
     def __init__(self, ty_code: str, timestamp: str = None):
         """
             实例化时就获取当前的时间戳
@@ -32,15 +38,55 @@ class IBaseJob(metaclass=ABCMeta):
         self.ty_code: str = ty_code
         self.timestamp: int = timestamp if timestamp else arrow.utcnow().timestamp
         self.list_cmd = []
-
-    """
-        基础 job 抽象类
-
-    """
+        self.parent_path = SHARED_PATH
 
     @property
     def ty_stamp(self):
+        """
+            TY台风编号_时间戳
+            TY2109_2021080415
+        @return:
+        """
         return f'TY{self.ty_code}_{self.timestamp}'
+
+    @property
+    def path_result(self) -> str:
+        """
+            result 的存储目录
+            F:\03nginx_data\nmefc_download\TY_GROUP_RESULT\result
+        @return:
+        """
+        result_place: str = 'result'
+        return str(pathlib.Path(self.parent_path) / self.ty_stamp / result_place)
+        # pass
+
+    @property
+    def path_result_full(self) -> str:
+        """
+            获取 result 保存当前 ty 的  路径
+            F:\03nginx_data\nmefc_download\TY_GROUP_RESULT\result\TY2109_2021080415
+        @return:
+        """
+        return str(pathlib.Path(self.path_result) / self.ty_stamp)
+
+    @property
+    def path_pathfiles(self) -> str:
+        """
+            pathfiles 的存储目录
+            F:\03nginx_data\nmefc_download\TY_GROUP_RESULT\pathfiles
+        @return:
+        """
+        pathfiles_place: str = 'pathfiles'
+        return str(pathlib.Path(self.parent_path) / self.ty_stamp / pathfiles_place)
+
+    @property
+    def path_pathfiles_full(self) -> str:
+        """
+            获取 pathfiles 保存当前 ty 的  路径
+            F:\03nginx_data\nmefc_download\TY_GROUP_RESULT\pathfiles\TY2109_2021080415
+        @return:
+        """
+        return str(pathlib.Path(self.path_pathfiles) / self.ty_stamp)
 
     @abstractmethod
     def to_store(self, **kwargs):
@@ -210,11 +256,13 @@ class JobGetTyDetail(IBaseJob):
                 timestamp_str = self.timestamp
                 # TODO:[*] 21-09-01 以下替换为 self.timestamp
                 # caseno = "TY" + id.lower() + "_" + str(year) + smonth + sday + shrs
-                caseno = "TY" + id.lower() + "_" + timestamp_str
-                wdirp = wdir0 + '/' + 'pathfiles/' + caseno + '/'
+                # caseno = "TY" + id.lower() + "_" + timestamp_str
+                # wdirp = wdir0 + '/' + 'pathfiles/' + caseno + '/'
+                wdirp = self.path_result_full
                 if not os.path.exists(wdirp):
                     os.makedirs(wdirp)
-                filename = caseno + "_CMA_original"
+                # filename = caseno + "_CMA_original"
+                filename = self.ty_stamp + "_CMA_original"
 
                 result = open(wdirp + filename, "w+")
                 result.write(id + "\n")
@@ -264,11 +312,14 @@ class JobGetTyDetail(IBaseJob):
                         shrs = '0' + str(hour)
                     else:
                         shrs = str(hour)
-                    caseno = "TY" + id.lower() + "_" + str(year) + smonth + sday + shrs
-                    wdirp = wdir0 + '/' + 'pathfiles/' + caseno + '/'
+                    # TODO:[*] 21-09-02 此部分可以提取至外侧 与上面有部分重合
+                    # caseno = "TY" + id.lower() + "_" + str(year) + smonth + sday + shrs
+                    # wdirp = wdir0 + '/' + 'pathfiles/' + caseno + '/'
+                    wdirp = self.path_pathfiles_full
                     if not os.path.exists(wdirp):
                         os.makedirs(wdirp)
-                    filename = caseno + "_CMA_original"
+                    # filename = caseno + "_CMA_original"
+                    filename = self.ty_stamp + "_CMA_original"
                     result = open(wdirp + filename, "w+")
                     result.write(id + "\n")
                     result.write("0" + "\n")
@@ -747,7 +798,8 @@ class JobGeneratePathFile(IBaseJob):
         filename = []
         kk = 0
         #
-        wdir = wdir0 + '/' + 'pathfiles/' + caseno + '/'
+        # wdir = wdir0 + '/' + 'pathfiles/' + caseno + '/'
+        wdir = self.path_pathfiles_full
         # '/my_shared_data/pathfiles/TYTD03_2020042710/'
         # TODO:[-] 21-07-18 此处修改为使用 pathlib 模块进行对路径的操作
         # 注意可能会出现创建多及目录！
@@ -755,7 +807,8 @@ class JobGeneratePathFile(IBaseJob):
             pathlib.Path(wdir).mkdir(parents=True)
         # if not os.path.exists(wdir):
         #     os.mkdir(wdir)
-        wdirx = wdir0 + '/' + 'result/' + caseno + '/'
+        # wdirx = wdir0 + '/' + 'result/' + caseno + '/'
+        wdirx = self.path_result_full
         if not pathlib.Path(wdirx).is_dir():
             pathlib.Path(wdirx).mkdir(parents=True)
         # if not os.path.exists(wdirx):
@@ -771,13 +824,13 @@ class JobGeneratePathFile(IBaseJob):
             spd0 = []
             dista = []
             angle = []
-            tlonl = tlon1.copy();
+            tlonl = tlon1.copy()
             tlatl = tlat1.copy()
-            tlonr = tlon1.copy();
+            tlonr = tlon1.copy()
             tlatr = tlat1.copy()
-            tlonf = tlon1.copy();
+            tlonf = tlon1.copy()
             tlatf = tlat1.copy()
-            tlons = tlon1.copy();
+            tlons = tlon1.copy()
             tlats = tlat1.copy()
 
             for j in range(kxi - 1):
@@ -918,7 +971,9 @@ class JobTxt2Nc(IBaseJob):
         pass
 
     def txt2nc(self, wdir0, caseno, stm):
-        wdir = wdir0 + '/' + 'result/' + caseno + '/'
+        # wdir = wdir0 + '/' + 'result/' + caseno + '/'
+        # wdir = pathlib.Path(wdir0) / 'result' / caseno
+        wdir = self.path_result_full
         path1 = os.listdir(wdir)
         fl_name = None
         fl_name2 = None
@@ -1044,15 +1099,33 @@ class JobTxt2Nc(IBaseJob):
 
 
 class JobTxt2NcPro(IBaseJob):
+    # 增水大于的范围
+    _levs: List[float] = [0.5, 1.0, 1.5, 2.0, 2.5, 3.0]
+    # 对应的文件名称
+    _levs2: List[float] = ['_gt0_5m', '_gt1_0m', '_gt1_5m', '_gt2_0m', '_gt2_5m', '_gt3_0m']
+
+    def __init__(self, ty_code: str, timestamp: str = None):
+        super(JobTxt2NcPro, self).__init__(ty_code, timestamp)
+        # self._hcma=[0, 12, 24, 36, 48, 60, 72]
+        # self._levs: List[float] = [0.5, 1.0, 1.5, 2.0, 2.5, 3.0]
+        # self._levs2: List[float] = ['_gt0_5m', '_gt1_0m', '_gt1_5m', '_gt2_0m', '_gt2_5m', '_gt3_0m']
+        pass
+
     def to_store(self, **kwargs):
         pass
 
     def to_do(self, **kwargs):
+        timestamp_str: str = '2021080415'
+        ts_dt: datetime = arrow.get(timestamp_str, 'YYYYMMDDhh').datetime
+        dznum = self.get_maxsurgedata(SHARED_PATH, self.ty_stamp, ts_dt)
+        self.gen_prosurge_nc(SHARED_PATH, self.ty_stamp, ts_dt, dznum, self._levs, self._levs2)
         pass
 
     def get_maxsurgedata(self, wdir0, caseno, st):
         syear = str(st)[0:4]
-        wdir = wdir0 + 'result/' + caseno + '/'
+        # wdir = wdir0 + '/' + 'result/' + caseno + '/'
+        # wdir: str = str(pathlib.Path(wdir0) / 'result' / caseno)
+        wdir: str = self.path_result_full
         path1 = os.listdir(wdir)
         # nsta=len(site3)
         dflag = 0
@@ -1080,9 +1153,11 @@ class JobTxt2NcPro(IBaseJob):
             return dznum
 
     def gen_prosurge_nc(self, wdir0, caseno, st, dznum, levs, levs2):
-        tdir = wdir0 + 'data/'
-        toponame = tdir + 'topo3sz.dp'
-        # TODO:[*] FileNotFoundError: [Errno 2] No such file or directory: '/my_shared_data/data/topo3sz.dp'
+
+        # tdir = wdir0 + 'data/'
+        tdir = str(pathlib.Path(wdir0) / 'data')
+
+        toponame = str(pathlib.Path(tdir) / 'topo3sz.dp')
         with open(toponame, 'r+') as fi:
             dz0 = fi.readlines()
             tpnum = []
@@ -1108,7 +1183,9 @@ class JobTxt2NcPro(IBaseJob):
             lat0 = np.arange(15 + 1 / 120, 26 + 1 / 120, 1 / 60)
             lons, lats = np.meshgrid(lon0, lat0)
             #
-            wdir = wdir0 + 'result/' + caseno + '/'
+            # wdir = wdir0 + 'result/' + caseno + '/'
+            # wdir = str(pathlib.Path(wdir0) / 'result' / caseno)
+            wdir: str = self.path_result_full
             syear = str(st)[0:4]
             #
             for i in range(len(levs)):
@@ -1116,11 +1193,13 @@ class JobTxt2NcPro(IBaseJob):
                 pps = np.flipud(pps)
                 pps[sur > 900] = nan
                 ##==============saveas netcdf===================#
-                out_nc = wdir + 'proSurge_' + caseno + levs2[i] + '.nc'
-                print('output ' + out_nc)
-                if os.path.exists(out_nc):
-                    os.remove(out_nc)
-                nc_data = Dataset(out_nc, 'w', format='NETCDF4')
+                out_filename = 'proSurge_' + caseno + levs2[i] + '.nc'
+                out_nc_full_name: str = str(pathlib.Path(wdir) / out_filename)
+                # out_nc = wdir + 'proSurge_' + caseno + levs2[i] + '.nc'
+                print('output ' + out_nc_full_name)
+                if os.path.exists(out_nc_full_name):
+                    os.remove(out_nc_full_name)
+                nc_data = Dataset(out_nc_full_name, 'w', format='NETCDF4')
                 nc_data.description = 'The probability of storm surge >=' + str(levs[i]) + 'm'
                 # print('Storm Surge Field, starting time： '+str(stm.strftime('%Y-%m-%d-%H')))
 
