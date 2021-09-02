@@ -1,18 +1,20 @@
 from abc import ABCMeta, abstractclassmethod, abstractmethod, ABC
 import datetime
+import time
 import requests
 from lxml import etree
 import arrow
 
 #
+import os
 import numpy as np
 from math import *
 from scipy import interpolate
+from netCDF4 import Dataset
 from geographiclib.geodesic import Geodesic
-import os
 # TODO:[-] 建议以后均使用 pathlib 模块来进行 path相关的操作
 import pathlib
-from datetime import *
+from datetime import timedelta, datetime
 
 from model.models import CaseStatus
 from conf.settings import TEST_ENV_SETTINGS
@@ -861,6 +863,7 @@ class JobGeneratePathFile(IBaseJob):
     def output_controlfile(self, wdir0, filename):
         """
             TODO:[*] 21-09-01 注意此处生成的批处理的内容将文件路径写死！
+            + 21-09-02 此处替换为 linux的 批处理内容
             生成批处理文件
                 eg:
                     sz_gpus_path_list.bat
@@ -869,71 +872,287 @@ class JobGeneratePathFile(IBaseJob):
         :param filename:
         :return:
         """
-        fi = open(wdir0 + 'sz_gpus_path_list.bat', 'w+')
-        fi.write('@echo off' + '\n')
-        fi.write('set date1=%date%' + '\n')
-        fi.write('set startmonth=%date:~5,2%' + '\n')
-        fi.write('set startday=%date:~8,2%' + '\n')
-        fi.write('set starthour=%time:~0,2%' + '\n')
-        fi.write('set startmin=%time:~3,2%' + '\n')
-        fi.write('set startsec=%time:~6,2%' + '\n')
-        fi.write('echo StartDate %date1%' + '\n')
-        fi.write('echo StartTime %time1%' + '\n')
-        fi.write('echo ' + filename[0] + '|CTSgpu_sz_plus.exe' + '\n')
+        fi = open(wdir0 + 'sz_start_gpu_model.sh', 'w+')
+        fi.write('#! /bin/bash' + '\n')
+        fi.write('wdir="/home/limingjie/szsurge"\n')
+        fi.write('cd $wdir' + '\n')
+        fi.write('echo Working directory: $wdir\n')
+        fi.write('date1=$(date "+%Y-%m-%d %H:%M:%S")\n')
+        fi.write('startmonth=${date1:0:4}\n')
+        fi.write('startday=${date1:5:2}\n')
+        fi.write('starthour=${date1:11:2}\n')
+        fi.write('startmin=${date1:14:2}\n')
+        fi.write('sstartsec=${date1:17:2}\n')
+        fi.write('echo StartTime $date1\n')
+        fi.write('\n')
+        fi.write('echo ' + filename[0] + '|./CTSgpu_sz_plus.exe\n')
         for i in range(len(filename)):
-            fi.write('echo ' + filename[i] + '|CTSgpu_sz.exe' + '\n')
-        fi.write('set time2=%time%' + '\n')
-        fi.write('set date2=%date%' + '\n')
+            fi.write('echo ' + filename[i] + '|./CTSgpu_sz.exe\n')
+        fi.write('\n')
+        fi.write('date2=$(date "+%Y-%m-%d %H:%M:%S")\n')
+        fi.write('echo EndTime $date2\n')
 
-        fi.write('set endmonth=%date:~5,2%' + '\n')
-        fi.write('set endday=%date:~8,2%' + '\n')
-        fi.write('set endhour=%time:~0,2%' + '\n')
-        fi.write('set endmin=%time:~3,2%' + '\n')
-        fi.write('set endsec=%time:~6,2%' + '\n')
-        fi.write('echo EndDate %date2%' + '\n')
-        fi.write('echo EndTime %time2%' + '\n')
-
-        fi.write('set intday=0' + '\n')
-        fi.write('set inthour=0' + '\n')
-        fi.write('set intmin=0' + '\n')
-        fi.write('set inttime=0' + '\n')
-
-        fi.write('if %endday% EQU %startday% (call:calc1 & goto :finalresult)' + '\n')
-
-        fi.write(':finalresult' + '\n')
-        fi.write('echo Elapsed time: %inttime%' + '\n')
-        fi.write('exit /b' + '\n')
-
-        fi.write(':calc1' + '\n')
         fi.write(
-            'if /i %endsec% LSS %startsec% (set /a intsec=%endsec%+60-%startsec% & set /a endmin-=1) else (set /a intsec=%endsec%-%startsec%)' + '\n')
-        fi.write(
-            'if /i %endmin% LSS %startmin% (set /a intmin=%endmin%+60-%startmin% & set /a endhour-=1) else (set /a intmin=%endmin%-%startmin%)' + '\n')
-        fi.write('set /a inthour=%endhour%-%starthour%' + '\n')
-        fi.write('set /a intday=%endday%-%startday%' + '\n')
-        fi.write('set inttime=%intday% day %inthour% hours %intmin% min %intsec% sec' + '\n')
-        fi.close()
-        #
-        fi = open(wdir0 + 'sz_start_gpu_model.bat', 'w+')
-        fi.write('@echo off' + '\n')
-        fi.write('set PGI=C:\\PROGRA~1\\PGI' + '\n')
-        fi.write('set PATH=C:\\Program Files\\Java\\jre1.8.0_112\\bin;%PATH%' + '\n')
-        fi.write('set PATH=C:\\Program Files\\PGI\\flexlm;%PATH%' + '\n')
-        fi.write('set PATH=%PGI%\\win64\\2019\\cuda\\9.2\\bin;%PATH%' + '\n')
-        fi.write('set PATH=%PGI%\\win64\\2019\\cuda\\10.0\\bin;%PATH%' + '\n')
-        fi.write('set PATH=%PGI%\\win64\\2019\\cuda\\10.1\\bin;%PATH%' + '\n')
-        fi.write('set PATH=C:\\Program Files (x86)\\Windows Kits\\10\\bin\\x64;%PATH%' + '\n')
-        fi.write(
-            'set PATH=C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\Community\\VC\\Tools\\MSVC\\14.21.27702\\bin\\Hostx64\\x64;%PATH%' + '\n')
-        fi.write('set PATH=%PGI%\\win64\\19.9\\bin;%PATH%' + '\n')
-        fi.write('set PATH=%PATH%;.' + '\n')
-        fi.write('set FLEXLM_BATCH=1' + '\n')
-        fi.write('title PGI 19.9' + '\n')
-        fi.write('set TMP=C:\\temp' + '\n')
-        fi.write('set PS1=PGI$' + '\n')
-        fi.write('echo PGI 19.9' + '\n')
-
-        fi.write('cmd /k "cd /d D:\\szsurge\\ && call sz_gpus_path_list.bat && exit"' + '\n')
+            'echo $(($(date +%s -d "$date2") - $(date +%s -d "$date1"))) | awk \'{t=split("60 s 60 m 24 h 999 d",a);for(n=1;n<t;n+=2){if($1==0)break;s=$1%a[n]a[n+1]s;$1=int($1/a[n])}print "Elapsed time:",s}\' \n')
+        fi.write('\n')
+        fi.write('exit\n')
         fi.close()
 
         # print('Control files for Function B are done!')
+
+
+class JobTxt2Nc(IBaseJob):
+    """
+        step-3
+        将生成的 结果集(.txt) 转成 .nc 格式
+    """
+
+    def to_store(self, **kwargs):
+        pass
+
+    def to_do(self, **kwargs):
+        forecast_dt: datetime = kwargs.get('forecast_dt')
+        timestamp_str: str = '2021080415'
+        ts_dt: datetime = arrow.get(timestamp_str, 'YYYYMMDDhh').datetime
+        self.txt2nc(SHARED_PATH, self.ty_stamp, ts_dt)
+        pass
+
+    def txt2nc(self, wdir0, caseno, stm):
+        wdir = wdir0 + '/' + 'result/' + caseno + '/'
+        path1 = os.listdir(wdir)
+        fl_name = None
+        fl_name2 = None
+        tt1 = time.time()
+        for i in range(len(path1)):
+            if path1[i][0:5] == 'field' and path1[i][-10:] == 'c0_p00.dat':
+
+                # Read ASCII File
+                ''''''
+                fl_name = wdir + path1[i]
+                # ascii_fl = loadtxt(fl_name, delimiter=' ',dtype=float)
+                with open(fl_name, 'r+') as fi:
+                    dz1 = fi.readlines()
+                    dznum = []
+                    for L in dz1:
+                        dz3 = L.strip('\n').split()
+                        dznum.append(list(map(float, dz3)))
+                    ascii_fl = np.array(dznum)
+                # print(ascii_fl)
+            #
+            if path1[i][0:8] == 'maxSurge' and path1[i][-10:] == 'c0_p00.dat':
+                fl_name2 = wdir + path1[i]
+                # ascii_fl = loadtxt(fl_name, delimiter=' ',dtype=float)
+                with open(fl_name2, 'r+') as fi:
+                    dz1 = fi.readlines()
+                    dznum2 = []
+                    for L in dz1:
+                        dz3 = L.strip('\n').split()
+                        dznum2.append(list(map(float, dz3)))
+                    max_surge = np.array(dznum2)
+        #
+        yy = np.arange(15 + 1 / 120, 26 + 1 / 120, 1 / 60)
+        xx = np.arange(105 + 1 / 120, 123 + 1 / 120, 1 / 60)
+        if fl_name != None:
+            print(type(ascii_fl), np.shape(ascii_fl))
+            tt, mm = np.shape(ascii_fl)
+            # print(stm.strftime('%Y-%m-%d-%H'))
+            timestr = []
+            hours = []
+            timenum = []
+            dnum = stm.toordinal()
+            HH = str(stm.strftime('%H'))
+            for i in range(int(tt / 660)):
+                st2 = stm + timedelta(hours=i + 1)
+                timenum.append(dnum + (float(HH) + i + 1) / 24)
+                # print(type(dnum),dnum,timenum)
+                timestr.append(str(st2))
+                hours.append(i + 1)
+
+            ascii_fl2 = np.reshape(ascii_fl, (len(timestr), len(yy), len(xx)))
+
+            # Initialize nc file
+            out_nc = fl_name[:-4] + '.nc'
+            print('output ' + out_nc)
+            nc_data = Dataset(out_nc, 'w', format='NETCDF4')
+            nc_data.description = 'Storm Surge Field'
+            # print('Storm Surge Field, starting time： '+str(stm.strftime('%Y-%m-%d-%H')))
+
+            # dimensions
+            lat = nc_data.createDimension('lat', len(yy))
+            lon = nc_data.createDimension('lon', len(xx))
+            times = nc_data.createDimension('times', len(timestr))  # round(tt/660)
+
+            # Populate and output nc file
+            # variables
+            lat = nc_data.createVariable('latitude', 'f4', ('lat',))
+            lon = nc_data.createVariable('longitude', 'f4', ('lon',))
+            times = nc_data.createVariable('times', 'f4', ('times',))
+            surge = nc_data.createVariable('surge', 'f4', ('times', 'lat', 'lon',), fill_value=-9999.0)
+            # print(shape(lon),shape(lat))
+            # print(shape(xx), shape(yy))
+
+            surge.units = 'm'
+            lat.units = 'N'
+            lon.units = 'E'
+            times.units = 'days since 0001-1-0'
+
+            # set the variables we know first
+            lat[:] = yy
+            lon[:] = xx
+            times[:] = timenum
+            surge[::] = ascii_fl2  ### THIS LINE IS NOT WORKING!!!!!!!
+            nc_data.close()
+            print('Time used: {} sec'.format(time.time() - tt1))
+        else:
+            print('Storm Surge Field files can NOT be found!')
+            print('Time used: {} sec'.format(time.time() - tt1))
+
+        if fl_name2 != None:
+            print(np.shape(max_surge))
+            out_nc2 = fl_name2[:-4] + '.nc'
+            print('output ' + out_nc2)
+            nc_data2 = Dataset(out_nc2, 'w', format='NETCDF4')
+            nc_data2.description = 'Maximum Storm Surge'
+            # print('Storm Surge Field, starting time： '+str(stm.strftime('%Y-%m-%d-%H')))
+
+            # dimensions
+            lat = nc_data2.createDimension('lat', len(yy))
+            lon = nc_data2.createDimension('lon', len(xx))
+
+            # Populate and output nc file
+            # variables
+            lat = nc_data2.createVariable('latitude', 'f4', ('lat',))
+            lon = nc_data2.createVariable('longitude', 'f4', ('lon',))
+
+            maxsurge = nc_data2.createVariable('max_surge', 'f4', ('lat', 'lon',), fill_value=999.0)
+            # print(shape(lon), shape(lat))
+            # print(shape(xx), shape(yy))
+
+            maxsurge.units = 'm'
+            lat.units = 'N'
+            lon.units = 'E'
+
+            # set the variables we know first
+            lat[:] = yy
+            lon[:] = xx
+            maxsurge[::] = max_surge
+            nc_data2.close()
+            print('Time used: {} sec'.format(time.time() - tt1))
+        else:
+            print('The maximum Storm Surge files can NOT be found!')
+            print('Time used: {} sec'.format(time.time() - tt1))
+
+
+class JobTxt2NcPro(IBaseJob):
+    def to_store(self, **kwargs):
+        pass
+
+    def to_do(self, **kwargs):
+        pass
+
+    def get_maxsurgedata(self, wdir0, caseno, st):
+        syear = str(st)[0:4]
+        wdir = wdir0 + 'result/' + caseno + '/'
+        path1 = os.listdir(wdir)
+        # nsta=len(site3)
+        dflag = 0
+        dznum = []
+        tt1 = time.time()
+        for i in range(len(path1)):
+            if path1[i][0:8] == 'maxSurge' and path1[i][-4:] == '.dat':
+                print(path1[i])
+                dflag = 1
+
+                with open(wdir + path1[i], 'r+') as fi:
+                    dz0 = fi.readlines()
+                    for L in dz0:
+                        dz1 = L.strip('\n').split()
+                        dz2 = list(map(float, dz1))
+                        # dz3=np.flipud(dz2)
+                        dznum.append(dz2)
+        dznum = np.array(dznum)
+        print('Time used: {} sec'.format(time.time() - tt1))
+        if dflag == 1:
+            print(type(dznum), np.shape(dznum))
+            return dznum
+        else:
+            dznum = []
+            return dznum
+
+    def gen_prosurge_nc(self, wdir0, caseno, st, dznum, levs, levs2):
+        tdir = wdir0 + 'data/'
+        toponame = tdir + 'topo3sz.dp'
+        # TODO:[*] FileNotFoundError: [Errno 2] No such file or directory: '/my_shared_data/data/topo3sz.dp'
+        with open(toponame, 'r+') as fi:
+            dz0 = fi.readlines()
+            tpnum = []
+            for L in dz0:
+                dz0s = L.strip('\n').split()
+                tpnum.append(list(map(float, dz0s)))
+
+            topo = np.array(tpnum)
+            topo[topo >= 0] = 1
+            topo[topo < 0] = np.nan
+            # print(topo)
+        #
+        if dznum == []:
+            print('Can NOT find maxsurge files!')
+            return
+        else:
+            tt, mm = np.shape(dznum)
+            sur = dznum[0:660, :]
+            sur = np.array(sur)
+            sur = np.flipud(sur)
+            dznum[dznum > 900] = 0
+            lon0 = np.arange(105 + 1 / 120, 123 + 1 / 120, 1 / 60)
+            lat0 = np.arange(15 + 1 / 120, 26 + 1 / 120, 1 / 60)
+            lons, lats = np.meshgrid(lon0, lat0)
+            #
+            wdir = wdir0 + 'result/' + caseno + '/'
+            syear = str(st)[0:4]
+            #
+            for i in range(len(levs)):
+                pps = self.cal_pro(dznum, levs[i])
+                pps = np.flipud(pps)
+                pps[sur > 900] = nan
+                ##==============saveas netcdf===================#
+                out_nc = wdir + 'proSurge_' + caseno + levs2[i] + '.nc'
+                print('output ' + out_nc)
+                if os.path.exists(out_nc):
+                    os.remove(out_nc)
+                nc_data = Dataset(out_nc, 'w', format='NETCDF4')
+                nc_data.description = 'The probability of storm surge >=' + str(levs[i]) + 'm'
+                # print('Storm Surge Field, starting time： '+str(stm.strftime('%Y-%m-%d-%H')))
+
+                # dimensions
+                lat = nc_data.createDimension('lat', len(lat0))
+                lon = nc_data.createDimension('lon', len(lon0))
+
+                # Populate and output nc file
+                # variables
+                lat = nc_data.createVariable('latitude', 'f4', ('lat',))
+                lon = nc_data.createVariable('longitude', 'f4', ('lon',))
+
+                prosurge = nc_data.createVariable('pro_surge', 'f4', ('lat', 'lon',), fill_value=999.0)
+
+                prosurge.units = '%'
+                lat.units = 'N'
+                lon.units = 'E'
+                # set the variables we know first
+                lat[:] = lat0
+                lon[:] = lon0
+                prosurge[::] = pps
+                nc_data.close()
+
+    def cal_pro(self, dznum, levs):
+        pp = dznum.copy()
+        pp[pp >= levs] = 1
+        pp[pp < levs] = 0
+        tt, mm = np.shape(dznum)
+        pps = np.zeros((660, mm))
+        for i in range(int(tt / 660)):
+            pps = pps + pp[i * 660:(i + 1) * 660, :]
+        pps = pps / int(tt / 660) * 100
+        return pps
+
+        # return picname

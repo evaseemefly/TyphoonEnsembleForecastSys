@@ -15,7 +15,7 @@ from model.models import TyphoonForecastDetailModel
 from core.file import StationSurgeRealDataFile
 from common.enum import ForecastOrganizationEnum, TyphoonForecastSourceEnum
 from common.const import UNLESS_INDEX
-from task.jobs import JobGetTyDetail, JobGeneratePathFile
+from task.jobs import JobGetTyDetail, JobGeneratePathFile,JobTxt2Nc,JobTxt2NcPro
 from conf.settings import TEST_ENV_SETTINGS
 
 ROOT_DIR = TEST_ENV_SETTINGS.get('TY_GROUP_PATH_ROOT_DIR')
@@ -159,12 +159,17 @@ def case_job_craw_ty():
         手动抓取台风
     @return:
     """
-    job_ty = JobGetTyDetail('2112')
-    job_ty.to_do()
-    list_cmd = job_ty.list_cmd
-    timestamp_str = job_ty.timestamp
-    job_generate = JobGeneratePathFile('2112', str(job_ty.timestamp), list_cmd)
-    job_generate.to_do()
+    # job_ty = JobGetTyDetail('2112')
+    # job_ty.to_do()
+    # list_cmd = job_ty.list_cmd
+    # timestamp_str = job_ty.timestamp
+    # job_generate = JobGeneratePathFile('2112', str(job_ty.timestamp), list_cmd)
+    # job_generate.to_do()
+    # ts_dt:datetime=
+    # TODO:[-] + 21-09-02 txt -> nc 目前没问题，需要注意一下当前传入的 时间戳是 yyyymmddHH 的格式，与上面的不同
+    job_txt2nc=JobTxt2Nc('2109','2021080415')
+    job_txt2nc.to_do()
+
 
 
 def test_get_gp_model():
