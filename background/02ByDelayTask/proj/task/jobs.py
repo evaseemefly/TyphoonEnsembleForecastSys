@@ -120,6 +120,9 @@ class GPUCalculate(IBaseJob):
 
 
 class JobGetTyDetail(IBaseJob):
+    """
+        抓取台风信息
+    """
     def __init__(self, ty_code: str, timestamp: str = None, list_cmd=[]):
         super(JobGetTyDetail, self).__init__(ty_code, timestamp)
         self.list_cmd = list_cmd
@@ -589,6 +592,9 @@ class JobGetTyDetail(IBaseJob):
 
 
 class JobGeneratePathFile(IBaseJob):
+    """
+        生成 ty_pathfile 与 生成批处理文件
+    """
     def __init__(self, ty_code: str, timestamp: str = None, list_cmd=[]):
         super(JobGeneratePathFile, self).__init__(ty_code, timestamp)
         self.list_cmd = list_cmd
@@ -953,6 +959,44 @@ class JobGeneratePathFile(IBaseJob):
 
         # print('Control files for Function B are done!')
 
+
+class JobTaskBatch(IBaseJob):
+    """
+        + 21-09-03
+            新加入的用来执行批处理的 job
+    """
+    def to_store(self, **kwargs):
+        pass
+
+    def to_do(self, **kwargs):
+        self.to_do_task_batch(145)
+
+    def to_do_task_batch(self, pnum: int):
+        # path0 = os.listdir(wdir0+'pathfiles/' + caseno + '/')
+        path0 = self.path_pathfiles_full
+        #
+        if len(path0) >= pnum:
+            # os.startfile(wdir0 + "sz_start_gpu_model.bat")
+            os.startfile(self.parent_path + "sz_start_gpu_model.bat")
+
+            filenum = 0
+            # wdir = wdir0 + 'result/' + caseno + '/'
+            wdir = self.path_result_full
+            if not os.path.exists(wdir):
+                os.makedirs(wdir)
+            while filenum < pnum * 2:
+                path1 = os.listdir(wdir)
+                files = []
+                for fn in path1:
+                    if fn[-4:] == '.dat':
+                        files.append(fn)
+                filenum = len(files)
+                time.sleep(0.2)
+        else:
+            return
+
+
+# def __init__(self):
 
 class JobTxt2Nc(IBaseJob):
     """

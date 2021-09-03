@@ -190,15 +190,15 @@ def main():
     # ! 注意时间是 utc 时间，文件里面读取的为 local 时间 ！
     gmt_start = datetime(2020, 9, 15, 9)
     gmt_end = datetime(2020, 9, 17, 9)  # 目前使用的结束时间为从台风网上爬取的时间的结束时间(预报)
-    # case_group_ty_path(gmt_start, gmt_end)
+    case_group_ty_path(gmt_start, gmt_end)
     # 21-04-25 批量处理海洋站潮位数据
     # 注意 此处的 ty_id 由 case_group_ty_path 处理后创建的一个 ty id
-    # case_station(gmt_start, gmt_end, ty_id=12)
+    case_station(gmt_start, gmt_end, ty_id=12)
     # TODO:[-] 21-08-02 加入了 测试 逐时风暴增水的 case
-    # case_field_surge(TY_CODE, TY_STAMP, gmt_start, gmt_end)
+    case_field_surge(TY_CODE, TY_STAMP, gmt_start, gmt_end)
     # TODO:[-] 21-08-09 加入了 测试 概率增水的 case
-    # case_pro_surge(TY_CODE, TY_STAMP, gmt_start, gmt_end)
-    # TODO:[-] 21-09-01 加入了 测试 手动抓取台风信息
+    case_pro_surge(TY_CODE, TY_STAMP, gmt_start, gmt_end)
+    # TODO:[-] 21-09-01 加入了 测试 job相关的 case
     case_job_craw_ty()
     # 测试查询 gp
     # case_get_gp()
