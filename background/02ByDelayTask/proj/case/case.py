@@ -8,14 +8,14 @@
 # @Software: PyCharm
 from typing import List
 import pathlib
-from datetime import datetime,timedelta
+from datetime import datetime, timedelta
 from core.data import GroupTyphoonPath, get_match_files, to_ty_group, to_station_realdata, get_gp, to_ty_field_surge, \
     to_ty_pro_surge
 from model.models import TyphoonForecastDetailModel
 from core.file import StationSurgeRealDataFile
 from common.enum import ForecastOrganizationEnum, TyphoonForecastSourceEnum
 from common.const import UNLESS_INDEX
-from task.jobs import JobGetTyDetail, JobGeneratePathFile,JobTxt2Nc,JobTxt2NcPro
+from task.jobs import JobGetTyDetail, JobGeneratePathFile, JobTxt2Nc, JobTxt2NcPro, JobTaskBatch
 from conf.settings import TEST_ENV_SETTINGS
 
 ROOT_DIR = TEST_ENV_SETTINGS.get('TY_GROUP_PATH_ROOT_DIR')
@@ -25,7 +25,7 @@ TY_TIMESTAMP = TEST_ENV_SETTINGS.get('TY_TIMESTAMP')
 TY_STAMP = 'TY' + TY_CODE + "_" + TY_TIMESTAMP
 
 
-def case_group_ty_path(gmt_start, gmt_end):
+def case_group_ty_path(gmt_start, gmt_end, ty_code: str, timestamp: str, ty_stamp: str):
     """
         + 21-04-13 测试 集合路径
         - 21-07-20 测试通过
@@ -35,18 +35,18 @@ def case_group_ty_path(gmt_start, gmt_end):
     # gmt_start = datetime(2020, 9, 15, 17)
     # gmt_end = datetime(2020, 9, 18, 0)
 
-    ty_timestamp: str = TY_STAMP
-    ty_detail: TyphoonForecastDetailModel = TyphoonForecastDetailModel(code=TY_CODE,
+    ty_stamp_str: str = ty_stamp
+    ty_detail: TyphoonForecastDetailModel = TyphoonForecastDetailModel(code=ty_code,
                                                                        organ_code=ForecastOrganizationEnum.NMEFC.value,
                                                                        gmt_start=gmt_start,
                                                                        gmt_end=gmt_end,
                                                                        forecast_source=TyphoonForecastSourceEnum.DEFAULT.value,
-                                                                       timestamp=TY_TIMESTAMP)
+                                                                       timestamp=timestamp)
 
     #  21-07-19 之前的路径
     # dir_path: str = str(pathlib.Path(ROOT_DIR) / ty_timestamp / 'GROUP')
     # TODO:[*] 21-07-19 更新后的适配当前存储路径的路径
-    dir_path: str = str(pathlib.Path(ROOT_DIR) / 'pathfiles' / ty_timestamp)
+    dir_path: str = str(pathlib.Path(ROOT_DIR) / ty_stamp_str / 'pathfiles')
     # GroupTyphoonPath(TEST_ENV_SETTINGS.get('TY_GROUP_PATH_ROOT_DIR'), '2022', '2020042710').read_forecast_data()
     list_match_files: List[str] = get_match_files('^[A-Z]+\d+_\d+_[a-z]{1}\d{1}_[a-z]{1}_?\d+',
                                                   dir_path)
@@ -159,20 +159,55 @@ def case_job_craw_ty():
         手动抓取台风
     @return:
     """
-    # job_ty = JobGetTyDetail('2112')
-    # job_ty.to_do()
-    # list_cmd = job_ty.list_cmd
-    # timestamp_str = job_ty.timestamp
-    # job_generate = JobGeneratePathFile('2112', str(job_ty.timestamp), list_cmd)
-    # job_generate.to_do()
+    job_ty = JobGetTyDetail('2112')
+    job_ty.to_do()
+    list_cmd = job_ty.list_cmd
+    timestamp_str = job_ty.timestamp
+    job_generate = JobGeneratePathFile('2112', str(job_ty.timestamp), list_cmd)
+    job_generate.to_do()
     # ts_dt:datetime=
     # TODO:[-] + 21-09-02 txt -> nc 目前没问题，需要注意一下当前传入的 时间戳是 yyyymmddHH 的格式，与上面的不同
-    # job_txt2nc=JobTxt2Nc('2109','2021080415')
-    # job_txt2nc.to_do()
-    job_txt2ncpro=JobTxt2NcPro('2109','2021080415')
+    job_txt2nc = JobTxt2Nc('2109', '2021080415')
+    job_txt2nc.to_do()
+    job_txt2ncpro = JobTxt2NcPro('2109', '2021080415')
     job_txt2ncpro.to_do()
     pass
 
+
+def to_do():
+    # step-1: 爬取 指定台风编号的台风
+    ty_code: str = '2112'
+    job_ty = JobGetTyDetail(ty_code)
+    job_ty.to_do()
+    dt_forecast_start: datetime = job_ty.forecast_start_dt
+    dt_forecast_end: datetime = job_ty.forecast_end_dt
+    # ty_code: str = job_ty.ty_code
+    timestamp_str: str = job_ty.timestamp_str
+    # step 1-2: 生成 pathfile 与 批处理文件
+    list_cmd = job_ty.list_cmd
+    # timestamp_str = job_ty.timestamp
+    job_generate = JobGeneratePathFile(ty_code, timestamp_str, list_cmd)
+    job_generate.to_do()
+    # step 1-3: 将爬取到的台风基础信息入库
+    case_group_ty_path(dt_forecast_start, dt_forecast_end, ty_code, timestamp_str, job_generate.ty_stamp)
+    # ------
+
+    # step-2: 执行批处理 调用模型——暂时跳过
+    # job_task=JobTaskBatch(ty_code,timestamp_str)
+    # job_task.to_do()
+    # -----
+
+    # step-3:
+    # TODO:[-] + 21-09-02 txt -> nc 目前没问题，需要注意一下当前传入的 时间戳是 yyyymmddHH 的格式，与上面的不同
+    job_txt2nc = JobTxt2Nc(ty_code, timestamp_str)
+    job_txt2nc.to_do()
+    # step 3-1:
+    case_field_surge(ty_code, timestamp_str, dt_forecast_start, dt_forecast_end)
+    # step 3-2:
+
+    job_txt2ncpro = JobTxt2NcPro(ty_code, timestamp_str)
+    job_txt2ncpro.to_do()
+    case_pro_surge(ty_code, timestamp_str, dt_forecast_start, dt_forecast_end)
 
 
 def test_get_gp_model():
@@ -190,16 +225,18 @@ def main():
     # ! 注意时间是 utc 时间，文件里面读取的为 local 时间 ！
     gmt_start = datetime(2020, 9, 15, 9)
     gmt_end = datetime(2020, 9, 17, 9)  # 目前使用的结束时间为从台风网上爬取的时间的结束时间(预报)
-    case_group_ty_path(gmt_start, gmt_end)
-    # 21-04-25 批量处理海洋站潮位数据
-    # 注意 此处的 ty_id 由 case_group_ty_path 处理后创建的一个 ty id
-    case_station(gmt_start, gmt_end, ty_id=12)
-    # TODO:[-] 21-08-02 加入了 测试 逐时风暴增水的 case
-    case_field_surge(TY_CODE, TY_STAMP, gmt_start, gmt_end)
-    # TODO:[-] 21-08-09 加入了 测试 概率增水的 case
-    case_pro_surge(TY_CODE, TY_STAMP, gmt_start, gmt_end)
-    # TODO:[-] 21-09-01 加入了 测试 job相关的 case
-    case_job_craw_ty()
+    # case_group_ty_path(gmt_start, gmt_end)
+    # # 21-04-25 批量处理海洋站潮位数据
+    # # 注意 此处的 ty_id 由 case_group_ty_path 处理后创建的一个 ty id
+    # case_station(gmt_start, gmt_end, ty_id=12)
+    # # TODO:[-] 21-08-02 加入了 测试 逐时风暴增水的 case
+    # case_field_surge(TY_CODE, TY_STAMP, gmt_start, gmt_end)
+    # # TODO:[-] 21-08-09 加入了 测试 概率增水的 case
+    # case_pro_surge(TY_CODE, TY_STAMP, gmt_start, gmt_end)
+    # # TODO:[-] 21-09-01 加入了 测试 job相关的 case
+    # case_job_craw_ty()
+    # TODO:[-] 21-09-03 测试全部整合至 to_do 中
+    to_do()
     # 测试查询 gp
     # case_get_gp()
     # test_get_gp_model()

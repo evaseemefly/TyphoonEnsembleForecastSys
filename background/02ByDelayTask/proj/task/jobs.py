@@ -36,9 +36,17 @@ class IBaseJob(metaclass=ABCMeta):
         @param timestamp:
         """
         self.ty_code: str = ty_code
-        self.timestamp: int = timestamp if timestamp else arrow.utcnow().timestamp
+        self.timestamp: int = int(timestamp) if timestamp else arrow.utcnow().int_timestamp
         self.list_cmd = []
         self.parent_path = SHARED_PATH
+
+    @property
+    def timestamp_str(self)->str:
+        """
+            时间戳 str
+        @return:
+        """
+        return str(self.timestamp)
 
     @property
     def ty_stamp(self):
@@ -47,7 +55,7 @@ class IBaseJob(metaclass=ABCMeta):
             TY2109_2021080415
         @return:
         """
-        return f'TY{self.ty_code}_{self.timestamp}'
+        return f'TY{self.ty_code}_{self.timestamp_str}'
 
     @property
     def path_result(self) -> str:
@@ -67,7 +75,7 @@ class IBaseJob(metaclass=ABCMeta):
             F:\03nginx_data\nmefc_download\TY_GROUP_RESULT\result\TY2109_2021080415
         @return:
         """
-        return str(pathlib.Path(self.path_result) / self.ty_stamp)
+        return str(pathlib.Path(self.path_result) / self.timestamp_str)
 
     @property
     def path_pathfiles(self) -> str:
@@ -86,7 +94,7 @@ class IBaseJob(metaclass=ABCMeta):
             F:\03nginx_data\nmefc_download\TY_GROUP_RESULT\pathfiles\TY2109_2021080415
         @return:
         """
-        return str(pathlib.Path(self.path_pathfiles) / self.ty_stamp)
+        return str(pathlib.Path(self.path_pathfiles))
 
     @abstractmethod
     def to_store(self, **kwargs):
@@ -136,6 +144,78 @@ class JobGetTyDetail(IBaseJob):
     #     self.ty_code = ty_code
     #     self.timestamp = timestamp if timestamp else arrow.utcnow().timestamp
 
+    @property
+    def list_lons(self):
+        """
+            由 self.list_cmd 提取的 经度 数组
+        @return:
+        """
+        list_temp = []
+        if len(self.list_cmd) > 4:
+            list_temp = self.list_cmd[2]
+        return list_temp
+
+    @property
+    def list_lats(self):
+        """
+            由 self.list_cmd 提取的 纬度 数组
+        @return:
+        """
+        list_temp = []
+        if len(self.list_cmd) > 4:
+            list_temp = self.list_cmd[3]
+        return list_temp
+
+    @property
+    def list_bp(self):
+        """
+            由 self.list_cmd 提取的 气压 数组
+        @return:
+        """
+        list_temp = []
+        if len(self.list_cmd) > 4:
+            list_temp = self.list_cmd[4]
+        return list_temp
+
+    @property
+    def forecast_start_dt(self) -> datetime:
+        """
+            当前获取 台风 路径的 起始预报时间
+        @return:
+        """
+        dt_forecast_str = None
+        if len(self.list_cmd) > 4:
+            list_dt = self.list_cmd[1]
+            if len(list_dt) > 0:
+                dt_forecast_str = arrow.get(list_dt[0], 'YYYYMMDDHH').datetime
+        return dt_forecast_str
+
+    @property
+    def forecast_end_dt(self)->datetime:
+        dt_forecast_str = None
+        if len(self.list_cmd) > 4:
+            list_dt = self.list_cmd[1]
+            if len(list_dt) > 0:
+                dt_forecast_str = arrow.get(list_dt[-1], 'YYYYMMDDHH').datetime
+        return dt_forecast_str
+
+    @property
+    def list_timeDiff(self):
+        list_temp = []
+        list_dt_range = []
+        if len(self.list_cmd) > 4:
+            # ['2021082314', '2021082320']
+            list_temp = self.list_cmd[1]
+            start_dt_str = list_temp[0]
+            start_dt_utc = arrow.get(start_dt_str, 'YYYYMMDDHH').shift(hours=-8)
+            second_dt_utc = arrow.get(list_temp[1], 'YYYYMMDDHH').shift(hours=-8)
+            # 时间差
+            hour_diff: int = int((second_dt_utc.timestamp - start_dt_utc.timestamp) / (60 * 60))
+            for temp in range(len(list_temp)):
+                list_dt_range.append(temp * hour_diff)
+
+        return list_dt_range
+
     def to_do(self, **kwargs):
         # eg: ['TY2112_2021090116_CMA_original', ['2021082314', '2021082320'], ['125.3', '126.6'], ['31.3', '33.8'], ['998', '998'], ['15', '15'], '2112', 'OMAIS']
         # 是一个嵌套数组
@@ -147,9 +227,9 @@ class JobGetTyDetail(IBaseJob):
         # list[5] ['15', '15']       暂时不用
         list_cmd = self.get_typath_cma(SHARED_PATH, self.ty_code)
         self.list_cmd = list_cmd
-        list_lon = list_cmd[2]
-        list_lat = list_cmd[3]
-        list_bp = list_cmd[4]
+        # list_lon = list_cmd[2]
+        # list_lat = list_cmd[3]
+        # list_bp = list_cmd[4]
         pass
 
     def to_store(self, **kwargs):
@@ -266,8 +346,8 @@ class JobGetTyDetail(IBaseJob):
                     os.makedirs(wdirp)
                 # filename = caseno + "_CMA_original"
                 filename = self.ty_stamp + "_CMA_original"
-
-                result = open(wdirp + filename, "w+")
+                filename_full_path:str=str(pathlib.Path(wdirp)/filename)
+                result = open(filename_full_path, "w+")
                 result.write(id + "\n")
                 result.write("0" + "\n")
                 result.write(str(len(info) - 6) + "\n")
@@ -323,7 +403,8 @@ class JobGetTyDetail(IBaseJob):
                         os.makedirs(wdirp)
                     # filename = caseno + "_CMA_original"
                     filename = self.ty_stamp + "_CMA_original"
-                    result = open(wdirp + filename, "w+")
+                    filename_full_path: str = str(pathlib.Path(wdirp) / filename)
+                    result = open(filename_full_path, "w+")
                     result.write(id + "\n")
                     result.write("0" + "\n")
                     result.write(str(len(info) - 7) + "\n")
@@ -653,10 +734,10 @@ class JobGeneratePathFile(IBaseJob):
             # ['2021082314', '2021082320']
             list_temp = self.list_cmd[1]
             start_dt_str = list_temp[0]
-            start_dt_utc = arrow.get(start_dt_str, 'YYYYMMDDHH').shift(hours=-8)
-            second_dt_utc = arrow.get(list_temp[1], 'YYYYMMDDHH').shift(hours=-8)
+            start_dt_utc:arrow = arrow.get(start_dt_str, 'YYYYMMDDHH').shift(hours=-8)
+            second_dt_utc:arrow = arrow.get(list_temp[1], 'YYYYMMDDHH').shift(hours=-8)
             # 时间差
-            hour_diff: int = int((second_dt_utc.timestamp - start_dt_utc.timestamp) / (60 * 60))
+            hour_diff: int = int((second_dt_utc.int_timestamp - start_dt_utc.int_timestamp) / (60 * 60))
             for temp in range(len(list_temp)):
                 list_dt_range.append(temp * hour_diff)
 
@@ -743,10 +824,12 @@ class JobGeneratePathFile(IBaseJob):
     #
     def output_pathfiles(self, wdir, filename, caseno, ri, dir, datex, tlonx, tlatx, presx, radsx, label):
         kxi = len(tlonx)
+        # TODO:[*] 21-09-03 此处建议修改，以下方式可读性太差
         fn = caseno + '_' + dir + str(ri) + '_p' + label
         tyno = caseno[2:6]
         filename.append(fn)
-        fi = open(wdir + fn, 'w+')
+        finial_file_name:str=str(pathlib.Path(wdir)/fn)
+        fi = open(finial_file_name, 'w+')
         fi.write(tyno + '\n')
         fi.write('0\n')
         fi.write(str(kxi) + '\n')
@@ -787,7 +870,7 @@ class JobGeneratePathFile(IBaseJob):
         datef, datef2, pres_10, rads_10, kxi = self.cal_time_radius_pres(pres_10, st, dR)
 
         nrr = round((pnum / 5 - 5) / 4 + 1)
-        minsp = 12;
+        minsp = 12
         coef = 0.7
 
         rrs = np.array([0, r01, r02, r03, r04, r05])

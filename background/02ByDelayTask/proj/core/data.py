@@ -430,7 +430,9 @@ class GroupTyphoonPath(IBaseOpt):
         # eg: ROOT_PATH\pathfiles\TYTD04_2021071908
         # 之前为 : ROOT_PATH\ ty_timestamp \group
         # final_path_str = str(pathlib.Path(self.root_path) / self.relative_path / 'GROUP')
-        final_path_str = str(pathlib.Path(self.root_path) / 'pathfiles' / self.relative_path)
+        # TODO:[-] 21-09-03 注意存储的路径为:
+        # E:\05DATA\01nginx_data\nmefc_download\TY_GROUP_RESULT\TY2112_1630655410\pathfiles
+        final_path_str = str(pathlib.Path(self.root_path) / self.relative_path / 'pathfiles')
         return final_path_str
 
     @property
