@@ -18,6 +18,9 @@ from common.const import UNLESS_INDEX
 from task.jobs import JobGetTyDetail, JobGeneratePathFile, JobTxt2Nc, JobTxt2NcPro, JobTaskBatch
 from conf.settings import TEST_ENV_SETTINGS
 
+from util.customer_decorators import log_count_time, store_job_rate
+from common.enum import JobInstanceEnum,TaskStateEnum
+
 ROOT_DIR = TEST_ENV_SETTINGS.get('TY_GROUP_PATH_ROOT_DIR')
 TY_CODE = TEST_ENV_SETTINGS.get('TY_CODE')
 TY_TIMESTAMP = TEST_ENV_SETTINGS.get('TY_TIMESTAMP')
@@ -176,7 +179,7 @@ def case_job_craw_ty():
 
 def to_do():
     # step-1: 爬取 指定台风编号的台风
-    ty_code: str = '2112'
+    ty_code: str = '2109'
     job_ty = JobGetTyDetail(ty_code)
     job_ty.to_do()
     dt_forecast_start: datetime = job_ty.forecast_start_dt

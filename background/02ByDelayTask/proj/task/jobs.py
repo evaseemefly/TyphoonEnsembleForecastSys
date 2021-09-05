@@ -18,6 +18,8 @@ from datetime import timedelta, datetime
 
 from typing import List
 from model.models import CaseStatus
+from util.customer_decorators import log_count_time, store_job_rate
+from common.enum import JobInstanceEnum,TaskStateEnum
 from conf.settings import TEST_ENV_SETTINGS
 
 SHARED_PATH = TEST_ENV_SETTINGS.get('TY_GROUP_PATH_ROOT_DIR')
@@ -41,7 +43,7 @@ class IBaseJob(metaclass=ABCMeta):
         self.parent_path = SHARED_PATH
 
     @property
-    def timestamp_str(self)->str:
+    def timestamp_str(self) -> str:
         """
             时间戳 str
         @return:
@@ -131,6 +133,7 @@ class JobGetTyDetail(IBaseJob):
     """
         抓取台风信息
     """
+
     def __init__(self, ty_code: str, timestamp: str = None, list_cmd=[]):
         super(JobGetTyDetail, self).__init__(ty_code, timestamp)
         self.list_cmd = list_cmd
@@ -191,7 +194,7 @@ class JobGetTyDetail(IBaseJob):
         return dt_forecast_str
 
     @property
-    def forecast_end_dt(self)->datetime:
+    def forecast_end_dt(self) -> datetime:
         dt_forecast_str = None
         if len(self.list_cmd) > 4:
             list_dt = self.list_cmd[1]
@@ -235,6 +238,7 @@ class JobGetTyDetail(IBaseJob):
     def to_store(self, **kwargs):
         pass
 
+    @store_job_rate(job_instance=JobInstanceEnum.GET_TY_DETAIL,job_rate=10)
     def get_typath_cma(self, wdir0: str, tyno: str):
         """
             TODO:[-] 此处返回值有可能是None，对于不存在的台风编号，则返回空？
@@ -346,7 +350,7 @@ class JobGetTyDetail(IBaseJob):
                     os.makedirs(wdirp)
                 # filename = caseno + "_CMA_original"
                 filename = self.ty_stamp + "_CMA_original"
-                filename_full_path:str=str(pathlib.Path(wdirp)/filename)
+                filename_full_path: str = str(pathlib.Path(wdirp) / filename)
                 result = open(filename_full_path, "w+")
                 result.write(id + "\n")
                 result.write("0" + "\n")
@@ -676,6 +680,7 @@ class JobGeneratePathFile(IBaseJob):
     """
         生成 ty_pathfile 与 生成批处理文件
     """
+
     def __init__(self, ty_code: str, timestamp: str = None, list_cmd=[]):
         super(JobGeneratePathFile, self).__init__(ty_code, timestamp)
         self.list_cmd = list_cmd
@@ -734,8 +739,8 @@ class JobGeneratePathFile(IBaseJob):
             # ['2021082314', '2021082320']
             list_temp = self.list_cmd[1]
             start_dt_str = list_temp[0]
-            start_dt_utc:arrow = arrow.get(start_dt_str, 'YYYYMMDDHH').shift(hours=-8)
-            second_dt_utc:arrow = arrow.get(list_temp[1], 'YYYYMMDDHH').shift(hours=-8)
+            start_dt_utc: arrow = arrow.get(start_dt_str, 'YYYYMMDDHH').shift(hours=-8)
+            second_dt_utc: arrow = arrow.get(list_temp[1], 'YYYYMMDDHH').shift(hours=-8)
             # 时间差
             hour_diff: int = int((second_dt_utc.int_timestamp - start_dt_utc.int_timestamp) / (60 * 60))
             for temp in range(len(list_temp)):
@@ -828,7 +833,7 @@ class JobGeneratePathFile(IBaseJob):
         fn = caseno + '_' + dir + str(ri) + '_p' + label
         tyno = caseno[2:6]
         filename.append(fn)
-        finial_file_name:str=str(pathlib.Path(wdir)/fn)
+        finial_file_name: str = str(pathlib.Path(wdir) / fn)
         fi = open(finial_file_name, 'w+')
         fi.write(tyno + '\n')
         fi.write('0\n')
@@ -841,6 +846,7 @@ class JobGeneratePathFile(IBaseJob):
         return filename
 
     # west=102,east=140,south=8,north=32 r01=60; r02=100; r03=120; r04=150; r05=180
+    @store_job_rate(job_instance=JobInstanceEnum.GEN_PATH_FILES,job_rate=20)
     def gen_typathfile(self, wdir0, st, dR, caseno, r01, r02, r03, r04, r05, pnum, tlon1, tlat1, pres1):
         '''
             生成 file name 集合
@@ -1002,6 +1008,7 @@ class JobGeneratePathFile(IBaseJob):
 
     # -----------------------------output control file------------------------------------#
     # output gpus_path_list.bat
+    @store_job_rate(job_instance=JobInstanceEnum.GEN_CONTROL_FILES,job_rate=30)
     def output_controlfile(self, wdir0, filename):
         """
             TODO:[*] 21-09-01 注意此处生成的批处理的内容将文件路径写死！
@@ -1048,6 +1055,7 @@ class JobTaskBatch(IBaseJob):
         + 21-09-03
             新加入的用来执行批处理的 job
     """
+
     def to_store(self, **kwargs):
         pass
 

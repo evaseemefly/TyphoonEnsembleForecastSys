@@ -45,6 +45,7 @@ class LayerType(Enum):
     PROSURGETIFGT25 = 1315
     PROSURGETIFGT30 = 1316
 
+
 @unique
 class TaskStateEnum(Enum):
     '''
@@ -57,3 +58,17 @@ class TaskStateEnum(Enum):
     WAITTING = 7103
     ERROR = 7104
     UNUSED = 7105
+
+
+@unique
+class JobInstanceEnum(Enum):
+    GET_TY_DETAIL = 1
+    GEN_PATH_FILES = 2
+    GEN_CONTROL_FILES = 3
+    STORE_GROUP_PATH = 4
+    STORE_STATION = 5
+    STORE_FIELD_SURGE = 6
+    STORE_PRO_SURGE = 7
+    TASK_BATCH = 8
+    TXT_2_NC = 9
+    TXT_2_NC_PR = 10

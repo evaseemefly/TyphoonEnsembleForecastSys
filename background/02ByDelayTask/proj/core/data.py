@@ -28,6 +28,9 @@ from common.const import UNLESS_CODE, UNLESS_RANGE
 from common.common_dict import DICT_STATION
 from common.enum import LayerType
 
+from util.customer_decorators import log_count_time, store_job_rate
+from common.enum import JobInstanceEnum,TaskStateEnum
+
 from conf.settings import TEST_ENV_SETTINGS
 from core.db import DbFactory
 
@@ -56,7 +59,7 @@ def get_match_files(re_str: str, dir_path: str = None) -> List[str]:
                     list_files.append(file_name)
     return list_files
 
-
+@store_job_rate(job_instance=JobInstanceEnum.STORE_GROUP_PATH,job_rate=40)
 def to_ty_group(list_files: List[str], ty_detail: TyphoonForecastDetailModel, **kwargs):
     """
 
