@@ -17,6 +17,7 @@ from common.enum import ForecastOrganizationEnum, TyphoonForecastSourceEnum
 from common.const import UNLESS_INDEX, UNLESS_ID_STR
 from task.jobs import JobGetTyDetail, JobGeneratePathFile, JobTxt2Nc, JobTxt2NcPro, JobTaskBatch
 from conf.settings import TEST_ENV_SETTINGS
+from local.globals import get_celery
 
 from util.customer_decorators import log_count_time, store_job_rate
 from common.enum import JobInstanceEnum, TaskStateEnum
@@ -177,9 +178,9 @@ def case_job_craw_ty():
     job_txt2ncpro.to_do()
     pass
 
+
 def to_do_celery():
     pass
-
 
 
 def to_do():
@@ -228,6 +229,11 @@ def test_get_gp_model():
     StationSurgeRealDataFile(dir_path=dir_path, file_name=file_name).get_pg()
 
 
+def case_test_local():
+    local_celery = get_celery()
+    local_celery.global_celery_id = '123'
+
+
 def main():
     # TODO:[-] 21-07-27 预报的起始时间，目前使用的是 pathfile -> c0_p00 中的路径起止时间
     # ! 注意时间是 utc 时间，文件里面读取的为 local 时间 ！
@@ -244,7 +250,9 @@ def main():
     # # TODO:[-] 21-09-01 加入了 测试 job相关的 case
     # case_job_craw_ty()
     # TODO:[-] 21-09-03 测试全部整合至 to_do 中
-    to_do()
+    # to_do()
+    # TODO:[-] 21-09-06 测试 local
+    case_test_local()
     # 测试查询 gp
     # case_get_gp()
     # test_get_gp_model()

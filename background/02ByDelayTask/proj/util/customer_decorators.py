@@ -5,6 +5,7 @@ import functools
 import logging
 from common.enum import JobInstanceEnum
 from common.const import UNLESS_ID_STR
+from local.globals import get_celery
 
 
 def log_count_time():
@@ -48,8 +49,14 @@ def store_job_rate(level=logging.DEBUG, job_instance=JobInstanceEnum.GET_TY_DETA
         @functools.wraps(func)
         def wrapper(*args, **kwargs):
             # 注意是先执行 func 后在执行写入操作
-            celery_id:str= kwargs.get('celery_id',UNLESS_ID_STR)
-            res=func(*args, **kwargs)
+            celery_id: str = UNLESS_ID_STR
+            if len(args) > 0 and hasattr(args[0], 'request'):
+                celery_id = args[0].request.get('id')
+            get_celery().global_celery_id = celery_id if get_celery().global_celery_id == UNLESS_ID_STR else UNLESS_ID_STR
+            local_celery_id = get_celery().global_celery_id
+            print(f'当前接收到的延时任务task_id:{local_celery_id}')
+            # celery_id:str= kwargs.get('celery_id',UNLESS_ID_STR)
+            res = func(*args, **kwargs)
 
             print(f'level:{level},job_instance:{job_instance},job_rate:{job_rate}')
             log.log(level, logmsg)
