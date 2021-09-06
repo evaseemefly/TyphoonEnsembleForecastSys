@@ -19,7 +19,7 @@ from datetime import timedelta, datetime
 from typing import List
 from model.models import CaseStatus
 from util.customer_decorators import log_count_time, store_job_rate
-from common.enum import JobInstanceEnum,TaskStateEnum
+from common.enum import JobInstanceEnum, TaskStateEnum
 from conf.settings import TEST_ENV_SETTINGS
 
 SHARED_PATH = TEST_ENV_SETTINGS.get('TY_GROUP_PATH_ROOT_DIR')
@@ -238,7 +238,7 @@ class JobGetTyDetail(IBaseJob):
     def to_store(self, **kwargs):
         pass
 
-    @store_job_rate(job_instance=JobInstanceEnum.GET_TY_DETAIL,job_rate=10)
+    @store_job_rate(job_instance=JobInstanceEnum.GET_TY_DETAIL, job_rate=10)
     def get_typath_cma(self, wdir0: str, tyno: str):
         """
             TODO:[-] 此处返回值有可能是None，对于不存在的台风编号，则返回空？
@@ -846,7 +846,7 @@ class JobGeneratePathFile(IBaseJob):
         return filename
 
     # west=102,east=140,south=8,north=32 r01=60; r02=100; r03=120; r04=150; r05=180
-    @store_job_rate(job_instance=JobInstanceEnum.GEN_PATH_FILES,job_rate=20)
+    @store_job_rate(job_instance=JobInstanceEnum.GEN_PATH_FILES, job_rate=20)
     def gen_typathfile(self, wdir0, st, dR, caseno, r01, r02, r03, r04, r05, pnum, tlon1, tlat1, pres1):
         '''
             生成 file name 集合
@@ -1008,7 +1008,7 @@ class JobGeneratePathFile(IBaseJob):
 
     # -----------------------------output control file------------------------------------#
     # output gpus_path_list.bat
-    @store_job_rate(job_instance=JobInstanceEnum.GEN_CONTROL_FILES,job_rate=30)
+    @store_job_rate(job_instance=JobInstanceEnum.GEN_CONTROL_FILES, job_rate=30)
     def output_controlfile(self, wdir0, filename):
         """
             TODO:[*] 21-09-01 注意此处生成的批处理的内容将文件路径写死！

@@ -14,12 +14,12 @@ from core.data import GroupTyphoonPath, get_match_files, to_ty_group, to_station
 from model.models import TyphoonForecastDetailModel
 from core.file import StationSurgeRealDataFile
 from common.enum import ForecastOrganizationEnum, TyphoonForecastSourceEnum
-from common.const import UNLESS_INDEX
+from common.const import UNLESS_INDEX, UNLESS_ID_STR
 from task.jobs import JobGetTyDetail, JobGeneratePathFile, JobTxt2Nc, JobTxt2NcPro, JobTaskBatch
 from conf.settings import TEST_ENV_SETTINGS
 
 from util.customer_decorators import log_count_time, store_job_rate
-from common.enum import JobInstanceEnum,TaskStateEnum
+from common.enum import JobInstanceEnum, TaskStateEnum
 
 ROOT_DIR = TEST_ENV_SETTINGS.get('TY_GROUP_PATH_ROOT_DIR')
 TY_CODE = TEST_ENV_SETTINGS.get('TY_CODE')
@@ -28,7 +28,7 @@ TY_TIMESTAMP = TEST_ENV_SETTINGS.get('TY_TIMESTAMP')
 TY_STAMP = 'TY' + TY_CODE + "_" + TY_TIMESTAMP
 
 
-def case_group_ty_path(gmt_start, gmt_end, ty_code: str, timestamp: str, ty_stamp: str):
+def case_group_ty_path(gmt_start, gmt_end, ty_code: str, timestamp: str, ty_stamp: str, *args, **kwargs):
     """
         + 21-04-13 测试 集合路径
         - 21-07-20 测试通过
@@ -37,7 +37,8 @@ def case_group_ty_path(gmt_start, gmt_end, ty_code: str, timestamp: str, ty_stam
     # todo:[*] 21-07-19 使用 TD04 编号的热带风暴 作为输入的台风
     # gmt_start = datetime(2020, 9, 15, 17)
     # gmt_end = datetime(2020, 9, 18, 0)
-
+    # TODO:[*] 21-09-06 需要加入 celery-id 相当于是作业 id
+    celery_id: str = kwargs.get('celery_id', UNLESS_ID_STR)
     ty_stamp_str: str = ty_stamp
     ty_detail: TyphoonForecastDetailModel = TyphoonForecastDetailModel(code=ty_code,
                                                                        organ_code=ForecastOrganizationEnum.NMEFC.value,
@@ -175,6 +176,10 @@ def case_job_craw_ty():
     job_txt2ncpro = JobTxt2NcPro('2109', '2021080415')
     job_txt2ncpro.to_do()
     pass
+
+def to_do_celery():
+    pass
+
 
 
 def to_do():
