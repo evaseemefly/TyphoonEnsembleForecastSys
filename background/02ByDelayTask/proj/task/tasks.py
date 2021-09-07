@@ -11,7 +11,7 @@ def my_task(self, *args, **kwargs):
     print('测试耗时任务')
     print(f'celery-request-id:{self}')
     print(f'传入的参数为:{args}')
-    print(f'当前线程的 celery_id:{get_celery().global_celery_id}')
+    print(f'当前线程的 celery_id:{get_celery().celery_id}')
     # job = JobInfo(self.request.id)
     # job.insert(10)
     print('耗时任务结束')

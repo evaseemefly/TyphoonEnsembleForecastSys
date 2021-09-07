@@ -18,6 +18,8 @@ from common.const import UNLESS_INDEX, UNLESS_ID_STR
 from task.jobs import JobGetTyDetail, JobGeneratePathFile, JobTxt2Nc, JobTxt2NcPro, JobTaskBatch
 from conf.settings import TEST_ENV_SETTINGS
 from local.globals import get_celery
+from task.celery import app
+from util.customer_decorators import store_job_rate
 
 from util.customer_decorators import log_count_time, store_job_rate
 from common.enum import JobInstanceEnum, TaskStateEnum
@@ -164,7 +166,7 @@ def case_job_craw_ty():
         手动抓取台风
     @return:
     """
-    job_ty = JobGetTyDetail('2112')
+    job_ty = JobGetTyDetail('2113')
     job_ty.to_do()
     list_cmd = job_ty.list_cmd
     timestamp_str = job_ty.timestamp
@@ -183,9 +185,11 @@ def to_do_celery():
     pass
 
 
-def to_do():
+# @store_job_rate()
+@app.task(bind=True, name="surge_group_ty")
+def to_do(*args, **kwargs):
     # step-1: 爬取 指定台风编号的台风
-    ty_code: str = '2109'
+    ty_code: str = '2114'
     job_ty = JobGetTyDetail(ty_code)
     job_ty.to_do()
     dt_forecast_start: datetime = job_ty.forecast_start_dt
@@ -217,6 +221,7 @@ def to_do():
     job_txt2ncpro = JobTxt2NcPro(ty_code, timestamp_str)
     job_txt2ncpro.to_do()
     case_pro_surge(ty_code, timestamp_str, dt_forecast_start, dt_forecast_end)
+    pass
 
 
 def test_get_gp_model():
@@ -250,9 +255,9 @@ def main():
     # # TODO:[-] 21-09-01 加入了 测试 job相关的 case
     # case_job_craw_ty()
     # TODO:[-] 21-09-03 测试全部整合至 to_do 中
-    # to_do()
+    to_do()
     # TODO:[-] 21-09-06 测试 local
-    case_test_local()
+    # case_test_local()
     # 测试查询 gp
     # case_get_gp()
     # test_get_gp_model()

@@ -29,7 +29,7 @@ app.conf.update(
     CELERYD_PREFETCH_MULTIPLIER=10,
     CELERYD_MAX_TASKS_PER_CHILD=200,
     CELERY_ACCEPT_CONTENT=CELERY_ACCEPT_CONTENT,
-    CELERY_IMPORTS=('task.tasks',)
+    CELERY_IMPORTS=('task.tasks', 'case.case')
 )
 
 
