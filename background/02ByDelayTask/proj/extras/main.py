@@ -14,7 +14,7 @@ def converted_dt_2_timestamp(dt_str: str, timestamp_str: str):
     @param timestamp_str:
     @return:
     """
-    read_path: str = str(pathlib.Path(SHARE_PATH) / dt_str / 'to_convert')
+    read_path: str = str(pathlib.Path(SHARE_PATH) / dt_str / 'result')
     files = pathlib.Path(read_path).rglob("*")
     files_list: List[str] = []
     for file in files:
@@ -33,7 +33,7 @@ def converted_dt_2_timestamp(dt_str: str, timestamp_str: str):
 
 
 def main():
-    converted_dt_2_timestamp('TY2114_1631066272', "1631066272")
+    converted_dt_2_timestamp('TY2114_1631101021', "1631101021")
     pass
 
 

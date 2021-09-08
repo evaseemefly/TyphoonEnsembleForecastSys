@@ -1266,10 +1266,11 @@ class JobTxt2NcPro(IBaseJob):
         pass
 
     def to_do(self, **kwargs):
-        timestamp_str: str = '2021080415'
-        ts_dt: datetime = arrow.get(timestamp_str, 'YYYYMMDDhh').datetime
-        dznum = self.get_maxsurgedata(SHARED_PATH, self.ty_stamp, ts_dt)
-        self.gen_prosurge_nc(SHARED_PATH, self.ty_stamp, ts_dt, dznum, self._levs, self._levs2)
+        forecast_start_dt: datetime = kwargs.get('forecast_start_dt')
+        # timestamp_str: str = '2021080415'
+        # ts_dt: datetime = arrow.get(timestamp_str, 'YYYYMMDDhh').datetime
+        dznum = self.get_maxsurgedata(SHARED_PATH, self.ty_stamp, forecast_start_dt)
+        self.gen_prosurge_nc(SHARED_PATH, self.ty_stamp, forecast_start_dt, dznum, self._levs, self._levs2)
         pass
 
     def get_maxsurgedata(self, wdir0, caseno, st):
@@ -1286,8 +1287,8 @@ class JobTxt2NcPro(IBaseJob):
             if path1[i][0:8] == 'maxSurge' and path1[i][-4:] == '.dat':
                 print(path1[i])
                 dflag = 1
-
-                with open(wdir + path1[i], 'r+') as fi:
+                full_path: str = str(pathlib.Path(wdir) / path1[i])
+                with open(full_path, 'r+') as fi:
                     dz0 = fi.readlines()
                     for L in dz0:
                         dz1 = L.strip('\n').split()

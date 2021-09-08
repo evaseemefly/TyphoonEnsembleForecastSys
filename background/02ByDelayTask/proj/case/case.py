@@ -136,7 +136,7 @@ def case_pro_surge(ty_code: str, ty_stamp: str, gmt_start: datetime, gmt_end: da
     # 概率场的正则匹配表达式
     # TODO:[-] 此处注意若再次执行时会出现 xxx_converted.nc的文件，需要忽略，所以加入了 xxm.nc 的正则，忽略了m_converted.nc 这种已经转换后的文件
     re_str: str = '^proSurge\w*m.nc'
-    dir_path: str = str(pathlib.Path(ROOT_DIR) / 'result' / ty_stamp)
+    dir_path: str = str(pathlib.Path(ROOT_DIR) / ty_stamp / 'result')
     list_match_files: List[str] = get_match_files(re_str, dir_path)
     ty_detail: TyphoonForecastDetailModel = TyphoonForecastDetailModel(code=ty_code,
                                                                        organ_code=ForecastOrganizationEnum.NMEFC.value,
@@ -203,28 +203,28 @@ def to_do(*args, **kwargs):
     # job_generate.to_do()
     # step 1-3: 将爬取到的台风基础信息入库
     # case_group_ty_path(dt_forecast_start, dt_forecast_end, ty_code, timestamp_str, job_generate.ty_stamp)
-    # # ------
-    #
-    # # step-2: 执行批处理 调用模型——暂时跳过
-    # # job_task=JobTaskBatch(ty_code,timestamp_str)
-    # # job_task.to_do()
+    # ------
+
+    # step-2: 执行批处理 调用模型——暂时跳过
+    # job_task=JobTaskBatch(ty_code,timestamp_str)
+    # job_task.to_do()
     # # -----
     #
     # # step-3:
     # # TODO:[-] + 21-09-02 txt -> nc 目前没问题，需要注意一下当前传入的 时间戳是 yyyymmddHH 的格式，与上面的不同
     # TODO:[*] 21-09-08 注意此处暂时将 时间戳设置为一个固定值！！注意！！
-    timestamp_str = '1631066272'
-    job_txt2nc = JobTxt2Nc(ty_code, timestamp_str)
-    job_txt2nc.to_do(forecast_start_dt=dt_forecast_start)
-    # step 3-1:
-    # TODO:[*] 21-09-08 注意此处暂时将 ty_stamp 设置为一个固定值！！注意！！上线后要替换为:job_ty.ty_stamp
-    ty_stamp: str = 'TY2114_1631066272'
-    case_field_surge(ty_code, ty_stamp, dt_forecast_start, dt_forecast_end)
+    timestamp_str = '1631101021'
+    # job_txt2nc = JobTxt2Nc(ty_code, timestamp_str)
+    # job_txt2nc.to_do(forecast_start_dt=dt_forecast_start)
+    # # step 3-1:
+    # # TODO:[*] 21-09-08 注意此处暂时将 ty_stamp 设置为一个固定值！！注意！！上线后要替换为:job_ty.ty_stamp
+    ty_stamp: str = 'TY2114_1631101021'
+    # case_field_surge(ty_code, ty_stamp, dt_forecast_start, dt_forecast_end)
     # step 3-2:
-
-    job_txt2ncpro = JobTxt2NcPro(ty_code, timestamp_str)
-    job_txt2ncpro.to_do()
-    case_pro_surge(ty_code, timestamp_str, dt_forecast_start, dt_forecast_end)
+    #
+    # job_txt2ncpro = JobTxt2NcPro(ty_code, timestamp_str)
+    # job_txt2ncpro.to_do(forecast_start_dt=dt_forecast_start)
+    case_pro_surge(ty_code, ty_stamp, dt_forecast_start, dt_forecast_end)
     pass
 
 
