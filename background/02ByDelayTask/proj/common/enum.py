@@ -62,6 +62,7 @@ class TaskStateEnum(Enum):
 
 @unique
 class JobInstanceEnum(Enum):
+    INIT_CELERY = 0
     GET_TY_DETAIL = 1
     GEN_PATH_FILES = 2
     GEN_CONTROL_FILES = 3

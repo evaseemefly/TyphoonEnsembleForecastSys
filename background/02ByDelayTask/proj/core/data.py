@@ -29,7 +29,7 @@ from common.common_dict import DICT_STATION
 from common.enum import LayerType
 
 from util.customer_decorators import log_count_time, store_job_rate
-from common.enum import JobInstanceEnum,TaskStateEnum
+from common.enum import JobInstanceEnum, TaskStateEnum
 
 from conf.settings import TEST_ENV_SETTINGS
 from core.db import DbFactory
@@ -59,7 +59,8 @@ def get_match_files(re_str: str, dir_path: str = None) -> List[str]:
                     list_files.append(file_name)
     return list_files
 
-@store_job_rate(job_instance=JobInstanceEnum.STORE_GROUP_PATH,job_rate=40)
+
+@store_job_rate(job_instance=JobInstanceEnum.STORE_GROUP_PATH, job_rate=40)
 def to_ty_group(list_files: List[str], ty_detail: TyphoonForecastDetailModel, **kwargs):
     """
 
@@ -96,7 +97,7 @@ def to_ty_group(list_files: List[str], ty_detail: TyphoonForecastDetailModel, **
             ty_group.to_store(ty_detail=ty_detail)
 
 
-def to_ty_field_surge(list_files: List[str], ty_detail: TyphoonForecastDetailModel, **kwargs):
+def to_ty_field_surge(list_files: List[str], **kwargs):
     """
         + 21-08-02 自动化处理诸时场nc的全流程
     @param list_files:
@@ -861,8 +862,8 @@ class FieldSurgeDataInfo:
         """
         gmt_start: datetime = kwargs.get('gmt_start')
         self.ds = self.read_nc()
-        self._gen_dt_range(gmt_start)
-        converted_file_name: str = self.to_converted_nc()
+        # self._gen_dt_range(gmt_start)
+        converted_file_name: str = self.to_converted_nc(gmt_start)
         if converted_file_name:
             self.enumerate_2_tif()
             self.to_store()
@@ -879,17 +880,31 @@ class FieldSurgeDataInfo:
             ds = xar.open_dataset(full_path, decode_times=False)
         return ds
 
-    def _gen_dt_range(self, gmt_start: datetime, hours=48):
+    def _gen_dt_range(self, gmt_start: datetime, ds: xar.Dataset = None, hours=48):
         """
             根据 gmt_start -> hours 生成时间数组作为 Dataset 的纬度
         @param gmt_start:
         @param hours:
         @return:
         """
-        np_dt_range = np.array([gmt_start + timedelta(hours=i) for i in range(hours)])
-        self.ds.coords['times'] = np_dt_range
+        # TODO:[*] 21-09-08 注意此处有可能实际的 ds 的时间维度并不是 48 此处修改为 根据 dataset.dim.times
+        num_times: int = self.ds.dims.get('times')
+        # TODO:[!] 21-09-08 注意此处需要将传入的 gmt_start 的时区去掉,切记切记!!不然会在 xarray .to_netcdf 时出错!!
+        gmt_start = gmt_start.replace(tzinfo=None)
+        np_dt_range = np.array([gmt_start + timedelta(hours=i) for i in range(num_times)])
+        # test_gmt_start = datetime(2021, 9, 15, 0, 0)
+        # num_times = 120
+        # np_dt_range = np.array([test_gmt_start + timedelta(hours=i) for i in range(num_times)])
+        ds_temp: xar.Dataset = None
+        if ds is not None:
+            ds.coords['times'] = np_dt_range
+            ds_temp = ds
+        else:
+            self.ds.coords['times'] = np_dt_range
+            ds_temp = self.ds
+        return ds_temp
 
-    def to_converted_nc(self) -> str:
+    def to_converted_nc(self, gmt_start: datetime) -> str:
         """
             将 ds 生成转换后的 nc文件
             若生成成功返回 true
@@ -907,7 +922,11 @@ class FieldSurgeDataInfo:
                 converted_ds.rio.set_spatial_dims("x", "y", inplace=True)
                 converted_ds = converted_ds.rio.write_crs("epsg:4326", inplace=True)
                 converted_ds['y'] = converted_ds['y'][::-1]
-                self.ds.to_netcdf(new_full_path)
+
+                # TODO:[*] error: 出现了时间转换的错误，暂时将 之前的调用 _gen_dt_range 放在此处
+                # ValueError: unable to infer dtype on variable 'times'; xarray cannot serialize arbitrary Python objects
+                converted_ds = self._gen_dt_range(gmt_start, converted_ds)
+                converted_ds.to_netcdf(new_full_path)
                 self.ds = converted_ds
                 is_converted = True
                 self.dict_data['converted_file'] = new_file_name

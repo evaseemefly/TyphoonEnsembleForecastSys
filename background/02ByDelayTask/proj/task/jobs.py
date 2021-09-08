@@ -77,7 +77,9 @@ class IBaseJob(metaclass=ABCMeta):
             F:\03nginx_data\nmefc_download\TY_GROUP_RESULT\result\TY2109_2021080415
         @return:
         """
-        return str(pathlib.Path(self.path_result) / self.timestamp_str)
+        # return str(pathlib.Path(self.path_result) / self.timestamp_str)
+        # TODO:[-] 21-09-08 将读取路径修改为 F:\03nginx_data\nmefc_download\TY_GROUP_RESULT\TY2114_1631082947\result
+        return str(pathlib.Path(self.path_result))
 
     @property
     def path_pathfiles(self) -> str:
@@ -1099,10 +1101,18 @@ class JobTxt2Nc(IBaseJob):
         pass
 
     def to_do(self, **kwargs):
+        """
+
+        @param kwargs: forecast_start_dt_str: 预报的起始时间 (local) eg: YYYYMMDDhh
+
+        @return:
+        """
         forecast_dt: datetime = kwargs.get('forecast_dt')
-        timestamp_str: str = '2021080415'
-        ts_dt: datetime = arrow.get(timestamp_str, 'YYYYMMDDhh').datetime
-        self.txt2nc(SHARED_PATH, self.ty_stamp, ts_dt)
+        forecast_start_dt: datetime = kwargs.get('forecast_start_dt')
+        forecast_start_dt_str: str = kwargs.get('forecast_start_dt_str')
+        # timestamp_str: str = '2021080415'
+        # ts_dt: datetime = arrow.get(forecast_start_dt_str, 'YYYYMMDDhh').datetime
+        self.txt2nc(SHARED_PATH, self.ty_stamp, forecast_start_dt)
         pass
 
     def txt2nc(self, wdir0, caseno, stm):
@@ -1118,7 +1128,10 @@ class JobTxt2Nc(IBaseJob):
 
                 # Read ASCII File
                 ''''''
-                fl_name = wdir + path1[i]
+                # TODO:[-] 21-09-08 注意此处需要用pathlib进行拼接！
+                # fl_name = wdir + path1[i]
+                fl_name: str = str(pathlib.Path(wdir) / path1[i])
+
                 # ascii_fl = loadtxt(fl_name, delimiter=' ',dtype=float)
                 with open(fl_name, 'r+') as fi:
                     dz1 = fi.readlines()
@@ -1130,7 +1143,10 @@ class JobTxt2Nc(IBaseJob):
                 # print(ascii_fl)
             #
             if path1[i][0:8] == 'maxSurge' and path1[i][-10:] == 'c0_p00.dat':
-                fl_name2 = wdir + path1[i]
+
+                # TODO:[-] 21-09-08 注意此处需要用pathlib进行拼接！
+                # fl_name2 = wdir + path1[i]
+                fl_name2: str = str(pathlib.Path(wdir) / path1[i])
                 # ascii_fl = loadtxt(fl_name, delimiter=' ',dtype=float)
                 with open(fl_name2, 'r+') as fi:
                     dz1 = fi.readlines()
