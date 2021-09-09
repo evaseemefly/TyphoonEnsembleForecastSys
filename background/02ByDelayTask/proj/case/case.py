@@ -192,39 +192,40 @@ def to_do(*args, **kwargs):
     ty_code: str = '2114'
     job_ty = JobGetTyDetail(ty_code)
     job_ty.to_do()
-    dt_forecast_start: datetime = job_ty.forecast_start_dt
-    dt_forecast_end: datetime = job_ty.forecast_end_dt
-    # ty_code: str = job_ty.ty_code
-    timestamp_str: str = job_ty.timestamp_str
-    # step 1-2: 生成 pathfile 与 批处理文件
-    list_cmd = job_ty.list_cmd
-    # timestamp_str = job_ty.timestamp
-    # job_generate = JobGeneratePathFile(ty_code, timestamp_str, list_cmd)
-    # job_generate.to_do()
-    # step 1-3: 将爬取到的台风基础信息入库
-    # case_group_ty_path(dt_forecast_start, dt_forecast_end, ty_code, timestamp_str, job_generate.ty_stamp)
-    # ------
+    if len(job_ty.list_cmd) > 0:
+        dt_forecast_start: datetime = job_ty.forecast_start_dt
+        dt_forecast_end: datetime = job_ty.forecast_end_dt
+        # ty_code: str = job_ty.ty_code
+        timestamp_str: str = job_ty.timestamp_str
+        # step 1-2: 生成 pathfile 与 批处理文件
+        list_cmd = job_ty.list_cmd
+        timestamp_str = job_ty.timestamp
+        # job_generate = JobGeneratePathFile(ty_code, timestamp_str, list_cmd)
+        # job_generate.to_do()
+        # # step 1-3: 将爬取到的台风基础信息入库
+        # case_group_ty_path(dt_forecast_start, dt_forecast_end, ty_code, timestamp_str, job_generate.ty_stamp)
+        # ------
 
-    # step-2: 执行批处理 调用模型——暂时跳过
-    # job_task=JobTaskBatch(ty_code,timestamp_str)
-    # job_task.to_do()
-    # # -----
-    #
-    # # step-3:
-    # # TODO:[-] + 21-09-02 txt -> nc 目前没问题，需要注意一下当前传入的 时间戳是 yyyymmddHH 的格式，与上面的不同
-    # TODO:[*] 21-09-08 注意此处暂时将 时间戳设置为一个固定值！！注意！！
-    timestamp_str = '1631101021'
-    # job_txt2nc = JobTxt2Nc(ty_code, timestamp_str)
-    # job_txt2nc.to_do(forecast_start_dt=dt_forecast_start)
-    # # step 3-1:
-    # # TODO:[*] 21-09-08 注意此处暂时将 ty_stamp 设置为一个固定值！！注意！！上线后要替换为:job_ty.ty_stamp
-    ty_stamp: str = 'TY2114_1631101021'
-    # case_field_surge(ty_code, ty_stamp, dt_forecast_start, dt_forecast_end)
-    # step 3-2:
-    #
-    # job_txt2ncpro = JobTxt2NcPro(ty_code, timestamp_str)
-    # job_txt2ncpro.to_do(forecast_start_dt=dt_forecast_start)
-    case_pro_surge(ty_code, ty_stamp, dt_forecast_start, dt_forecast_end)
+        # step-2: 执行批处理 调用模型——暂时跳过
+        # job_task = JobTaskBatch(ty_code, timestamp_str)
+        # job_task.to_do()
+        # -----
+
+        # # step-3:
+        # # TODO:[-] + 21-09-02 txt -> nc 目前没问题，需要注意一下当前传入的 时间戳是 yyyymmddHH 的格式，与上面的不同
+        # TODO:[*] 21-09-08 注意此处暂时将 时间戳设置为一个固定值！！注意！！
+        timestamp_str = '1631152108'
+        job_txt2nc = JobTxt2Nc(ty_code, timestamp_str)
+        job_txt2nc.to_do(forecast_start_dt=dt_forecast_start)
+        # step 3-1:
+        # # TODO:[*] 21-09-08 注意此处暂时将 ty_stamp 设置为一个固定值！！注意！！上线后要替换为:job_ty.ty_stamp
+        ty_stamp: str = 'TY2114_1631152108'
+        case_field_surge(ty_code, ty_stamp, dt_forecast_start, dt_forecast_end)
+        # # step 3-2:
+        # #
+        # # job_txt2ncpro = JobTxt2NcPro(ty_code, timestamp_str)
+        # # job_txt2ncpro.to_do(forecast_start_dt=dt_forecast_start)
+        # case_pro_surge(ty_code, ty_stamp, dt_forecast_start, dt_forecast_end)
     pass
 
 
