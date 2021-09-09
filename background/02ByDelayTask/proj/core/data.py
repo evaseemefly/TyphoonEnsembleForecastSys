@@ -741,7 +741,7 @@ class StationRealDataFile(ITyphoonPath):
         """
         # TODO:[-] 21-07-27 此处使用明杰的目录结构
         # final_path_str = str(pathlib.Path(self.root_path) / self.relative_path / 'STATION')
-        final_path_str = str(pathlib.Path(self.root_path) / 'result' / self.relative_path)
+        final_path_str = str(pathlib.Path(self.root_path) / self.relative_path / 'result')
         return final_path_str
 
     def read_forecast_data(self, **kwargs):

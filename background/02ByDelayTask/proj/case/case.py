@@ -60,7 +60,7 @@ def case_group_ty_path(gmt_start, gmt_end, ty_code: str, timestamp: str, ty_stam
     to_ty_group(list_match_files, ty_detail)
 
 
-def case_station(start: datetime, end: datetime, ty_id=UNLESS_INDEX):
+def case_station(start: datetime, end: datetime, ty_stamp: str, ty_id=UNLESS_INDEX):
     """
         批量写入 station 的 case
     @return:
@@ -81,13 +81,14 @@ def case_station(start: datetime, end: datetime, ty_id=UNLESS_INDEX):
     target_gp = None
     # TODO:[-] 21-07-20 预报起始时间与 gmt_start 相同
     forecast_dt_start: datetime = gmt_start
-    ty_timestamp: str = TY_STAMP
+    # ty_timestamp: str = TY_STAMP
     ty_id: int = ty_id if ty_id != UNLESS_INDEX else 8
     # ty_id: int = 8
     # TODO:[*] 21-07-20 注意此处需要修改为明杰的存储规则
     # EG:     'E:\\02data\\05docker-data\\docker-shared\\ty_docker\\TYTD04_2021071908\\STATION'
     # 实际地址: E:\02data\05docker-data\docker-shared\ty_docker\result\TYTD04_2021071908
-    dir_path: str = str(pathlib.Path(ROOT_DIR) / 'result' / ty_timestamp)
+    # 21-09-09 此处路径修改为 : D:\05DATA\NGINX_DATA\nmefc_download\TY_GROUP_RESULT\TY2114_1631180476\result
+    dir_path: str = str(pathlib.Path(ROOT_DIR) / ty_stamp / 'result')
     if len(query_gp) > 0:
         target_gp = query_gp[0]
     # TODO:[*] 21-07-20 注意此处，由于有可能存在非台风的编号，也就是例如 TD04 这种是，所以不能直接匹配多个数字
@@ -206,26 +207,32 @@ def to_do(*args, **kwargs):
         # case_group_ty_path(dt_forecast_start, dt_forecast_end, ty_code, timestamp_str, job_generate.ty_stamp)
         # ------
 
+
+
         # step-2: 执行批处理 调用模型——暂时跳过
         # job_task = JobTaskBatch(ty_code, timestamp_str)
         # job_task.to_do()
         # -----
-
+        # step 1-4: 处理海洋站
+        # 注意 此处的 ty_id 由 case_group_ty_path 处理后创建的一个 ty id
+        # TODO:[*] 21-09-09 注意此处的 ty_id 是写死的!
+        # ty_stamp: str = 'TY2114_1631192124'
+        # case_station(dt_forecast_start, dt_forecast_end, ty_stamp, ty_id=22)
         # # step-3:
         # # TODO:[-] + 21-09-02 txt -> nc 目前没问题，需要注意一下当前传入的 时间戳是 yyyymmddHH 的格式，与上面的不同
         # TODO:[*] 21-09-08 注意此处暂时将 时间戳设置为一个固定值！！注意！！
-        timestamp_str = '1631152108'
+        timestamp_str = '1631192124'
         job_txt2nc = JobTxt2Nc(ty_code, timestamp_str)
         job_txt2nc.to_do(forecast_start_dt=dt_forecast_start)
-        # step 3-1:
-        # # TODO:[*] 21-09-08 注意此处暂时将 ty_stamp 设置为一个固定值！！注意！！上线后要替换为:job_ty.ty_stamp
-        ty_stamp: str = 'TY2114_1631152108'
+        # # step 3-1:
+        # # # TODO:[*] 21-09-08 注意此处暂时将 ty_stamp 设置为一个固定值！！注意！！上线后要替换为:job_ty.ty_stamp
+        ty_stamp: str = 'TY2114_1631192124'
         case_field_surge(ty_code, ty_stamp, dt_forecast_start, dt_forecast_end)
-        # # step 3-2:
-        # #
-        # # job_txt2ncpro = JobTxt2NcPro(ty_code, timestamp_str)
-        # # job_txt2ncpro.to_do(forecast_start_dt=dt_forecast_start)
-        # case_pro_surge(ty_code, ty_stamp, dt_forecast_start, dt_forecast_end)
+        # step 3-2:
+        #
+        job_txt2ncpro = JobTxt2NcPro(ty_code, timestamp_str)
+        job_txt2ncpro.to_do(forecast_start_dt=dt_forecast_start)
+        case_pro_surge(ty_code, ty_stamp, dt_forecast_start, dt_forecast_end)
     pass
 
 

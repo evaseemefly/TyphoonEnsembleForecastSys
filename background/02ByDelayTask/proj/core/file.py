@@ -125,20 +125,20 @@ class StationSurgeRealDataFile(IBaseSurgeFile):
     #         ts_str = self.name_split[1]
     #     return ts_str
     #
-    # @property
-    # def ty_bp_stamp(self) -> str:
-    #     """
-    #         获取 台风 气压 标识
-    #         eg: TY1822_2020042710_l5_p05 -> p05
-    #     @return:
-    #     """
-    #     temp_stamp: str = None
-    #     if len(self.name_split) > 3:
-    #         if len(self.name_split) > 4:
-    #             temp_stamp: str = f'{self.name_split[3]}_{self.name_split[4]}'
-    #         else:
-    #             temp_stamp: str = self.name_split[3]
-    #     return temp_stamp
+    @property
+    def ty_bp_stamp(self) -> str:
+        """
+            获取 台风 气压 标识
+            eg: TY1822_2020042710_l5_p05 -> p05
+        @return:
+        """
+        temp_stamp: str = None
+        if len(self.name_split) > 3:
+            if len(self.name_split) > 4:
+                temp_stamp: str = f'{self.name_split[3]}_{self.name_split[4]}'
+            else:
+                temp_stamp: str = self.name_split[3]
+        return temp_stamp
 
     @property
     def ty_bp_is_increase(self) -> bool:
