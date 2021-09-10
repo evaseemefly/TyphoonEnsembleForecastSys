@@ -97,6 +97,7 @@ def to_ty_group(list_files: List[str], ty_detail: TyphoonForecastDetailModel, **
             ty_group.to_store(ty_detail=ty_detail)
 
 
+@store_job_rate(job_instance=JobInstanceEnum.STORE_FIELD_SURGE, job_rate=80)
 def to_ty_field_surge(list_files: List[str], **kwargs):
     """
         + 21-08-02 自动化处理诸时场nc的全流程
@@ -116,6 +117,7 @@ def to_ty_field_surge(list_files: List[str], **kwargs):
     pass
 
 
+@store_job_rate(job_instance=JobInstanceEnum.STORE_PRO_SURGE, job_rate=100)
 def to_ty_pro_surge(list_files: List[str], **kwargs):
     """
         + 21-08-08 自动化处理 概率分布场nc
@@ -134,6 +136,7 @@ def to_ty_pro_surge(list_files: List[str], **kwargs):
     pass
 
 
+@store_job_rate(job_instance=JobInstanceEnum.STORE_STATION, job_rate=50)
 def to_station_realdata(list_files: List[str], ty_detail: TyphoonForecastDetailModel, **kwargs):
     forecast_dt_start: datetime = kwargs.get('forecast_dt_start')
     ty_id: int = kwargs.get('ty_id')

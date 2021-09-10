@@ -1125,6 +1125,7 @@ class JobTxt2Nc(IBaseJob):
         self.txt2nc(SHARED_PATH, self.ty_stamp, forecast_start_dt)
         pass
 
+    @store_job_rate(job_instance=JobInstanceEnum.TXT_2_NC, job_rate=90)
     def txt2nc(self, wdir0, caseno, stm):
         # TODO:[-] 21-09-10 新增部分——解决陆地部分未掩码的bug
         top_dir_path: str = self.path_data_full
@@ -1333,6 +1334,7 @@ class JobTxt2NcPro(IBaseJob):
             dznum = []
             return dznum
 
+    @store_job_rate(job_instance=JobInstanceEnum.TXT_2_NC_PRO, job_rate=90)
     def gen_prosurge_nc(self, wdir0, caseno, st, dznum, levs, levs2):
 
         # tdir = wdir0 + 'data/'

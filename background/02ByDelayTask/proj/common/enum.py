@@ -68,8 +68,8 @@ class JobInstanceEnum(Enum):
     GEN_CONTROL_FILES = 3
     STORE_GROUP_PATH = 4
     STORE_STATION = 5
-    STORE_FIELD_SURGE = 6
-    STORE_PRO_SURGE = 7
-    TASK_BATCH = 8
-    TXT_2_NC = 9
-    TXT_2_NC_PR = 10
+    TASK_BATCH = 6
+    TXT_2_NC = 7
+    STORE_FIELD_SURGE = 8
+    TXT_2_NC_PRO = 9
+    STORE_PRO_SURGE = 10

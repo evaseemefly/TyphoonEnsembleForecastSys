@@ -202,10 +202,10 @@ def to_do(*args, **kwargs):
         list_cmd = job_ty.list_cmd
         # timestamp_str = job_ty.timestamp
         ty_stamp: str = job_ty.ty_stamp
-        # job_generate = JobGeneratePathFile(ty_code, timestamp_str, list_cmd)
-        # job_generate.to_do()
-        # # step 1-3: 将爬取到的台风基础信息入库
-        # case_group_ty_path(dt_forecast_start, dt_forecast_end, ty_code, timestamp_str, job_generate.ty_stamp)
+        job_generate = JobGeneratePathFile(ty_code, timestamp_str, list_cmd)
+        job_generate.to_do()
+        # step 1-3: 将爬取到的台风基础信息入库
+        case_group_ty_path(dt_forecast_start, dt_forecast_end, ty_code, timestamp_str, job_generate.ty_stamp)
         # ------
 
         # step-2: 执行批处理 调用模型——暂时跳过
@@ -215,12 +215,12 @@ def to_do(*args, **kwargs):
         # step 1-4: 处理海洋站
         # 注意 此处的 ty_id 由 case_group_ty_path 处理后创建的一个 ty id
         # TODO:[*] 21-09-09 注意此处的 ty_id 是写死的!
-        ty_stamp: str = 'TY2114_1631259895'
-        # case_station(dt_forecast_start, dt_forecast_end, ty_stamp, ty_id=26)
+        # ty_stamp: str = 'TY2114_1631259895'
+        case_station(dt_forecast_start, dt_forecast_end, ty_stamp, ty_id=28)
         # # # step-3:
         # # # TODO:[-] + 21-09-02 txt -> nc 目前没问题，需要注意一下当前传入的 时间戳是 yyyymmddHH 的格式，与上面的不同
         # # TODO:[*] 21-09-08 注意此处暂时将 时间戳设置为一个固定值！！注意！！
-        timestamp_str = '1631259895'
+        # timestamp_str = '1631259895'
         job_txt2nc = JobTxt2Nc(ty_code, timestamp_str)
         job_txt2nc.to_do(forecast_start_dt=dt_forecast_start)
         # # # step 3-1:
