@@ -82,6 +82,16 @@ class IBaseJob(metaclass=ABCMeta):
         return str(pathlib.Path(self.path_result))
 
     @property
+    def path_data_full(self) -> str:
+        """
+            + 21-09-10 获取 data 的  路径 保存 sites3sz.txt 与 topo3sz.dp
+            E:\05DATA\01nginx_data\nmefc_download\TY_GROUP_RESULT\data
+        @return:
+        """
+        stamp_data: str = 'data'
+        return str(pathlib.Path(self.parent_path) / stamp_data)
+
+    @property
     def path_pathfiles(self) -> str:
         """
             pathfiles 的存储目录
@@ -1116,6 +1126,20 @@ class JobTxt2Nc(IBaseJob):
         pass
 
     def txt2nc(self, wdir0, caseno, stm):
+        # TODO:[-] 21-09-10 新增部分——解决陆地部分未掩码的bug
+        top_dir_path: str = self.path_data_full
+        top_full_name: str = str(pathlib.Path(top_dir_path) / 'topo3sz.dp')
+        with open(top_full_name, 'r+') as fi:
+            dz0 = fi.readlines()
+            tpnum = []
+            for L in dz0:
+                dz0s = L.strip('\n').split()
+                tpnum.append(list(map(float, dz0s)))
+
+            topo = np.array(tpnum)
+            topo[topo >= 0] = 1
+            topo[topo < 0] = np.nan
+            # print(topo)
         # wdir = wdir0 + '/' + 'result/' + caseno + '/'
         # wdir = pathlib.Path(wdir0) / 'result' / caseno
         wdir = self.path_result_full
@@ -1155,6 +1179,8 @@ class JobTxt2Nc(IBaseJob):
                         dz3 = L.strip('\n').split()
                         dznum2.append(list(map(float, dz3)))
                     max_surge = np.array(dznum2)
+                    # TODO:[-] 21-09-10 新增部分——解决陆地部分未掩码的bug
+                    max_surge = max_surge * topo
         #
         yy = np.arange(15 + 1 / 120, 26 + 1 / 120, 1 / 60)
         xx = np.arange(105 + 1 / 120, 123 + 1 / 120, 1 / 60)
@@ -1175,6 +1201,9 @@ class JobTxt2Nc(IBaseJob):
                 hours.append(i + 1)
 
             ascii_fl2 = np.reshape(ascii_fl, (len(timestr), len(yy), len(xx)))
+            # TODO:[-] 21-09-10 新增部分——解决陆地部分未掩码的bug
+            for i in range(len(timestr)):
+                ascii_fl2[i] = ascii_fl2[i] * topo
 
             # Initialize nc file
             out_nc = fl_name[:-4] + '.nc'
