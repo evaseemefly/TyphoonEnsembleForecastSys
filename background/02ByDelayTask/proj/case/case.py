@@ -10,7 +10,7 @@ from typing import List
 import pathlib
 from datetime import datetime, timedelta
 from core.data import GroupTyphoonPath, get_match_files, to_ty_group, to_station_realdata, get_gp, to_ty_field_surge, \
-    to_ty_pro_surge
+    to_ty_pro_surge, to_ty_detail
 from model.models import TyphoonForecastDetailModel
 from core.file import StationSurgeRealDataFile
 from common.enum import ForecastOrganizationEnum, TyphoonForecastSourceEnum
@@ -29,6 +29,19 @@ TY_CODE = TEST_ENV_SETTINGS.get('TY_CODE')
 TY_TIMESTAMP = TEST_ENV_SETTINGS.get('TY_TIMESTAMP')
 # 'TY2022_2021010416'
 TY_STAMP = 'TY' + TY_CODE + "_" + TY_TIMESTAMP
+
+
+def case_ty_detail(gmt_start, gmt_end, ty_code: str, timestamp: str, ty_stamp: str, *args,
+                   **kwargs) -> TyphoonForecastDetailModel:
+    ty_detail: TyphoonForecastDetailModel = TyphoonForecastDetailModel(code=ty_code,
+                                                                       organ_code=ForecastOrganizationEnum.NMEFC.value,
+                                                                       gmt_start=gmt_start,
+                                                                       gmt_end=gmt_end,
+                                                                       forecast_source=TyphoonForecastSourceEnum.DEFAULT.value,
+                                                                       timestamp=timestamp)
+    ty_detail_new: TyphoonForecastDetailModel = to_ty_detail(ty_detail)
+    ty_detail.id = ty_detail_new.id
+    return ty_detail
 
 
 def case_group_ty_path(gmt_start, gmt_end, ty_code: str, timestamp: str, ty_stamp: str, *args, **kwargs):
@@ -189,34 +202,61 @@ def to_do_celery():
 @app.task(bind=True, name="surge_group_ty")
 @store_job_rate(job_instance=JobInstanceEnum.INIT_CELERY, job_rate=0)
 def to_do(*args, **kwargs):
+    """
+        step-1: 爬取 指定台风编号的台风
+        step 1-2: 生成 pathfile 与 批处理文件
+        step 1-3: 将爬取到的台风基础信息 写入 db
+        step 1-4: 将生成的 group 集合预报路径 写入 db
+
+        step-2: 执行批处理 调用模型——暂时跳过
+
+        step-3: 处理海洋站数据并入库
+        step-4: 批量将 txt 转为对应的nc，并生成对应的tif
+        step 4-1:将生成的 field txt 转为 nc,并生成不同时刻的 field tif
+        step 4-2:将生成的 pro txt 转为 nc，并生成不同概率对应的 tif
+    @param args:
+    @param kwargs:
+    @return:
+    """
     # step-1: 爬取 指定台风编号的台风
-    ty_code: str = '2114'
+    # + 21-09-11 加入是否为测试的判断
+    is_debug: bool = True
+    ty_code: str = '2114' if is_debug else kwargs.get('ty_code', None)
+    # 获取 当前的 celery_id
+    local_celery_id = get_celery().celery_id
+    if ty_code is None:
+        return
     job_ty = JobGetTyDetail(ty_code)
     job_ty.to_do()
+    # 弱没有爬取到台风信息则直接跳出
+    if len(job_ty.list_cmd) == 0:
+        return
     if len(job_ty.list_cmd) > 0:
-        dt_forecast_start: datetime = job_ty.forecast_start_dt
-        dt_forecast_end: datetime = job_ty.forecast_end_dt
-        # ty_code: str = job_ty.ty_code
-        timestamp_str: str = job_ty.timestamp_str
+        dt_forecast_start: datetime = job_ty.forecast_start_dt  # 获取到的台风预报起始时刻(utc)
+        dt_forecast_end: datetime = job_ty.forecast_end_dt  # 获取到的台风预报结束时刻(utc)
+        timestamp_str: str = job_ty.timestamp_str  # 当前的时间戳 (ns)
         # step 1-2: 生成 pathfile 与 批处理文件
         list_cmd = job_ty.list_cmd
-        # timestamp_str = job_ty.timestamp
         ty_stamp: str = job_ty.ty_stamp
         job_generate = JobGeneratePathFile(ty_code, timestamp_str, list_cmd)
         job_generate.to_do()
         # step 1-3: 将爬取到的台风基础信息入库
-        case_group_ty_path(dt_forecast_start, dt_forecast_end, ty_code, timestamp_str, job_generate.ty_stamp)
+        ty_detail: TyphoonForecastDetailModel = case_ty_detail(dt_forecast_start, dt_forecast_end, ty_code,
+                                                               timestamp_str, job_generate.ty_stamp)
+        # step 1-4: 将生成的 group 集合预报路径 写入 db
+        case_group_ty_path(dt_forecast_start, dt_forecast_end, ty_code, timestamp_str, job_generate.ty_stamp,
+                           celery_id=local_celery_id)
         # ------
 
         # step-2: 执行批处理 调用模型——暂时跳过
         # job_task = JobTaskBatch(ty_code, timestamp_str)
         # job_task.to_do()
         # -----
-        # step 1-4: 处理海洋站
+        # step 3: 处理海洋站 并写入 db
         # 注意 此处的 ty_id 由 case_group_ty_path 处理后创建的一个 ty id
         # TODO:[*] 21-09-09 注意此处的 ty_id 是写死的!
         # ty_stamp: str = 'TY2114_1631259895'
-        case_station(dt_forecast_start, dt_forecast_end, ty_stamp, ty_id=28)
+        case_station(dt_forecast_start, dt_forecast_end, ty_stamp, ty_id=ty_detail.id)
         # # # step-3:
         # # # TODO:[-] + 21-09-02 txt -> nc 目前没问题，需要注意一下当前传入的 时间戳是 yyyymmddHH 的格式，与上面的不同
         # # TODO:[*] 21-09-08 注意此处暂时将 时间戳设置为一个固定值！！注意！！

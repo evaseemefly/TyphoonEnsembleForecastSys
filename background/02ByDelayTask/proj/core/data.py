@@ -8,6 +8,7 @@
 # @Software: PyCharm
 import os
 import re
+import copy
 from abc import ABCMeta, abstractclassmethod, abstractmethod, ABC
 import pathlib
 import pandas as pd
@@ -60,6 +61,23 @@ def get_match_files(re_str: str, dir_path: str = None) -> List[str]:
     return list_files
 
 
+@store_job_rate(job_instance=JobInstanceEnum.STORE_TY_DETAIL, job_rate=35)
+def to_ty_detail(ty_detail: TyphoonForecastDetailModel) -> TyphoonForecastDetailModel:
+    """
+        将 ty_detail 写入 db，并返回写入后的 ty_detail(含 ty_id)
+    @param ty_detail:
+    @return:
+    """
+    session = DbFactory().Session
+    session.add(ty_detail)
+    ty_detail_new: TyphoonForecastDetailModel = copy.copy(ty_detail)
+    # session.expunge(ty_detail)
+
+    session.commit()
+    ty_detail_new.id = ty_detail.id
+    return ty_detail_new
+
+
 @store_job_rate(job_instance=JobInstanceEnum.STORE_GROUP_PATH, job_rate=40)
 def to_ty_group(list_files: List[str], ty_detail: TyphoonForecastDetailModel, **kwargs):
     """
@@ -70,9 +88,9 @@ def to_ty_group(list_files: List[str], ty_detail: TyphoonForecastDetailModel, **
     @return:
     """
     parent_stamp_str: str = kwargs.get('parent_stamp', None)
-    session = DbFactory().Session
-    session.add(ty_detail)
-    session.commit()
+    # session = DbFactory().Session
+    # session.add(ty_detail)
+    # session.commit()
     for file_temp in list_files:
         # eg:  TY1822_2020042710_l5_p05
         # eg2: TY1822_2020042710_c0_p_10
@@ -401,6 +419,7 @@ class GroupTyphoonPath(IBaseOpt):
             try:
                 self.session.add(ty_group_path)
                 self.session.commit()
+
                 # 获取 ty_group_path 的 id
                 if self.dict_data['LIST_TY_REALDATA']:
                     list_ty_realdata: List[TyphoonForecastRealDataModel] = self.dict_data.get('LIST_TY_REALDATA')
