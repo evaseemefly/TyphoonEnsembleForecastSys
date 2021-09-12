@@ -24,7 +24,7 @@ from model.mid_models import GroupTyphoonPathMidModel, TyphoonForecastDetailMidM
     TifProFileMidModel
 from model.models import TyphoonGroupPathModel, TyphoonForecastDetailModel, TyphoonForecastRealDataModel, \
     StationForecastRealDataModel, CoverageInfoModel, ForecastTifModel, ForecastProTifModel
-from common.const import UNLESS_CODE, UNLESS_RANGE
+from common.const import UNLESS_CODE, UNLESS_RANGE, NONE_ID
 from common.common_dict import DICT_STATION
 from common.enum import LayerType
 
@@ -60,19 +60,34 @@ def get_match_files(re_str: str, dir_path: str = None) -> List[str]:
     return list_files
 
 
-@store_job_rate(job_instance=JobInstanceEnum.STORE_GROUP_PATH, job_rate=40)
-def to_ty_group(list_files: List[str], ty_detail: TyphoonForecastDetailModel, **kwargs):
-    """
-
-    @param list_files:
-    @param ty_detail:
-    @param kwargs: parent_stamp: 传入的是 外侧存储目录的 时间戳字符串
-    @return:
-    """
-    parent_stamp_str: str = kwargs.get('parent_stamp', None)
+@store_job_rate(job_instance=JobInstanceEnum.STORE_GROUP_PATH, job_rate=35)
+def to_ty_detail(ty_detail: TyphoonForecastDetailModel, **kwargs) -> TyphoonForecastDetailModel:
+    # ty_id: int = NONE_ID
     session = DbFactory().Session
     session.add(ty_detail)
     session.commit()
+    ty_id: int = NONE_ID if ty_detail.id is None else ty_detail.id
+    ty_detail.id = ty_id
+    return ty_detail
+
+
+@store_job_rate(job_instance=JobInstanceEnum.STORE_GROUP_PATH, job_rate=40)
+def to_ty_group(list_files: List[str], ty_detail: TyphoonForecastDetailModel, **kwargs) -> int:
+    """
+        将 ty基础信息 入库，并将集合路径批量入库
+        返回 ty_id
+    @param list_files:
+    @param ty_detail:
+    @param kwargs: parent_stamp: 传入的是 外侧存储目录的 时间戳字符串
+    @return: 返回 ty_id
+    """
+    ty_id: int = NONE_ID
+    parent_stamp_str: str = kwargs.get('parent_stamp', None)
+    # 以下暂时注释掉
+    # session = DbFactory().Session
+    # session.add(ty_detail)
+    # session.commit()
+    # ty_id = ty_detail.id
     for file_temp in list_files:
         # eg:  TY1822_2020042710_l5_p05
         # eg2: TY1822_2020042710_c0_p_10
@@ -95,6 +110,8 @@ def to_ty_group(list_files: List[str], ty_detail: TyphoonForecastDetailModel, **
             ty_group = GroupTyphoonPath(dir_path, file_name, ts_str)
             ty_group.read_forecast_data(file_name=file_name)
             ty_group.to_store(ty_detail=ty_detail)
+
+    return ty_id
 
 
 @store_job_rate(job_instance=JobInstanceEnum.STORE_FIELD_SURGE, job_rate=80)
