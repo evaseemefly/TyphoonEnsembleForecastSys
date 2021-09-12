@@ -225,7 +225,8 @@ class TyList(BaseView):
         ty_match_query: List[TyphoonForecastDetailModel] = TyphoonForecastDetailModel.objects.filter(
             gmt_start__gte=year_start_arrow.datetime, gmt_end__lte=year_end_arrow.datetime).exclude(
             timestamp=DEFAULT_TIMTSTAMP_STR)
-        ty_match_mids: List[dict] = ty_match_query.values('code', 'timestamp').distinct()
+        # TODO:[-] 21-09-12 只根据 code 进行去重，不需要根据 时间戳去重
+        ty_match_mids: List[dict] = ty_match_query.values('code').distinct()
         # + 21-07-27 因为返回的直接是字典数组所以不必多此一举做序列化了
         # ty_match_mid_list = [
         #     TyphoonContainsCodeAndStMidModel(ty_code=temp.get('code'), timestamp_str=temp.get('timestamp')) for
