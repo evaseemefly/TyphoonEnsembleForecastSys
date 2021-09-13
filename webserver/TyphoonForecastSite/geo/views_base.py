@@ -30,7 +30,7 @@ from common.models import DictBaseModel
 from util.const import DEFAULT_NULL_KEY
 from .models import CoverageInfoModel, ForecastTifModel, ForecastProTifModel
 from TyphoonForecastSite.settings import STORE_OPTIONS, STORE_RELATIVE_PATH_OPTIONS
-from util.exception import NoneError
+from util.customer_exception import NoneError
 from util.enum import LayerTypeEnum
 
 from common.interface import ICheckExisted

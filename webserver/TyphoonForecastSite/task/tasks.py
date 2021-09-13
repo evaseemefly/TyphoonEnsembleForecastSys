@@ -2,7 +2,7 @@ import os
 from celery import Celery
 from others.settings import BROKER_URL
 from util.enum import TaskStateEnum
-from task.models import CaseStatus
+from task.models import CaseStatusModel
 from others.my_celery import app
 from celery import shared_task
 from TyphoonForecastSite.celery import app
@@ -28,6 +28,6 @@ class JobInfo:
         self.celery_id = celery_id
 
     def insert(self, rate: int, status: TaskStateEnum = TaskStateEnum.RUNNING):
-        insert_model = CaseStatus(celery_id=self.celery_id, case_state=status.value, case_rate=rate)
+        insert_model = CaseStatusModel(celery_id=self.celery_id, case_state=status.value, case_rate=rate)
         insert_model.save()
         pass
