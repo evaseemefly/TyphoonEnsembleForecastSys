@@ -22,7 +22,7 @@ from geoalchemy2 import Geometry
 from conf.settings import DATABASES
 from core.db import DbFactory
 
-from common.const import DEFAULT_FK, UNLESS_INDEX, DEFAULT_CODE, DEFAULT_PATH_TYPE, DEFAULT_PRO
+from common.const import DEFAULT_FK, UNLESS_INDEX, NONE_ID, DEFAULT_CODE, DEFAULT_PATH_TYPE, DEFAULT_PRO
 
 engine = DbFactory().engine
 
@@ -201,3 +201,12 @@ class CaseStatus(IDel, IIdModel, IModel):
     case_state = Column(Integer, nullable=False, default=0)
     case_rate = Column(Integer, nullable=False, default=0)
     is_lock = Column(TINYINT(1), nullable=False, default=1)
+
+
+class RelaTyTaskModel(IIdModel):
+    """
+        + 21-09-14  typhoon 与 task 的关联表
+    """
+    __tablename__ = 'rela_ty_task'
+    ty_id = Column(Integer, nullable=False, default=NONE_ID)
+    task_id = Column(Integer, nullable=False, default=NONE_ID)

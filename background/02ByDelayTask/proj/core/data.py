@@ -23,10 +23,11 @@ import rioxarray
 from model.mid_models import GroupTyphoonPathMidModel, TyphoonForecastDetailMidModel, TifFileMidModel, \
     TifProFileMidModel
 from model.models import TyphoonGroupPathModel, TyphoonForecastDetailModel, TyphoonForecastRealDataModel, \
-    StationForecastRealDataModel, CoverageInfoModel, ForecastTifModel, ForecastProTifModel
+    StationForecastRealDataModel, CoverageInfoModel, ForecastTifModel, ForecastProTifModel, RelaTyTaskModel
 from common.const import UNLESS_CODE, UNLESS_RANGE, NONE_ID
 from common.common_dict import DICT_STATION
 from common.enum import LayerType
+from local.globals import get_celery
 
 from util.customer_decorators import log_count_time, store_job_rate
 from common.enum import JobInstanceEnum, TaskStateEnum
@@ -69,6 +70,28 @@ def to_ty_detail(ty_detail: TyphoonForecastDetailModel, **kwargs) -> TyphoonFore
     ty_id: int = NONE_ID if ty_detail.id is None else ty_detail.id
     ty_detail.id = ty_id
     return ty_detail
+
+
+def to_ty_task_rela(ty_id: int, celery_id: int = None, **kwargs) -> bool:
+    """
+        + 21-09-14 写入 ty 与 task 的关联关系
+    @param ty_id:
+    @param celery_id:
+    @param kwargs:
+    @return:
+    """
+    is_ok: bool = False
+    # 获取当前进程的 celery_id
+    celery_id: int = get_celery().celery_id if celery_id is None else celery_id
+    try:
+        session = DbFactory().Session
+        rela_task_ty = RelaTyTaskModel(ty_id=ty_id, celery_id=celery_id)
+        session.add(rela_task_ty)
+        session.commit()
+        is_ok = True
+    except Exception as ex:
+        print(ex.args)
+    return is_ok
 
 
 @store_job_rate(job_instance=JobInstanceEnum.STORE_GROUP_PATH, job_rate=40)
