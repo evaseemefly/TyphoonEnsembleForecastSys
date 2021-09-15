@@ -15,9 +15,12 @@ from util.customer_exception import QueryNoneError
 
 # Create your views here.
 
-class TestView(BaseView):
+class TaskCreateView(BaseView):
     def get(self, request: Request) -> Response:
         my_task.delay('ceshi')
+        pass
+
+    def post(self, request: Request) -> Response:
         pass
 
 
@@ -89,6 +92,3 @@ class TaskRecentDateStatisticsListView(BaseView):
          -3 获取该日的 celery_id 的总数
     """
     pass
-
-
-
