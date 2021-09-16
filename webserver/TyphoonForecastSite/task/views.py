@@ -18,8 +18,8 @@ from util.customer_exception import QueryNoneError
 
 class TaskCreateView(BaseView):
     DeviationRadiusType = NewType('hours', int)
-    MAX_WIND_RADIUS_DIFF: int = 50  # 大风半径(单位KM)
-    MAX_RADIUS: int = 120
+    MAX_WIND_RADIUS_DIFF: int = 50  # 大风半径增减值(可能出现负数-单位KM)
+    MAX_RADIUS: int = 150
     MEMBERS_NUM: int = 160
     MEMBERS_NUM_LIST: List[int] = [5, 25, 45, 65, 85, 105, 125, 145]
 

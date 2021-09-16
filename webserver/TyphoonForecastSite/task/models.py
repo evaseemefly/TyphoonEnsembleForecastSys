@@ -17,3 +17,19 @@ class CaseStatusModel(IModel, IDelModel, IIdModel):
 
     class Meta:
         db_table = 'Task_CaseStatus'
+
+
+class CaseInstanceModel(IModel, IDelModel, IIdModel):
+    """
+        记录作业的详情 model
+    """
+    celery_id = models.CharField(default=UNLESS_CELERY_ID, max_length=100)
+    ty_code = models.CharField(default=DEFAULT_CODE, max_length=100)
+    gmt_commit = models.DateTimeField(default=now)
+    member_num = models.IntegerField(default=-1)  # 成员数
+    max_wind_radius_dif = models.IntegerField(default=-9999)  # 大风半径增减值(可能出现负数)
+    hours = models.IntegerField(default=-1)
+    radius = models.IntegerField(default=-9999)
+
+    class Meta:
+        db_table = 'Task_CaseInstance'
