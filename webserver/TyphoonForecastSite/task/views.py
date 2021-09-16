@@ -1,3 +1,4 @@
+from typing import List, NewType, Dict
 from django.shortcuts import render
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from rest_framework.response import Response
@@ -16,12 +17,58 @@ from util.customer_exception import QueryNoneError
 # Create your views here.
 
 class TaskCreateView(BaseView):
+    DeviationRadiusType = NewType('hours', int)
+    MAX_WIND_RADIUS_DIFF: int = 50  # 大风半径(单位KM)
+    MAX_RADIUS: int = 120
+    MEMBERS_NUM: int = 160
+    MEMBERS_NUM_LIST: List[int] = [5, 25, 45, 65, 85, 105, 125, 145]
+
     def get(self, request: Request) -> Response:
         my_task.delay('ceshi')
         pass
 
     def post(self, request: Request) -> Response:
+        """
+            调用 异步作业系统
+        @param request:
+        @return:
+        """
+        # {'max_wind_radius_diff': 0, 'members_num': 145,
+        #  'deviation_radius_list': [{'hours': 24, 'radius': 60}, {'hours': 48, 'radius': 100},
+        #                            {'hours': 72, 'radius': 120}, {'hours': 96, 'radius': 150}]}
+        post_data: dict = request.data
+        max_wind_radius_diff: int = post_data.get('max_wind_radius_diff')
+        members_num: int = post_data.get('members_num')
+        # eg: [{'hours': 24, 'radius': 60}, {'hours': 48, 'radius': 100},
+        #      {'hours': 72, 'radius': 120}, {'hours': 96, 'radius': 150}]}
+        deviation_radius_list: List[Dict[str, int]] = post_data.get('deviation_radius_list')
+        if self.verify(request):
+            pass
         pass
+
+    def verify(self, request: Request, **kwargs) -> bool:
+        """
+            对于当前提交的 data 进行验证
+        @param request:
+        @param kwargs:
+        @return:
+        """
+        is_verified: bool = False
+        post_data: dict = request.data
+        max_wind_radius_diff: int = post_data.get('max_wind_radius_diff')
+        members_num: int = post_data.get('members_num')
+        # eg: [{'hours': 24, 'radius': 60}, {'hours': 48, 'radius': 100},
+        #      {'hours': 72, 'radius': 120}, {'hours': 96, 'radius': 150}]}
+        deviation_radius_list: List[Dict[str, int]] = post_data.get('deviation_radius_list')
+        if max_wind_radius_diff <= self.MAX_WIND_RADIUS_DIFF and members_num in self.MEMBERS_NUM_LIST:
+            # 倒叙排列
+            deviation_radius_list_sorted_desc = sorted(deviation_radius_list, key=lambda radius: radius.get('radius'),
+                                                       reverse=True)
+            if deviation_radius_list_sorted_desc[0].get('radius') <= self.MAX_RADIUS:
+                # for temp_radius in deviation_radius_list:
+                #     pass
+                is_verified = True
+        return is_verified
 
 
 class TaskRateView(BaseView):
