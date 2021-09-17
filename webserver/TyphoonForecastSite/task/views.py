@@ -1,4 +1,5 @@
 from typing import List, NewType, Dict
+import datetime
 from django.shortcuts import render
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from rest_framework.response import Response
@@ -9,7 +10,7 @@ from rest_framework.decorators import (APIView, api_view,
 from common.view_base import BaseView
 from task.tasks import my_task
 from util.const import UNLESS_ID, UNLESS_CELERY_ID
-from .models import CaseStatusModel
+from .models import CaseStatusModel, CaseInstanceModel
 from .serializers import CaseStatusModelSerializer
 from util.customer_exception import QueryNoneError
 
@@ -69,6 +70,21 @@ class TaskCreateView(BaseView):
                 #     pass
                 is_verified = True
         return is_verified
+
+    def commit(self, request: Request, **kwargs) -> bool:
+        ty_code: str = 'DEFAULT'
+        post_data: dict = request.data
+        max_wind_radius_diff: int = post_data.get('max_wind_radius_diff')
+        members_num: int = post_data.get('members_num')
+        # eg: [{'hours': 24, 'radius': 60}, {'hours': 48, 'radius': 100},
+        #      {'hours': 72, 'radius': 120}, {'hours': 96, 'radius': 150}]}
+        deviation_radius_list: List[Dict[str, int]] = post_data.get('deviation_radius_list')
+        commit_model: CaseInstanceModel = CaseInstanceModel.objects.create(ty_code=ty_code,
+                                                                           gmt_commit=datetime.datetime.utcnow(),
+                                                                           member_num=members_num,
+                                                                           max_wind_radius_dif=max_wind_radius_diff,
+                                                                           json_field=deviation_radius_list)
+        pass
 
 
 class TaskRateView(BaseView):
