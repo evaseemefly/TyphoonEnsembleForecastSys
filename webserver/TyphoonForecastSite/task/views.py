@@ -1,5 +1,6 @@
 from typing import List, NewType, Dict
 import datetime
+import arrow
 from django.shortcuts import render
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from rest_framework.response import Response
@@ -23,6 +24,7 @@ class TaskCreateView(BaseView):
     MAX_RADIUS: int = 150
     MEMBERS_NUM: int = 160
     MEMBERS_NUM_LIST: List[int] = [5, 25, 45, 65, 85, 105, 125, 145]
+    MIN_TIME_DIFF = datetime.timedelta(minutes=1)
 
     def get(self, request: Request) -> Response:
         my_task.delay('ceshi')
@@ -43,9 +45,15 @@ class TaskCreateView(BaseView):
         # eg: [{'hours': 24, 'radius': 60}, {'hours': 48, 'radius': 100},
         #      {'hours': 72, 'radius': 120}, {'hours': 96, 'radius': 150}]}
         deviation_radius_list: List[Dict[str, int]] = post_data.get('deviation_radius_list')
-        if self.verify(request):
+        if self.verify(request) and self.to_idempotence(request):
+            self.commit(request)
+            self._status = 200
+        elif not self.verify(request):
+            self.json_data = '提交数据验证失败'
+        elif not self.to_idempotence(request):
+            self.json_data = '幂等性验证失败'
             pass
-        pass
+        return Response(self.json_data, self._status)
 
     def verify(self, request: Request, **kwargs) -> bool:
         """
@@ -71,6 +79,37 @@ class TaskCreateView(BaseView):
                 is_verified = True
         return is_verified
 
+    def to_idempotence(self, request: Request, **kwargs) -> bool:
+        """
+            根据当前传入的参数进行幂等性判断
+        :param request:
+        :param kwargs:
+        :return:
+        """
+        is_ok: bool = False
+        post_data: dict = request.data
+        ty_code: str = 'DEFAULT'
+        max_wind_radius_diff: int = post_data.get('max_wind_radius_diff')
+        members_num: int = post_data.get('members_num')
+        # eg: [{'hours': 24, 'radius': 60}, {'hours': 48, 'radius': 100},
+        #      {'hours': 72, 'radius': 120}, {'hours': 96, 'radius': 150}]}
+        deviation_radius_list: List[Dict[str, int]] = post_data.get('deviation_radius_list')
+        query = CaseInstanceModel.objects.filter(ty_code=ty_code, max_wind_radius_dif=max_wind_radius_diff,
+                                                 member_num=members_num)
+        if query is not None and len(query) > 0:
+            query_json_field = query.first().json_field
+            if query_json_field != deviation_radius_list:
+                is_ok = True
+            else:
+                # 若存在 有相同 json_field 的，再判断创建的时间是否小于1min
+                # 注意此处的 gmt_created 会包含时区，需要去掉时区信息
+                gmt_created: datetime.datetime = query.first().gmt_modified
+                gmt_created_arrow = arrow.get(gmt_created)
+                utc_now_arrow = arrow.get(datetime.datetime.utcnow())
+                if utc_now_arrow - gmt_created_arrow > self.MIN_TIME_DIFF:
+                    is_ok = True
+        return is_ok
+
     def commit(self, request: Request, **kwargs) -> bool:
         ty_code: str = 'DEFAULT'
         post_data: dict = request.data
@@ -84,6 +123,8 @@ class TaskCreateView(BaseView):
                                                                            member_num=members_num,
                                                                            max_wind_radius_dif=max_wind_radius_diff,
                                                                            json_field=deviation_radius_list)
+        # 提交至 celery
+        return True
         pass
 
 

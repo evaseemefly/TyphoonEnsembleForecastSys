@@ -229,11 +229,17 @@ def to_do_celery():
 def to_do(*args, **kwargs):
     """
         step-1: 爬取 指定台风编号的台风并持久化保存
+
         step 1-2: 生成 pathfile 与 批处理文件
+
         step 1-3: 将爬取到的台风基础信息入库 + 21-09-12 (将处理 ty_detail 与 ty_group_path 拆分)
+
         step 1-4: 将生成的 grouppath 批量入库  + 21-09-12 (将处理 ty_detail 与 ty_group_path 拆分)
+
         step-2: 执行批处理 调用模型——暂时跳过
+
         step-3: 处理海洋站
+
         step-4: 生成 pro 与 field nc文件，并转成tiff
 
     @param args:
