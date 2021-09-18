@@ -242,13 +242,30 @@ def to_do(*args, **kwargs):
 
         step-4: 生成 pro 与 field nc文件，并转成tiff
 
+        + 21-09-18：
+            eg: kwargs:
+                {'ty_code': 'DEFAULT',
+                'max_wind_radius_diff': 0,
+                'members_num': 145,
+                'deviation_radius_list':
+                    [{'hours': 96, 'radius': 150},
+                    {'hours': 72, 'radius': 120},
+                    {'hours': 48, 'radius': 100},
+                    {'hours': 24, 'radius': 60}]
+                }
+
     @param args:
     @param kwargs:
     @return:
     """
     # step-1: 爬取 指定台风编号的台风
     is_debug: bool = True
-    ty_code: str = '2114' if is_debug else kwargs.get('celery_id', None)
+    # + 21-09-18 获取传过来的提交参数
+    post_data: dict = kwargs
+    ty_code: str = '2114' if is_debug else post_data.get('ty_code', None)
+    post_data_max_wind_radius_diff: int = post_data.get('max_wind_radius_diff')
+    post_data_members_num: int = post_data.get('members_num')
+    post_data_deviation_radius_list: List[any] = post_data.get('deviation_radius_list')
     # ty_code: str = '2114'
     if ty_code is None:
         return
@@ -265,7 +282,9 @@ def to_do(*args, **kwargs):
         list_cmd = job_ty.list_cmd
         # ty_stamp: str = job_ty.ty_stamp
         job_generate = JobGeneratePathFile(ty_code, timestamp_str, list_cmd)
-        job_generate.to_do()
+        # + 21-09-18 此处修改为传入的参数为动态的，有 celery 传入
+        job_generate.to_do(max_wind_radius_diff=post_data_max_wind_radius_diff, members_num=post_data_members_num,
+                           deviation_radius_list=post_data_deviation_radius_list)
         # step 1-3: 将爬取到的台风基础信息入库
         ty_detail: TyphoonForecastDetailModel = case_ty_detail(dt_forecast_start, dt_forecast_end, ty_code,
                                                                timestamp_str,

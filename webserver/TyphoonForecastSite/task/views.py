@@ -1,6 +1,7 @@
 from typing import List, NewType, Dict
 import datetime
 import arrow
+from celery import Celery
 from django.shortcuts import render
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from rest_framework.response import Response
@@ -25,6 +26,8 @@ class TaskCreateView(BaseView):
     MEMBERS_NUM: int = 160
     MEMBERS_NUM_LIST: List[int] = [5, 25, 45, 65, 85, 105, 125, 145]
     MIN_TIME_DIFF = datetime.timedelta(minutes=1)
+    CELERY_TASK_NAME = 'surge_group_ty'
+    celery: Celery = Celery()
 
     def get(self, request: Request) -> Response:
         my_task.delay('ceshi')
@@ -40,13 +43,14 @@ class TaskCreateView(BaseView):
         #  'deviation_radius_list': [{'hours': 24, 'radius': 60}, {'hours': 48, 'radius': 100},
         #                            {'hours': 72, 'radius': 120}, {'hours': 96, 'radius': 150}]}
         post_data: dict = request.data
+        is_debug: bool = post_data.get('is_debug', True)
         max_wind_radius_diff: int = post_data.get('max_wind_radius_diff')
         members_num: int = post_data.get('members_num')
         # eg: [{'hours': 24, 'radius': 60}, {'hours': 48, 'radius': 100},
         #      {'hours': 72, 'radius': 120}, {'hours': 96, 'radius': 150}]}
         deviation_radius_list: List[Dict[str, int]] = post_data.get('deviation_radius_list')
         if self.verify(request) and self.to_idempotence(request):
-            self.commit(request)
+            self.commit(request, is_debug)
             self._status = 200
         elif not self.verify(request):
             self.json_data = '提交数据验证失败'
@@ -108,9 +112,11 @@ class TaskCreateView(BaseView):
                 utc_now_arrow = arrow.get(datetime.datetime.utcnow())
                 if utc_now_arrow - gmt_created_arrow > self.MIN_TIME_DIFF:
                     is_ok = True
+        elif query is not None and len(query) == 0:
+            is_ok = True
         return is_ok
 
-    def commit(self, request: Request, **kwargs) -> bool:
+    def commit(self, request: Request, is_debug: bool = True, **kwargs) -> bool:
         ty_code: str = 'DEFAULT'
         post_data: dict = request.data
         max_wind_radius_diff: int = post_data.get('max_wind_radius_diff')
@@ -124,8 +130,10 @@ class TaskCreateView(BaseView):
                                                                            max_wind_radius_dif=max_wind_radius_diff,
                                                                            json_field=deviation_radius_list)
         # 提交至 celery
+        params_obj = {'ty_code': ty_code, 'max_wind_radius_diff': max_wind_radius_diff, 'members_num': members_num,
+                      'deviation_radius_list': deviation_radius_list}
+        res = self.celery.send_task(self.CELERY_TASK_NAME, args=[params_obj, '123', 19], kwargs=params_obj)
         return True
-        pass
 
 
 class TaskRateView(BaseView):

@@ -231,7 +231,22 @@ class JobGetTyDetail(IBaseJob):
 
         return list_dt_range
 
-    def to_do(self, **kwargs):
+    def to_do(self,list_customer_cma:List[any]=[], **kwargs):
+        """
+            + 21-09-18
+                此处加入了 可选参数 list_customer_cma 传入自定义的 台风路径信息
+                # eg: ['TY2112_2021090116_CMA_original',
+                        ['2021082314', '2021082320'],
+                        ['125.3', '126.6'],
+                        ['31.3', '33.8'],
+                         ['998', '998'],
+                         ['15', '15'],
+                         '2112',
+                         'OMAIS']
+        @param list_customer_cma:
+        @param kwargs:
+        @return:
+        """
         # eg: ['TY2112_2021090116_CMA_original', ['2021082314', '2021082320'], ['125.3', '126.6'], ['31.3', '33.8'], ['998', '998'], ['15', '15'], '2112', 'OMAIS']
         # 是一个嵌套数组
         # list[0] TY2112_2021090116_CMA_original 是具体的编号
@@ -240,7 +255,11 @@ class JobGetTyDetail(IBaseJob):
         # list[3] ['31.3', '33.8']   维度
         # list[4] ['998', '998']     气压
         # list[5] ['15', '15']       暂时不用
-        list_cmd = self.get_typath_cma(SHARED_PATH, self.ty_code)
+        list_cmd:List[any]=[]
+        if len(list_customer_cma)>0:
+            list_cmd=list_customer_cma
+        else:
+            list_cmd = self.get_typath_cma(SHARED_PATH, self.ty_code)
         self.list_cmd = list_cmd
         # list_lon = list_cmd[2]
         # list_lat = list_cmd[3]
@@ -764,17 +783,35 @@ class JobGeneratePathFile(IBaseJob):
         # list_cmd=kwargs.get('list_cmd')
         # 此部分代码之前放在外侧，我移动至main函数内部调用
         now_utc_str = arrow.utcnow().timestamp
-        dR = 0  # 大风半径增减值
-        r01 = 60
-        r02 = 100
-        r03 = 120
-        r04 = 150
-        r05 = 180
-        pNum = 145
+        # TODO:[-] 21-09-18 将参数改为动态的
+        # dR = 0  # 大风半径增减值
+        # r01 = 60
+        # r02 = 100
+        # r03 = 120
+        # r04 = 150
+        # r05 = 180
+        # pNum = 145
+        dR = kwargs.get('max_wind_radius_diff')  # 大风半径增减值
+        # 'deviation_radius_list':
+        #    [{'hours': 96, 'radius': 150},
+        #    {'hours': 72, 'radius': 120},
+        #    {'hours': 48, 'radius': 100},
+        #    {'hours': 24, 'radius': 60}]
+        deviation_radius_list:List[any]=kwargs.get('deviation_radius_list')
+        list_radius:List[int]=[]
+        for temp_radius in deviation_radius_list:
+            list_radius.append(temp_radius.get('radius'))
+        # eg: : [60, 100, 120, 150]
+        list_radius=sorted(list_radius)
+        # r01 = 60
+        # r02 = 100
+        # r03 = 120
+        # r04 = 150
+        # r05 = 180
+        pNum = kwargs.get('members_num')
         hrs1, tlon1, tlat1, pres1 = self.interp6h(self.list_timeDiff, self.list_lons, self.list_lats, self.list_bp)
         # ['TYTD03_2020042710_c0_p00', 'TYTD03_2020042710_c0_p05', 'TYTD03_2020042710_c0_p10',...]
-        filename_list = self.gen_typathfile(SHARED_PATH, self.forecast_start_dt, dR, self.ty_stamp, r01, r02, r03, r04,
-                                            r05, pNum,
+        filename_list = self.gen_typathfile(SHARED_PATH, self.forecast_start_dt, dR, self.ty_stamp,list_radius, pNum,
                                             tlon1,
                                             tlat1, pres1)
         self.output_controlfile(SHARED_PATH, filename_list)
@@ -859,9 +896,10 @@ class JobGeneratePathFile(IBaseJob):
 
     # west=102,east=140,south=8,north=32 r01=60; r02=100; r03=120; r04=150; r05=180
     @store_job_rate(job_instance=JobInstanceEnum.GEN_PATH_FILES, job_rate=20)
-    def gen_typathfile(self, wdir0, st, dR, caseno, r01, r02, r03, r04, r05, pnum, tlon1, tlat1, pres1):
+    def gen_typathfile(self, wdir0, st, dR, caseno, list_radius, pnum, tlon1, tlat1, pres1):
         '''
             生成 file name 集合
+            - 21-09-18 将 r01 - r05 的参数去掉，替换为可变长度的 list_radius
         :param wdir0: 存储根目录
         :param st:     预报的起始时间 datetime.datetime
         :param dR:     大风半径的增减值
@@ -891,7 +929,10 @@ class JobGeneratePathFile(IBaseJob):
         minsp = 12
         coef = 0.7
 
-        rrs = np.array([0, r01, r02, r03, r04, r05])
+        list_radius:List[int]=[0]+list_radius
+        # TODO:[-] 21-09-18 此处将半径修改为动态数组
+        # rrs = np.array([0, r01, r02, r03, r04, r05])
+        rrs = np.array(list_radius)
         x = np.arange(0, 120 + 24, 24)
         x2 = np.arange(0, 120 + 6, 6)
         rrmat = np.zeros((nrr, len(x) - 1))
