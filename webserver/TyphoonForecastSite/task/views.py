@@ -36,21 +36,38 @@ class TaskCreateView(BaseView):
     def post(self, request: Request) -> Response:
         """
             调用 异步作业系统
+            eg: post data:
+                {'ty_code': '2109',
+                'is_customer_ty': False,
+                'customer_ty_cma_list': [
+                            {'forecastDt': '2021-09-04T06:00:00.000Z',
+                            'lat': 115.7,
+                            'lon': 21.5,
+                            'bp': 990,
+                            'radius': 80},....],
+                'max_wind_radius_diff': 0,
+                'members_num': 145,
+                'deviation_radius_list': [
+                            {'hours': 24, 'radius': 60},....]}
         @param request:
         @return:
         """
-        # {'max_wind_radius_diff': 0, 'members_num': 145,
-        #  'deviation_radius_list': [{'hours': 24, 'radius': 60}, {'hours': 48, 'radius': 100},
-        #                            {'hours': 72, 'radius': 120}, {'hours': 96, 'radius': 150}]}
         post_data: dict = request.data
         is_debug: bool = post_data.get('is_debug', True)
+        is_customer_ty: bool = post_data.get('is_customer_ty')
+        ty_customer_cma = {}
+        if is_customer_ty:
+            ty_customer_cma = {
+                'ty_code': post_data.get('ty_code'),
+                'customer_ty_cma_list': post_data.get('customer_ty_cma_list')
+            }
         max_wind_radius_diff: int = post_data.get('max_wind_radius_diff')
         members_num: int = post_data.get('members_num')
         # eg: [{'hours': 24, 'radius': 60}, {'hours': 48, 'radius': 100},
         #      {'hours': 72, 'radius': 120}, {'hours': 96, 'radius': 150}]}
         deviation_radius_list: List[Dict[str, int]] = post_data.get('deviation_radius_list')
         if self.verify(request) and self.to_idempotence(request):
-            self.commit(request, is_debug)
+            self.commit(request, is_debug, is_customer_ty=is_customer_ty, ty_customer_cma=ty_customer_cma)
             self._status = 200
         elif not self.verify(request):
             self.json_data = '提交数据验证失败'
@@ -121,6 +138,8 @@ class TaskCreateView(BaseView):
         post_data: dict = request.data
         max_wind_radius_diff: int = post_data.get('max_wind_radius_diff')
         members_num: int = post_data.get('members_num')
+        is_customer_ty: bool = kwargs.get('is_customer_ty')
+        ty_customer_cma: any = kwargs.get('ty_customer_cma')
         # eg: [{'hours': 24, 'radius': 60}, {'hours': 48, 'radius': 100},
         #      {'hours': 72, 'radius': 120}, {'hours': 96, 'radius': 150}]}
         deviation_radius_list: List[Dict[str, int]] = post_data.get('deviation_radius_list')
@@ -131,7 +150,8 @@ class TaskCreateView(BaseView):
                                                                            json_field=deviation_radius_list)
         # 提交至 celery
         params_obj = {'ty_code': ty_code, 'max_wind_radius_diff': max_wind_radius_diff, 'members_num': members_num,
-                      'deviation_radius_list': deviation_radius_list}
+                      'deviation_radius_list': deviation_radius_list, 'is_customer_ty': is_customer_ty,
+                      'ty_customer_cma': ty_customer_cma}
         res = self.celery.send_task(self.CELERY_TASK_NAME, args=[params_obj, '123', 19], kwargs=params_obj)
         return True
 
