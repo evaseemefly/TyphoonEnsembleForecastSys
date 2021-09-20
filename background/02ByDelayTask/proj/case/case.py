@@ -266,12 +266,16 @@ def to_do(*args, **kwargs):
     post_data_max_wind_radius_diff: int = post_data.get('max_wind_radius_diff')
     post_data_members_num: int = post_data.get('members_num')
     post_data_deviation_radius_list: List[any] = post_data.get('deviation_radius_list')
+    is_customer_ty: bool = post_data.get('is_customer_ty', False)
+    ty_customer_cma: List[any] = []
+    if is_customer_ty:
+        ty_customer_cma = post_data.get('ty_customer_cma', [])
     # ty_code: str = '2114'
     if ty_code is None:
         return
 
     job_ty = JobGetTyDetail(ty_code)
-    job_ty.to_do()
+    job_ty.to_do(list_customer_cma=ty_customer_cma)
     if len(job_ty.list_cmd) == 0:
         return
     if len(job_ty.list_cmd) > 0:
