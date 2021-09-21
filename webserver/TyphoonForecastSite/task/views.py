@@ -135,12 +135,23 @@ class TaskCreateView(BaseView):
 
     def commit(self, request: Request, is_debug: bool = True, **kwargs) -> bool:
 
+        # step -1 : 将命名参数提取出来
         post_data: dict = request.data
         ty_code: str = post_data.get('ty_code')
         max_wind_radius_diff: int = post_data.get('max_wind_radius_diff')
         members_num: int = post_data.get('members_num')
         is_customer_ty: bool = kwargs.get('is_customer_ty')
-        ty_customer_cma: any = kwargs.get('ty_customer_cma')
+        # {'ty_code': '2109',
+        #  'customer_ty_cma_list':
+        #      [{'forecastDt': '2021-09-04T06:00:00.000Z',
+        #        'lat': 115.7,
+        #        'lon': 21.5,
+        #        'bp': 990},...]
+        #  }
+        ty_customer_cma: dict = kwargs.get('ty_customer_cma')
+        ty_customer_list: List[dict] = ty_customer_cma.get('customer_ty_cma_list')
+        # step -2 : 对 model 进行转换 convert
+        list_customer_cma: List[List[any]] = self._convert_ty_customer_cma(ty_customer_list)
 
         # eg: [{'hours': 24, 'radius': 60}, {'hours': 48, 'radius': 100},
         #      {'hours': 72, 'radius': 120}, {'hours': 96, 'radius': 150}]}
@@ -160,7 +171,7 @@ class TaskCreateView(BaseView):
         # 提交至 celery
         params_obj = {'ty_code': ty_code, 'max_wind_radius_diff': max_wind_radius_diff, 'members_num': members_num,
                       'deviation_radius_list': deviation_radius_list, 'is_customer_ty': is_customer_ty,
-                      'ty_customer_cma': ty_customer_cma}
+                      'ty_customer_cma': list_customer_cma}
         res = self.celery.send_task(self.CELERY_TASK_NAME, args=[params_obj, '123', 19], kwargs=params_obj)
         return True
 
@@ -189,7 +200,10 @@ class TaskCreateView(BaseView):
         list_lon: List[str] = []
         list_bp: List[str] = []
         # list_radius: List[str] = []
+        # TODO:[-] 21-09-21 可以使用别的办法实现，不需要手动写
         for temp_customer_cma in list_customer_cma:
+            # eg: temp_customer_cma : {'forecastDt': '2021-09-04T06:00:00.000Z', 'lat': 115.7, 'lon': 21.5, 'bp': 990}
+            # step -1 : convert dt
             dt_str: str = temp_customer_cma.get('forecastDt')
             arrow_utc = arrow.get(dt_str)
             # utc -> local
@@ -198,7 +212,17 @@ class TaskCreateView(BaseView):
             dt_local_str: str = arrow_local.format('YYYYMMDDHH')
             list_dt.append(dt_local_str)
             # list_dt.append(temp_customer_cma.get(''))
-        pass
+            # step -2 : convert lat
+            temp_lat: float = temp_customer_cma.get('lat')
+            list_lat.append(str(temp_lat))
+            # step -3 : convert lon
+            temp_lon: float = temp_customer_cma.get('lon')
+            list_lon.append(str(temp_lon))
+            # step -4 : convert bp
+            temp_bp: float = temp_customer_cma.get('bp')
+            list_bp.append(str(temp_bp))
+        list_res = ['', list_dt, list_lon, list_lat, list_bp, []]
+        return list_res
 
 
 class TaskRateView(BaseView):

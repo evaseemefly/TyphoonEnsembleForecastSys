@@ -231,7 +231,7 @@ class JobGetTyDetail(IBaseJob):
 
         return list_dt_range
 
-    def to_do(self,list_customer_cma:List[any]=[], **kwargs):
+    def to_do(self, list_customer_cma=None, **kwargs):
         """
             + 21-09-18
                 此处加入了 可选参数 list_customer_cma 传入自定义的 台风路径信息
@@ -255,9 +255,11 @@ class JobGetTyDetail(IBaseJob):
         # list[3] ['31.3', '33.8']   维度
         # list[4] ['998', '998']     气压
         # list[5] ['15', '15']       暂时不用
-        list_cmd:List[any]=[]
-        if len(list_customer_cma)>0:
-            list_cmd=list_customer_cma
+        if list_customer_cma is None:
+            list_customer_cma = []
+        list_cmd: List[any] = []
+        if len(list_customer_cma) > 0:
+            list_cmd = list_customer_cma
         else:
             list_cmd = self.get_typath_cma(SHARED_PATH, self.ty_code)
         self.list_cmd = list_cmd
@@ -452,6 +454,8 @@ class JobGetTyDetail(IBaseJob):
                         if kk == 1:
                             break  # 保证找到一条最新的预报结果后退出
         return outcma
+
+
 
     def _parse_info(self, list, time_issu):
         result = []
@@ -797,12 +801,12 @@ class JobGeneratePathFile(IBaseJob):
         #    {'hours': 72, 'radius': 120},
         #    {'hours': 48, 'radius': 100},
         #    {'hours': 24, 'radius': 60}]
-        deviation_radius_list:List[any]=kwargs.get('deviation_radius_list')
-        list_radius:List[int]=[]
+        deviation_radius_list: List[any] = kwargs.get('deviation_radius_list')
+        list_radius: List[int] = []
         for temp_radius in deviation_radius_list:
             list_radius.append(temp_radius.get('radius'))
         # eg: : [60, 100, 120, 150]
-        list_radius=sorted(list_radius)
+        list_radius = sorted(list_radius)
         # r01 = 60
         # r02 = 100
         # r03 = 120
@@ -811,7 +815,7 @@ class JobGeneratePathFile(IBaseJob):
         pNum = kwargs.get('members_num')
         hrs1, tlon1, tlat1, pres1 = self.interp6h(self.list_timeDiff, self.list_lons, self.list_lats, self.list_bp)
         # ['TYTD03_2020042710_c0_p00', 'TYTD03_2020042710_c0_p05', 'TYTD03_2020042710_c0_p10',...]
-        filename_list = self.gen_typathfile(SHARED_PATH, self.forecast_start_dt, dR, self.ty_stamp,list_radius, pNum,
+        filename_list = self.gen_typathfile(SHARED_PATH, self.forecast_start_dt, dR, self.ty_stamp, list_radius, pNum,
                                             tlon1,
                                             tlat1, pres1)
         self.output_controlfile(SHARED_PATH, filename_list)
@@ -929,7 +933,7 @@ class JobGeneratePathFile(IBaseJob):
         minsp = 12
         coef = 0.7
 
-        list_radius:List[int]=[0]+list_radius
+        list_radius: List[int] = [0] + list_radius
         # TODO:[-] 21-09-18 此处将半径修改为动态数组
         # rrs = np.array([0, r01, r02, r03, r04, r05])
         rrs = np.array(list_radius)
@@ -937,6 +941,8 @@ class JobGeneratePathFile(IBaseJob):
         x2 = np.arange(0, 120 + 6, 6)
         rrmat = np.zeros((nrr, len(x) - 1))
         rrmat6 = np.zeros((nrr, len(x2) - 1))
+        # TODO:[*] 21-09-21 customer 提交 ty_info 后出现错误，以上的 [0,r01 -> r05] 一共应该为6个数
+        # ERROR: ValueError: x and y arrays must be equal in length along interpolation axis.
         fr = interpolate.interp1d(x, rrs, kind="slinear")
         rrs6 = np.round(fr(x2))
         rrmat[0, :] = rrs[1:]
