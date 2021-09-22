@@ -90,9 +90,9 @@ DATABASES = {
         # mac
         'USER': 'root',  # 账号
         # 7530,mac
-        # 'PASSWORD': '12345678',
+        'PASSWORD': '12345678',
         # 5820,p52s,p500,razer
-        'PASSWORD': '123456',
+        # 'PASSWORD': '123456',
         # by cwb
         # 'USER': 'root',  # 账号
         # 'PASSWORD': '123456',
@@ -184,9 +184,9 @@ GDAL_LIBRARY_PATH = r'C:\Users\evase\Anaconda3\envs\new_oil_gdal\Library\bin\gda
 # TODO:[-] 21-08-31 celery 相关配置
 
 # 使用RabbitMQ作为消息代理
-CELERY_BROKER_URL = f'amqp://guest:guest@localhost:5672/'
+# CELERY_BROKER_URL = f'amqp://guest:guest@localhost:5672/'
 # 把任务结果存在了Redis
-# CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
+CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
 # 任务序列化和反序列化使用JSON方案
 CELERY_TASK_SERIALIZER = 'pickle'
 # 读取任务结果使用JSON

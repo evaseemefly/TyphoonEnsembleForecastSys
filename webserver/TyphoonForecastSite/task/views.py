@@ -2,6 +2,7 @@ from typing import List, NewType, Dict
 import datetime
 import arrow
 from celery import Celery
+from TyphoonForecastSite.celery import app
 from django.shortcuts import render
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from rest_framework.response import Response
@@ -28,6 +29,7 @@ class TaskCreateView(BaseView):
     MIN_TIME_DIFF = datetime.timedelta(minutes=1)
     CELERY_TASK_NAME = 'surge_group_ty'
     celery: Celery = Celery()
+    # celery: Celery = app
 
     def get(self, request: Request) -> Response:
         my_task.delay('ceshi')
