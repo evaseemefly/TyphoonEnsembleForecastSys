@@ -67,7 +67,7 @@ class IBaseJob(metaclass=ABCMeta):
         @return:
         """
         result_place: str = 'result'
-        return str(pathlib.Path(self.parent_path) / self.ty_stamp / result_place)
+        return str(pathlib.Path(self.parent_path) / result_place / self.ty_stamp)
         # pass
 
     @property
@@ -99,7 +99,7 @@ class IBaseJob(metaclass=ABCMeta):
         @return:
         """
         pathfiles_place: str = 'pathfiles'
-        return str(pathlib.Path(self.parent_path) / self.ty_stamp / pathfiles_place)
+        return str(pathlib.Path(self.parent_path) / pathfiles_place / self.ty_stamp)
 
     @property
     def path_pathfiles_full(self) -> str:

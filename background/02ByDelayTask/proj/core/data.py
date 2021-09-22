@@ -479,7 +479,7 @@ class GroupTyphoonPath(IBaseOpt):
         # final_path_str = str(pathlib.Path(self.root_path) / self.relative_path / 'GROUP')
         # TODO:[-] 21-09-03 注意存储的路径为:
         # E:\05DATA\01nginx_data\nmefc_download\TY_GROUP_RESULT\TY2112_1630655410\pathfiles
-        final_path_str = str(pathlib.Path(self.root_path) / self.relative_path / 'pathfiles')
+        final_path_str = str(pathlib.Path(self.root_path) / 'pathfiles' / self.relative_path)
         return final_path_str
 
     @property
@@ -784,7 +784,7 @@ class StationRealDataFile(ITyphoonPath):
         """
         # TODO:[-] 21-07-27 此处使用明杰的目录结构
         # final_path_str = str(pathlib.Path(self.root_path) / self.relative_path / 'STATION')
-        final_path_str = str(pathlib.Path(self.root_path) / self.relative_path / 'result')
+        final_path_str = str(pathlib.Path(self.root_path) / 'result' / self.relative_path)
         return final_path_str
 
     def read_forecast_data(self, **kwargs):
