@@ -151,7 +151,7 @@ class TaskCreateView(BaseView):
         ty_customer_cma: dict = kwargs.get('ty_customer_cma')
         ty_customer_list: List[dict] = ty_customer_cma.get('customer_ty_cma_list')
         # step -2 : 对 model 进行转换 convert
-        list_customer_cma: List[List[any]] = self._convert_ty_customer_cma(ty_customer_list)
+        list_customer_cma: List[List[any]] = self._convert_ty_customer_cma(ty_customer_list) if is_customer_ty else []
 
         # eg: [{'hours': 24, 'radius': 60}, {'hours': 48, 'radius': 100},
         #      {'hours': 72, 'radius': 120}, {'hours': 96, 'radius': 150}]}
@@ -212,12 +212,14 @@ class TaskCreateView(BaseView):
             dt_local_str: str = arrow_local.format('YYYYMMDDHH')
             list_dt.append(dt_local_str)
             # list_dt.append(temp_customer_cma.get(''))
-            # step -2 : convert lat
-            temp_lat: float = temp_customer_cma.get('lat')
-            list_lat.append(str(temp_lat))
-            # step -3 : convert lon
+            # TODO:[-] 21-09-22 !注意此处要注意顺序，list[2] 为 lon 经度 ,list[3] 为 lat 纬度,切记!
+            # step -2 : convert lon
             temp_lon: float = temp_customer_cma.get('lon')
             list_lon.append(str(temp_lon))
+            # step -3 : convert lat
+            temp_lat: float = temp_customer_cma.get('lat')
+            list_lat.append(str(temp_lat))
+
             # step -4 : convert bp
             temp_bp: float = temp_customer_cma.get('bp')
             list_bp.append(str(temp_bp))

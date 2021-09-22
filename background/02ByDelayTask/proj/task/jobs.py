@@ -11,7 +11,7 @@ import numpy as np
 from math import *
 from scipy import interpolate
 from netCDF4 import Dataset
-# from geographiclib.geodesic import Geodesic
+from geographiclib.geodesic import Geodesic
 # TODO:[-] 建议以后均使用 pathlib 模块来进行 path相关的操作
 import pathlib
 from datetime import timedelta, datetime
@@ -775,9 +775,7 @@ class JobGetCustomerTyDetail(JobGetTyDetail):
             list_customer_cma = []
         list_cmd: List[any] = []
         if len(list_customer_cma) > 0:
-            list_cmd = list_customer_cma
-        else:
-            list_cmd = self.get_typath_cma(SHARED_PATH, self.ty_code)
+            list_cmd = self.get_typath_cma(SHARED_PATH, self.ty_code, list_cma=list_customer_cma)
         self.list_cmd = list_cmd
 
     @store_job_rate(job_instance=JobInstanceEnum.GET_TY_DETAIL, job_rate=10)
@@ -1098,6 +1096,7 @@ class JobGeneratePathFile(IBaseJob):
                 geodict = Geodesic.WGS84.Inverse(tlat1[j], tlon1[j], tlat1[j + 1], tlon1[j + 1])
                 dista.append(geodict['s12'] / 1000)
                 angle.append(geodict['azi1'] + 360)
+                # TODO:[*] 21-09-22 ERROR: ValueError: cannot convert float NaN to integer
                 spd0.append(round(dista[j] / 6))
                 if spd0[j] < minsp:
                     rrmat6[r, j] = round(rrmat6[r, j] * coef)

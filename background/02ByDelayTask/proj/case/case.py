@@ -259,7 +259,7 @@ def to_do(*args, **kwargs):
     @return:
     """
     # step-1: 爬取 指定台风编号的台风
-    is_debug: bool = True
+    is_debug: bool = False
     is_break: bool = False
     if is_break:
         return
@@ -293,8 +293,8 @@ def to_do(*args, **kwargs):
     if is_customer_ty:
         # 注意传入的 list 为 6位，需要手动添加一个 None 至末尾
         ty_customer_cma = post_data.get('ty_customer_cma', [])
-        ty_customer_cma.append(ty_code)
-        ty_customer_cma.append(None)
+        # ty_customer_cma.append(ty_code)
+        # ty_customer_cma.append(None)
     # ty_code: str = '2114'
     if ty_code is None:
         return
