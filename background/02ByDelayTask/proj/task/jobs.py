@@ -1185,7 +1185,8 @@ class JobGeneratePathFile(IBaseJob):
         :param filename:
         :return:
         """
-        fi = open(wdir0 + 'sz_start_gpu_model.sh', 'w+')
+        file_full_path: str = str(pathlib.Path(wdir0) / 'sz_start_gpu_model.sh')
+        fi = open(file_full_path, 'w+')
         fi.write('#! /bin/bash' + '\n')
         fi.write('wdir="/home/limingjie/szsurge"\n')
         fi.write('cd $wdir' + '\n')
