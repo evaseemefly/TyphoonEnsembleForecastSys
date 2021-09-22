@@ -16,7 +16,7 @@ from sqlalchemy import ForeignKey, Sequence, MetaData, Table
 from sqlalchemy.orm import relationship, sessionmaker
 from datetime import datetime
 # geoalchemy2 相关y
-from geoalchemy2 import Geometry
+# from geoalchemy2 import Geometry
 
 # 项目配置
 from conf.settings import DATABASES

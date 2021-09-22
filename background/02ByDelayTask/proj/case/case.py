@@ -6,7 +6,7 @@
 # @Site    :
 # @File    : case.py
 # @Software: PyCharm
-from typing import List
+from typing import List, Union
 import pathlib
 from datetime import datetime, timedelta
 from core.data import GroupTyphoonPath, get_match_files, to_ty_group, to_station_realdata, get_gp, to_ty_field_surge, \
@@ -15,7 +15,7 @@ from model.models import TyphoonForecastDetailModel
 from core.file import StationSurgeRealDataFile
 from common.enum import ForecastOrganizationEnum, TyphoonForecastSourceEnum
 from common.const import UNLESS_INDEX, UNLESS_ID_STR, NONE_ID
-from task.jobs import JobGetTyDetail, JobGeneratePathFile, JobTxt2Nc, JobTxt2NcPro, JobTaskBatch
+from task.jobs import JobGetTyDetail, JobGetCustomerTyDetail, JobGeneratePathFile, JobTxt2Nc, JobTxt2NcPro, JobTaskBatch
 from conf.settings import TEST_ENV_SETTINGS
 from local.globals import get_celery
 from task.celery import app
@@ -298,7 +298,12 @@ def to_do(*args, **kwargs):
     # ty_code: str = '2114'
     if ty_code is None:
         return
-    job_ty = JobGetTyDetail(ty_code)
+    job_ty: Union[JobGetTyDetail, JobGetCustomerTyDetail] = None
+    if is_customer_ty:
+        job_ty = JobGetCustomerTyDetail(ty_code)
+        pass
+    else:
+        job_ty = JobGetTyDetail(ty_code)
     job_ty.to_do(list_customer_cma=ty_customer_cma)
     if len(job_ty.list_cmd) == 0:
         return

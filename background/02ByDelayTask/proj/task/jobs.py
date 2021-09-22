@@ -11,7 +11,7 @@ import numpy as np
 from math import *
 from scipy import interpolate
 from netCDF4 import Dataset
-from geographiclib.geodesic import Geodesic
+# from geographiclib.geodesic import Geodesic
 # TODO:[-] 建议以后均使用 pathlib 模块来进行 path相关的操作
 import pathlib
 from datetime import timedelta, datetime
@@ -779,7 +779,6 @@ class JobGetCustomerTyDetail(JobGetTyDetail):
         else:
             list_cmd = self.get_typath_cma(SHARED_PATH, self.ty_code)
         self.list_cmd = list_cmd
-        pass
 
     @store_job_rate(job_instance=JobInstanceEnum.GET_TY_DETAIL, job_rate=10)
     def get_typath_cma(self, wdir0: str, tyno: str, **kwargs):
