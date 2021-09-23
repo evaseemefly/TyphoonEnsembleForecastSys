@@ -11,8 +11,8 @@
 TEST_ENV_SETTINGS = {
     # 'TY_GROUP_PATH_ROOT_DIR': r'E:\02data\03typhoon',  # win
     # 'TY_GROUP_PATH_ROOT_DIR': r'E:\02data\05docker-data\docker-shared\ty_docker',  # P5750
-    # 'TY_GROUP_PATH_ROOT_DIR': r'E:\05DATA\01nginx_data\nmefc_download\TY_GROUP_RESULT',  # T7920
-    'TY_GROUP_PATH_ROOT_DIR': r'/Users/evaseemefly/04data/01nginx_data/nmefc_download/TY_GROUP_RESULT',  # mac-m1
+    'TY_GROUP_PATH_ROOT_DIR': r'E:\05DATA\01nginx_data\nmefc_download\TY_GROUP_RESULT',  # T7920
+    # 'TY_GROUP_PATH_ROOT_DIR': r'/Users/evaseemefly/04data/01nginx_data/nmefc_download/TY_GROUP_RESULT',  # mac-m1
     # + 21-08-02 数据处理统一在 nginx 目录下
     # 'TY_GROUP_PATH_ROOT_DIR': r'D:\03nginx_data\nmefc_download\TY_GROUP_RESULT',  # p5750
     # 'TY_GROUP_PATH_ROOT_DIR': r'F:\03nginx_data\nmefc_download\TY_GROUP_RESULT',  # 7530
@@ -35,9 +35,9 @@ DATABASES = {
         # mac
         'USER': 'root',  # 账号
         # 7530,mac
-        'PASSWORD': '12345678',
+        # 'PASSWORD': '12345678',
         # 5820,p52s,p500,razer
-        # 'PASSWORD': '123456',
+        'PASSWORD': '123456',
         'HOST': '127.0.0.1',  # HOST
         'POST': 3306,  # 端口
         'OPTIONS': {

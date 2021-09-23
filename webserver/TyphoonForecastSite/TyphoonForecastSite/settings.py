@@ -90,9 +90,9 @@ DATABASES = {
         # mac
         'USER': 'root',  # 账号
         # 7530,mac
-        'PASSWORD': '12345678',
+        # 'PASSWORD': '12345678',
         # 5820,p52s,p500,razer
-        # 'PASSWORD': '123456',
+        'PASSWORD': '123456',
         # by cwb
         # 'USER': 'root',  # 账号
         # 'PASSWORD': '123456',
