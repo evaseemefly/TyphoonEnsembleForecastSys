@@ -3,6 +3,7 @@ import datetime
 import time
 import requests
 from lxml import etree
+import subprocess
 import arrow
 
 #
@@ -858,6 +859,39 @@ class JobGeneratePathFile(IBaseJob):
         return list_temp
 
     @property
+    def path_controlfile(self) -> str:
+        """
+            + 21-09-24
+            生成的 shell 控制文件的所在路径
+            eg : xxx/control/TYXXXX_xxxxx
+        @return:
+        """
+        contorl_stamp: str = 'control'
+        return str(pathlib.Path(self.parent_path) / contorl_stamp / self.ty_stamp)
+
+    @property
+    def name_controlfile(self) -> str:
+        """
+            + 21-09-24
+            生成的 shell 控制文件的存储路径
+            eg: sz_start_gpu_model_xxxxx.sh
+        @return:
+        """
+        base_file_name: str = 'sz_start_gpu_model'
+        base_file_ext: str = '.sh'
+        finial_file_name: str = f'{base_file_name}_{self.timestamp_str}{base_file_ext}'
+        return finial_file_name
+
+    @property
+    def full_path_controlfile(self) -> str:
+        """
+            + 21-09-24
+            生成的 shell 控制文件的全路径
+        @return:
+        """
+        return str(pathlib.Path(self.path_controlfile) / self.name_controlfile)
+
+    @property
     def forecast_start_dt(self) -> datetime:
         """
             当前获取 台风 路径的 起始预报时间
@@ -1175,20 +1209,31 @@ class JobGeneratePathFile(IBaseJob):
     @store_job_rate(job_instance=JobInstanceEnum.GEN_CONTROL_FILES, job_rate=30)
     def output_controlfile(self, wdir0, filename):
         """
-            TODO:[*] 21-09-01 注意此处生成的批处理的内容将文件路径写死！
+            生成批处理文件，并分类存储
+            [*] 21-09-01 注意此处生成的批处理的内容将文件路径写死！
+            + 21-09-24 修改为动态路径
             + 21-09-02 此处替换为 linux的 批处理内容
             生成批处理文件
                 eg:
                     sz_gpus_path_list.bat
                     sz_start_gpu_model.bat
-        :param wdir0:
-        :param filename:
-        :return:
+        @param wdir0:
+        @param filename:
+        @return:
         """
-        file_full_path: str = str(pathlib.Path(wdir0) / 'sz_start_gpu_model.sh')
+        # + 21-09-24: 需要先判断存储目录是否存在，不存在则创建
+        full_path: pathlib.Path = pathlib.Path(self.path_controlfile)
+        full_path_str: str = str(full_path)
+        if not full_path.exists():
+            full_path.mkdir(parents=True)
+        # TODO:[-] 21-09-24 修改了最终存储的文件 full_path
+        # file_full_path: str = str(pathlib.Path(wdir0) / 'sz_start_gpu_model.sh')
+        file_full_path: str = self.full_path_controlfile
         fi = open(file_full_path, 'w+')
         fi.write('#! /bin/bash' + '\n')
-        fi.write('wdir="/home/limingjie/szsurge"\n')
+        # TODO:[-] 21-09-24 实际线上的szsurge 的根目录
+        # fi.write('wdir="/home/limingjie/szsurge"\n')
+        fi.write(f'wdir="{wdir0}"\n')
         fi.write('cd $wdir' + '\n')
         fi.write('echo Working directory: $wdir\n')
         fi.write('date1=$(date "+%Y-%m-%d %H:%M:%S")\n')
@@ -1211,6 +1256,7 @@ class JobGeneratePathFile(IBaseJob):
         fi.write('\n')
         fi.write('exit\n')
         fi.close()
+        return full_path_str
 
         # print('Control files for Function B are done!')
 
@@ -1225,22 +1271,41 @@ class JobTaskBatch(IBaseJob):
         pass
 
     def to_do(self, **kwargs):
-        self.to_do_task_batch(145)
+        """
 
-    def to_do_task_batch(self, pnum: int):
+        @param kwargs: 包含: full_path_controlfile - 控制器文件全路径
+        @return:
+        """
+        full_path_controlfile: str = kwargs.get('full_path_controlfile')
+        self.to_do_task_batch(145, full_path_controlfile)
+
+    def to_do_task_batch(self, pnum: int, path_control_file: str):
+        """
+            调用执行模式的脚本，并返回状态信息
+        @param pnum: 集合成员数量
+        @param path_control_file: 调用脚本文件全路径
+        @return:
+        """
         # path0 = os.listdir(wdir0+'pathfiles/' + caseno + '/')
         path0 = self.path_pathfiles_full
         #
         if len(path0) >= pnum:
             # os.startfile(wdir0 + "sz_start_gpu_model.bat")
-            os.startfile(self.parent_path + "sz_start_gpu_model.bat")
+            # TODO:[-] 21-09-24 修改 控制文件为外部传入的
+            # win 版本的
+            # os.startfile(self.parent_path + "sz_start_gpu_model.bat")
+            # os.startfile(path_control_file)
+            # linux 原始版本
+            # a = subprocess.check_call('./sz_start_gpu_model.sh', shell=True, cwd=wdir0)
+            a = subprocess.check_call(path_control_file, shell=True)
+
 
             filenum = 0
             # wdir = wdir0 + 'result/' + caseno + '/'
             wdir = self.path_result_full
             if not os.path.exists(wdir):
                 os.makedirs(wdir)
-            while filenum < pnum * 2:
+            while filenum < pnum * 2 + 1:
                 path1 = os.listdir(wdir)
                 files = []
                 for fn in path1:

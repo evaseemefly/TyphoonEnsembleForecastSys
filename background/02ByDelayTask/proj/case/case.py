@@ -329,7 +329,7 @@ def to_do(*args, **kwargs):
 
         # step-2: 执行批处理 调用模型——暂时跳过
         # job_task = JobTaskBatch(ty_code, timestamp_str)
-        # job_task.to_do()
+        # job_task.to_do(full_path_controlfile=job_generate.full_path_controlfile)
         # -----
         # step 3: 处理海洋站
         # 注意 此处的 ty_id 由 case_group_ty_path 处理后创建的一个 ty id
