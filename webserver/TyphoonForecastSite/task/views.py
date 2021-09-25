@@ -22,7 +22,7 @@ from util.customer_exception import QueryNoneError
 class TaskCreateView(BaseView):
     DeviationRadiusType = NewType('hours', int)
     MAX_WIND_RADIUS_DIFF: int = 50  # 大风半径增减值(可能出现负数-单位KM)
-    MAX_RADIUS: int = 150
+    MAX_RADIUS: int = 200
     MEMBERS_NUM: int = 160
     MEMBERS_NUM_LIST: List[int] = [5, 25, 45, 65, 85, 105, 125, 145]
     MIN_TIME_DIFF = datetime.timedelta(minutes=1)
@@ -36,21 +36,38 @@ class TaskCreateView(BaseView):
     def post(self, request: Request) -> Response:
         """
             调用 异步作业系统
+            eg: post data:
+                {'ty_code': '2109',
+                'is_customer_ty': False,
+                'customer_ty_cma_list': [
+                            {'forecastDt': '2021-09-04T06:00:00.000Z',
+                            'lat': 115.7,
+                            'lon': 21.5,
+                            'bp': 990,
+                            'radius': 80},....],
+                'max_wind_radius_diff': 0,
+                'members_num': 145,
+                'deviation_radius_list': [
+                            {'hours': 24, 'radius': 60},....]}
         @param request:
         @return:
         """
-        # {'max_wind_radius_diff': 0, 'members_num': 145,
-        #  'deviation_radius_list': [{'hours': 24, 'radius': 60}, {'hours': 48, 'radius': 100},
-        #                            {'hours': 72, 'radius': 120}, {'hours': 96, 'radius': 150}]}
         post_data: dict = request.data
         is_debug: bool = post_data.get('is_debug', True)
+        is_customer_ty: bool = post_data.get('is_customer_ty')
+        ty_customer_cma = {}
+        if is_customer_ty:
+            ty_customer_cma = {
+                'ty_code': post_data.get('ty_code'),
+                'customer_ty_cma_list': post_data.get('customer_ty_cma_list')
+            }
         max_wind_radius_diff: int = post_data.get('max_wind_radius_diff')
         members_num: int = post_data.get('members_num')
         # eg: [{'hours': 24, 'radius': 60}, {'hours': 48, 'radius': 100},
         #      {'hours': 72, 'radius': 120}, {'hours': 96, 'radius': 150}]}
         deviation_radius_list: List[Dict[str, int]] = post_data.get('deviation_radius_list')
         if self.verify(request) and self.to_idempotence(request):
-            self.commit(request, is_debug)
+            self.commit(request, is_debug, is_customer_ty=is_customer_ty, ty_customer_cma=ty_customer_cma)
             self._status = 200
         elif not self.verify(request):
             self.json_data = '提交数据验证失败'
@@ -117,10 +134,25 @@ class TaskCreateView(BaseView):
         return is_ok
 
     def commit(self, request: Request, is_debug: bool = True, **kwargs) -> bool:
-        ty_code: str = 'DEFAULT'
+
+        # step -1 : 将命名参数提取出来
         post_data: dict = request.data
+        ty_code: str = post_data.get('ty_code')
         max_wind_radius_diff: int = post_data.get('max_wind_radius_diff')
         members_num: int = post_data.get('members_num')
+        is_customer_ty: bool = kwargs.get('is_customer_ty')
+        # {'ty_code': '2109',
+        #  'customer_ty_cma_list':
+        #      [{'forecastDt': '2021-09-04T06:00:00.000Z',
+        #        'lat': 115.7,
+        #        'lon': 21.5,
+        #        'bp': 990},...]
+        #  }
+        ty_customer_cma: dict = kwargs.get('ty_customer_cma')
+        ty_customer_list: List[dict] = ty_customer_cma.get('customer_ty_cma_list')
+        # step -2 : 对 model 进行转换 convert
+        list_customer_cma: List[List[any]] = self._convert_ty_customer_cma(ty_customer_list) if is_customer_ty else []
+
         # eg: [{'hours': 24, 'radius': 60}, {'hours': 48, 'radius': 100},
         #      {'hours': 72, 'radius': 120}, {'hours': 96, 'radius': 150}]}
         deviation_radius_list: List[Dict[str, int]] = post_data.get('deviation_radius_list')
@@ -129,11 +161,70 @@ class TaskCreateView(BaseView):
                                                                            member_num=members_num,
                                                                            max_wind_radius_dif=max_wind_radius_diff,
                                                                            json_field=deviation_radius_list)
+        # TODO:[-] 21-09-20 customer_ty_cma_list -> forecastDt 需要转换为 2021071905 (local time)
+        # 'customer_ty_cma_list': [
+        #     {'forecastDt': '2021-09-04T06:00:00.000Z',
+        #      'lat': 115.7,
+        #      'lon': 21.5,
+        #      'bp': 990,
+        #      'radius': 80}, ....],
         # 提交至 celery
         params_obj = {'ty_code': ty_code, 'max_wind_radius_diff': max_wind_radius_diff, 'members_num': members_num,
-                      'deviation_radius_list': deviation_radius_list}
+                      'deviation_radius_list': deviation_radius_list, 'is_customer_ty': is_customer_ty,
+                      'ty_customer_cma': list_customer_cma}
         res = self.celery.send_task(self.CELERY_TASK_NAME, args=[params_obj, '123', 19], kwargs=params_obj)
         return True
+
+    def _convert_ty_customer_cma(self, list_customer_cma: List[any]):
+        """
+            + 21-09-20 将 前台传入的 customer_cma_list 进行格式化
+            -> :'customer_ty_cma_list': [
+                    {'forecastDt': '2021-09-04T06:00:00.000Z',
+                     'lat': 115.7,
+                     'lon': 21.5,
+                     'bp': 990,
+                     'radius': 80}, ....],
+            return : 'customer_ty_cma_list':
+                      list[0] TY2112_2021090116_CMA_original 是具体的编号
+                      List[1] ['2021082314', '2021082320'] 时间
+                      list[2] ['125.3', '126.6'] 经度
+                      list[3] ['31.3', '33.8']   维度
+                      list[4] ['998', '998']     气压
+                      list[5] ['15', '15']       暂时不用
+        @param list_customer_cma:
+        @return:
+        """
+        list_res: List[List[str]] = []
+        list_dt: List[str] = []
+        list_lat: List[str] = []
+        list_lon: List[str] = []
+        list_bp: List[str] = []
+        # list_radius: List[str] = []
+        # TODO:[-] 21-09-21 可以使用别的办法实现，不需要手动写
+        for temp_customer_cma in list_customer_cma:
+            # eg: temp_customer_cma : {'forecastDt': '2021-09-04T06:00:00.000Z', 'lat': 115.7, 'lon': 21.5, 'bp': 990}
+            # step -1 : convert dt
+            dt_str: str = temp_customer_cma.get('forecastDt')
+            arrow_utc = arrow.get(dt_str)
+            # utc -> local
+            arrow_local = arrow_utc.to('local')
+            # arrow local -> format YYYYMMDDHH
+            dt_local_str: str = arrow_local.format('YYYYMMDDHH')
+            list_dt.append(dt_local_str)
+            # list_dt.append(temp_customer_cma.get(''))
+            # TODO:[-] 21-09-22 !注意此处要注意顺序，list[2] 为 lon 经度 ,list[3] 为 lat 纬度,切记!
+            # step -2 : convert lon
+            temp_lon: float = temp_customer_cma.get('lon')
+            list_lon.append(str(temp_lon))
+            # step -3 : convert lat
+            temp_lat: float = temp_customer_cma.get('lat')
+            list_lat.append(str(temp_lat))
+
+            # step -4 : convert bp
+            temp_bp: float = temp_customer_cma.get('bp')
+            list_bp.append(str(temp_bp))
+        list_res = ['', list_dt, list_lon, list_lat, list_bp, []]
+        return list_res
 
 
 class TaskRateView(BaseView):

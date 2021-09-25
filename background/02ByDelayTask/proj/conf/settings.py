@@ -52,6 +52,7 @@ DATABASES = {
 
 # 使用RabbitMQ作为消息代理
 CELERY_BROKER_URL = f'amqp://guest:guest@localhost:5672/'
+# CELERY_BROKER_URL = f'redis://localhost:6379/0'
 # 把任务结果存在了Redis
 # CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
 # 任务序列化和反序列化使用JSON方案

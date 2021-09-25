@@ -231,7 +231,7 @@ class JobGetTyDetail(IBaseJob):
 
         return list_dt_range
 
-    def to_do(self,list_customer_cma:List[any]=[], **kwargs):
+    def to_do(self, list_customer_cma=None, **kwargs):
         """
             + 21-09-18
                 此处加入了 可选参数 list_customer_cma 传入自定义的 台风路径信息
@@ -255,9 +255,11 @@ class JobGetTyDetail(IBaseJob):
         # list[3] ['31.3', '33.8']   维度
         # list[4] ['998', '998']     气压
         # list[5] ['15', '15']       暂时不用
-        list_cmd:List[any]=[]
-        if len(list_customer_cma)>0:
-            list_cmd=list_customer_cma
+        if list_customer_cma is None:
+            list_customer_cma = []
+        list_cmd: List[any] = []
+        if len(list_customer_cma) > 0:
+            list_cmd = list_customer_cma
         else:
             list_cmd = self.get_typath_cma(SHARED_PATH, self.ty_code)
         self.list_cmd = list_cmd
@@ -270,10 +272,13 @@ class JobGetTyDetail(IBaseJob):
         pass
 
     @store_job_rate(job_instance=JobInstanceEnum.GET_TY_DETAIL, job_rate=10)
-    def get_typath_cma(self, wdir0: str, tyno: str):
+    def get_typath_cma(self, wdir0: str, tyno: str, **kwargs):
         """
             TODO:[-] 此处返回值有可能是None，对于不存在的台风编号，则返回空？
                     抓取台风
+                 +  21-09-21 此处加入了 根据 用户自定义的台风 生成对应台风路径文件 及 其他 步骤
+                 - 21-09-21 此方法是否就是 生成 _cma_original 文件以及返回 list[8] 数组
+                 -          生成的 _cma_original 文件只是留存，之后不会再使用了 !
             返回值
                     [filename,
                     tcma, 时间
@@ -452,6 +457,40 @@ class JobGetTyDetail(IBaseJob):
                         if kk == 1:
                             break  # 保证找到一条最新的预报结果后退出
         return outcma
+
+    def _spider_ty_info(self, url="http://www.nmc.cn/publish/typhoon/message.html"):
+        """
+            + 21-09-21 将 原来放在 self.get_typath_cma 中的爬取台风信息的代码封装至此方法中
+            返回 爬取后的 台风信息 List
+        @return:
+        """
+        info = None
+
+        import os
+        try:
+            page = requests.get(url, timeout=60)
+        except:
+            print("CMA: internet problem!")
+            return None
+        # page="./test.html"
+
+        # html = etree.parse(page, etree.HTMLParser())
+        selector = etree.HTML(page.text)
+        # selector = etree.HTML(etree.tostring(html))
+        infomation = selector.xpath('/html/body/div[2]/div/div[2]/div[1]/div[2]/div/text()')
+        # if not infomation==[]:#生成提示为乱码，目前认为有提示即不是最新结果
+        #    print(infomation)
+        #    sys.exit(0)
+        times = selector.xpath('//*[@id="mylistcarousel"]/li/p/text()')  # 获取tab时间列表
+        head = "http://www.nmc.cn/f/rest/getContent?dataId=SEVP_NMC_TCMO_SFER_ETCT_ACHN_L88_P9_"
+        # n=len(ids) #查找台风数
+        # print(times)
+        outcma = None
+        kk = 0
+        if times == []:  # 第一份
+            forecast = selector.xpath('//*[@id="text"]/p/text()')
+            info = self._parse_first(forecast)
+        return info
 
     def _parse_info(self, list, time_issu):
         result = []
@@ -707,6 +746,75 @@ class JobGetTyDetail(IBaseJob):
             return result
 
 
+class JobGetCustomerTyDetail(JobGetTyDetail):
+    def to_do(self, list_customer_cma=None, **kwargs):
+        """
+            + 21-09-18
+                此处加入了 可选参数 list_customer_cma 传入自定义的 台风路径信息
+                # eg: ['TY2112_2021090116_CMA_original',
+                        ['2021082314', '2021082320'],
+                        ['125.3', '126.6'],
+                        ['31.3', '33.8'],
+                         ['998', '998'],
+                         ['15', '15'],
+                         '2112',
+                         'OMAIS']
+        @param list_customer_cma:
+        @param kwargs:
+        @return:
+        """
+        # eg: ['TY2112_2021090116_CMA_original', ['2021082314', '2021082320'], ['125.3', '126.6'], ['31.3', '33.8'], ['998', '998'], ['15', '15'], '2112', 'OMAIS']
+        # 是一个嵌套数组
+        # list[0] TY2112_2021090116_CMA_original 是具体的编号
+        # List[1] ['2021082314', '2021082320'] 时间
+        # list[2] ['125.3', '126.6'] 经度
+        # list[3] ['31.3', '33.8']   维度
+        # list[4] ['998', '998']     气压
+        # list[5] ['15', '15']       暂时不用
+        if list_customer_cma is None:
+            list_customer_cma = []
+        list_cmd: List[any] = []
+        if len(list_customer_cma) > 0:
+            list_cmd = self.get_typath_cma(SHARED_PATH, self.ty_code, list_cma=list_customer_cma)
+        self.list_cmd = list_cmd
+
+    @store_job_rate(job_instance=JobInstanceEnum.GET_TY_DETAIL, job_rate=10)
+    def get_typath_cma(self, wdir0: str, tyno: str, **kwargs):
+        """
+            重写了集成父类的 获取 typath_cma 数组的方法
+            对于传入的 list_cma 修改后返回
+        @param wdir0:
+        @param tyno:
+        @param kwargs: 需要包含 list_cma
+        @return: 返回台风信息 数组
+        """
+        # 原始正常的 数组
+        # ['TYtd03_2021071606_CMA_original',                LIST[0] * 需要加上  主要包含预报机构
+        #   ['2021070805', '2021070811', '2021070817'],     LIST[1]
+        #   ['106.3', '104.7', '103.2'],                    LIST[2]
+        #   ['19.5', '19.7', '19.9'],                       LIST[3]
+        #   ['1000', '1002', '1004'],                       LIST[4] 气压
+        #   ['15', '12', '10'],                             LIST[5] * 风速
+        #   'TD03',                                         LIST[6] * 需要加上        主要是台风编号 ，注意是 台风的四位编号
+        #   None]                                           LIST[7]
+
+        # - 21-09-21
+        # 'customer_ty_cma_list':
+        #  list[0] TY2112_2021090116_CMA_original 是具体的编号
+        #  List[1] ['2021082314', '2021082320'] 时间
+        #  list[2] ['125.3', '126.6'] 经度
+        #  list[3] ['31.3', '33.8']   维度
+        #  list[4] ['998', '998']     气压
+        #  list[5] ['15', '15']       暂时不用
+        list_cma_customer: List[any] = kwargs.get('list_cma')
+        # 修改 list_cma 的 index=0 -> TY2112_2021090116_CMA_customer
+        list_cma_customer[0] = f'TY{self.ty_stamp}_CMA_customer'
+        # 追加 tycode 与 None
+        list_cma_customer.append(tyno)
+        list_cma_customer.append(None)
+        return list_cma_customer
+
+
 class JobGeneratePathFile(IBaseJob):
     """
         生成 ty_pathfile 与 生成批处理文件
@@ -797,12 +905,12 @@ class JobGeneratePathFile(IBaseJob):
         #    {'hours': 72, 'radius': 120},
         #    {'hours': 48, 'radius': 100},
         #    {'hours': 24, 'radius': 60}]
-        deviation_radius_list:List[any]=kwargs.get('deviation_radius_list')
-        list_radius:List[int]=[]
+        deviation_radius_list: List[any] = kwargs.get('deviation_radius_list')
+        list_radius: List[int] = []
         for temp_radius in deviation_radius_list:
             list_radius.append(temp_radius.get('radius'))
         # eg: : [60, 100, 120, 150]
-        list_radius=sorted(list_radius)
+        list_radius = sorted(list_radius)
         # r01 = 60
         # r02 = 100
         # r03 = 120
@@ -811,7 +919,7 @@ class JobGeneratePathFile(IBaseJob):
         pNum = kwargs.get('members_num')
         hrs1, tlon1, tlat1, pres1 = self.interp6h(self.list_timeDiff, self.list_lons, self.list_lats, self.list_bp)
         # ['TYTD03_2020042710_c0_p00', 'TYTD03_2020042710_c0_p05', 'TYTD03_2020042710_c0_p10',...]
-        filename_list = self.gen_typathfile(SHARED_PATH, self.forecast_start_dt, dR, self.ty_stamp,list_radius, pNum,
+        filename_list = self.gen_typathfile(SHARED_PATH, self.forecast_start_dt, dR, self.ty_stamp, list_radius, pNum,
                                             tlon1,
                                             tlat1, pres1)
         self.output_controlfile(SHARED_PATH, filename_list)
@@ -929,7 +1037,7 @@ class JobGeneratePathFile(IBaseJob):
         minsp = 12
         coef = 0.7
 
-        list_radius:List[int]=[0]+list_radius
+        list_radius: List[int] = [0] + list_radius
         # TODO:[-] 21-09-18 此处将半径修改为动态数组
         # rrs = np.array([0, r01, r02, r03, r04, r05])
         rrs = np.array(list_radius)
@@ -937,6 +1045,8 @@ class JobGeneratePathFile(IBaseJob):
         x2 = np.arange(0, 120 + 6, 6)
         rrmat = np.zeros((nrr, len(x) - 1))
         rrmat6 = np.zeros((nrr, len(x2) - 1))
+        # TODO:[*] 21-09-21 customer 提交 ty_info 后出现错误，以上的 [0,r01 -> r05] 一共应该为6个数
+        # ERROR: ValueError: x and y arrays must be equal in length along interpolation axis.
         fr = interpolate.interp1d(x, rrs, kind="slinear")
         rrs6 = np.round(fr(x2))
         rrmat[0, :] = rrs[1:]
@@ -986,6 +1096,7 @@ class JobGeneratePathFile(IBaseJob):
                 geodict = Geodesic.WGS84.Inverse(tlat1[j], tlon1[j], tlat1[j + 1], tlon1[j + 1])
                 dista.append(geodict['s12'] / 1000)
                 angle.append(geodict['azi1'] + 360)
+                # TODO:[*] 21-09-22 ERROR: ValueError: cannot convert float NaN to integer
                 spd0.append(round(dista[j] / 6))
                 if spd0[j] < minsp:
                     rrmat6[r, j] = round(rrmat6[r, j] * coef)
@@ -1074,7 +1185,8 @@ class JobGeneratePathFile(IBaseJob):
         :param filename:
         :return:
         """
-        fi = open(wdir0 + 'sz_start_gpu_model.sh', 'w+')
+        file_full_path: str = str(pathlib.Path(wdir0) / 'sz_start_gpu_model.sh')
+        fi = open(file_full_path, 'w+')
         fi.write('#! /bin/bash' + '\n')
         fi.write('wdir="/home/limingjie/szsurge"\n')
         fi.write('cd $wdir' + '\n')
