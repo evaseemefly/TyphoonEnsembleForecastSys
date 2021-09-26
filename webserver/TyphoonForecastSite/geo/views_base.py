@@ -153,7 +153,7 @@ class RasterBaseView(BaseView):
         # TODO:[*] 21-09-08 注意修改 后的新的路径为 E:\05DATA\01nginx_data\nmefc_download\TY_GROUP_RESULT\TY2114_1631066272\result
         # http://localhost:82/images/nmefc_download/TY_GROUP_RESULT//TY2022_2021010416\\proSurge_TY2022_2021010416_gt0_5m.tif
         # url_base : eg : 'http://localhost:82/images/nmefc_download/TY_GROUP_RESULT/result//'
-        url_base = f'http://{store_url}:{store_host}/{store_common_base}/{store_head}/{store_relative_path}/{store_ty_stamp}/result'
+        url_base = f'http://{store_url}:{store_host}/{store_common_base}/{store_head}/{store_relative_path}/result/{store_ty_stamp}'
         url_file = None
         if res_tif is not None:
             file_full_name: str = f'{res_tif.file_name}.{res_tif.file_ext}'

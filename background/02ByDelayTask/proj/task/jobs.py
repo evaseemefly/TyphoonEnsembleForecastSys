@@ -867,7 +867,8 @@ class JobGeneratePathFile(IBaseJob):
         @return:
         """
         contorl_stamp: str = 'control'
-        return str(pathlib.Path(self.parent_path) / contorl_stamp / self.ty_stamp)
+        # return str(pathlib.Path(self.parent_path) / contorl_stamp / self.ty_stamp)
+        return str(pathlib.Path(self.parent_path) / contorl_stamp)
 
     @property
     def name_controlfile(self) -> str:
@@ -1298,7 +1299,6 @@ class JobTaskBatch(IBaseJob):
             # linux 原始版本
             # a = subprocess.check_call('./sz_start_gpu_model.sh', shell=True, cwd=wdir0)
             a = subprocess.check_call(path_control_file, shell=True)
-
 
             filenum = 0
             # wdir = wdir0 + 'result/' + caseno + '/'
