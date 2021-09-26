@@ -106,6 +106,7 @@ def to_ty_group(list_files: List[str], ty_detail: TyphoonForecastDetailModel, **
     """
     ty_id: int = NONE_ID
     parent_stamp_str: str = kwargs.get('parent_stamp', None)
+    # ty_detail = kwargs.get('ty_detail', None)
     # 以下暂时注释掉
     # session = DbFactory().Session
     # session.add(ty_detail)
