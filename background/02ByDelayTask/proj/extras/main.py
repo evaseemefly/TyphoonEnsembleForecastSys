@@ -33,7 +33,7 @@ def converted_dt_2_timestamp(dt_str: str, timestamp_str: str):
 
 
 def main():
-    converted_dt_2_timestamp('TY2142_1632623874', "1632623874")
+    # converted_dt_2_timestamp('TY2142_1632623874', "1632623874")
     pass
 
 
