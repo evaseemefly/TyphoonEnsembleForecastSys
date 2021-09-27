@@ -16,9 +16,11 @@ from util.const import UNLESS_ID, UNLESS_CELERY_ID
 from .models import CaseStatusModel, CaseInstanceModel
 from .serializers import CaseStatusModelSerializer
 from util.customer_exception import QueryNoneError
-
+from others.my_celery import app
 
 # Create your views here.
+# CELERY = app
+
 
 class TaskCreateView(BaseView):
     DeviationRadiusType = NewType('hours', int)
@@ -28,7 +30,9 @@ class TaskCreateView(BaseView):
     MEMBERS_NUM_LIST: List[int] = [5, 25, 45, 65, 85, 105, 125, 145]
     MIN_TIME_DIFF = datetime.timedelta(minutes=1)
     CELERY_TASK_NAME = 'surge_group_ty'
-    celery: Celery = Celery()
+    # celery: Celery = Celery()
+    celery: Celery = app
+
     # celery: Celery = app
 
     def get(self, request: Request) -> Response:
