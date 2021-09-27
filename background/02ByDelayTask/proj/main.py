@@ -9,6 +9,7 @@
 
 from __future__ import absolute_import, unicode_literals
 import os
+# TODO:[*] 21-09-27 注意查看一下为何 会是以 root 权限启动?
 os.environ.setdefault('C_FORCE_ROOT', 'true')
 
 # This will make sure the app is always imported when

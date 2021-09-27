@@ -39,8 +39,10 @@ DATABASES = {
         # 5820,p52s,p500,razer
         'PASSWORD': '123456',
         # 'HOST': '127.0.0.1',  # HOST
+        # 'HOST': '172.18.0.1',  # HOST
         # 访问宿主的mysql服务,
         'HOST': 'host.docker.internal',
+        # 'HOST': 'localhost',  # HOST
         'POST': 3306,  # 端口
         'OPTIONS': {
             "init_command": "SET foreign_key_checks = 0;",
@@ -51,8 +53,8 @@ DATABASES = {
 # TODO:[-] 21-08-31 celery 相关配置
 
 # 使用RabbitMQ作为消息代理
-CELERY_BROKER_URL = f'amqp://guest:guest@localhost:5672/'
-# CELERY_BROKER_URL = f'amqp://guest:guest@rabbitmq:5672/'
+# CELERY_BROKER_URL = f'amqp://guest:guest@localhost:5672/'
+CELERY_BROKER_URL = f'amqp://guest:guest@rabbitmq:5672/'
 # 针对mac使用 redis 作为消息代理
 # CELERY_BROKER_URL = f'redis://localhost:6379/0'
 # 把任务结果存在了Redis
