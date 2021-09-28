@@ -20,6 +20,7 @@ from conf.settings import TEST_ENV_SETTINGS
 from local.globals import get_celery
 from task.celery import app
 from util.customer_decorators import store_job_rate
+from util.log import Loggings, log_in
 
 from util.customer_decorators import log_count_time, store_job_rate
 from common.enum import JobInstanceEnum, TaskStateEnum
@@ -258,10 +259,11 @@ def to_do(*args, **kwargs):
     @param kwargs:
     @return:
     """
+
     # step-1: 爬取 指定台风编号的台风
     is_debug: bool = False
 
-    is_break: bool = True
+    is_break: bool = False
     if is_break:
         return
     # + 21-09-18 获取传过来的提交参数
@@ -306,7 +308,9 @@ def to_do(*args, **kwargs):
     else:
         job_ty = JobGetTyDetail(ty_code)
     job_ty.to_do(list_customer_cma=ty_customer_cma)
+    log_in.info(f'获取提交:ty_code:{ty_code}|timestamp:{job_ty.timestamp_str}')
     if len(job_ty.list_cmd) == 0:
+        log_in.error(f'获取提交:ty_code:{ty_code}|timestamp:{job_ty.timestamp_str},未爬取到或自定义台风路径为空')
         return
     if len(job_ty.list_cmd) > 0:
         dt_forecast_start: datetime = job_ty.forecast_start_dt
@@ -319,6 +323,7 @@ def to_do(*args, **kwargs):
         # + 21-09-18 此处修改为传入的参数为动态的，有 celery 传入
         job_generate.to_do(max_wind_radius_diff=post_data_max_wind_radius_diff, members_num=post_data_members_num,
                            deviation_radius_list=post_data_deviation_radius_list)
+        log_in.info(f'ty_code:{ty_code}|timestamp:{job_ty.timestamp_str},生成对应pathfiles+批处理文件')
         # step 1-3: 将爬取到的台风基础信息入库
         # test_ty_stamp = 'TY2142_1632623874'
         ty_detail: TyphoonForecastDetailModel = case_ty_detail(dt_forecast_start, dt_forecast_end, ty_code,
@@ -328,12 +333,15 @@ def to_do(*args, **kwargs):
         # step 1-4: 将生成的 grouppath 批量入库
         case_group_ty_path(dt_forecast_start, dt_forecast_end, ty_code, timestamp_str,
                            ty_stamp, ty_detail)
+        log_in.info(f'ty_code:{ty_code}|timestamp:{job_ty.timestamp_str},完成grouppath入库步骤')
         ty_id: int = ty_detail.id
         # ------
 
         # step-2: 执行批处理 调用模型——暂时跳过
-        # job_task = JobTaskBatch(ty_code, timestamp_str)
-        # job_task.to_do(full_path_controlfile=job_generate.full_path_controlfile)
+        job_task = JobTaskBatch(ty_code, timestamp_str)
+        log_in.info(f'ty_code:{ty_code}|timestamp:{job_ty.timestamp_str},提交gpu进行计算')
+        job_task.to_do(full_path_controlfile=job_generate.full_path_controlfile)
+        log_in.info(f'ty_code:{ty_code}|timestamp:{job_ty.timestamp_str},gpu计算结束')
         # -----
         # step 3: 处理海洋站
         # 注意 此处的 ty_id 由 case_group_ty_path 处理后创建的一个 ty id
@@ -343,19 +351,24 @@ def to_do(*args, **kwargs):
         # ty_stamp: str = 'TY2144_1632639075'
         # ty_id: int = 62
         case_station(dt_forecast_start, dt_forecast_end, ty_stamp, ty_id=ty_id)
+        log_in.info(f'ty_code:{ty_code}|timestamp:{job_ty.timestamp_str},完成海洋站数据入库')
         # # # step-3:
         # # TODO:[-] + 21-09-02 txt -> nc 目前没问题，需要注意一下当前传入的 时间戳是 yyyymmddHH 的格式，与上面的不同
         # TODO:[*] 21-09-08 注意此处暂时将 时间戳设置为一个固定值！！注意！！
         job_txt2nc = JobTxt2Nc(ty_code, timestamp_str)
         job_txt2nc.to_do(forecast_start_dt=dt_forecast_start)
+        log_in.info(f'ty_code:{ty_code}|timestamp:{job_ty.timestamp_str},完成surge_max的.dat->.nc的转换')
         # # # step 3-1:
         # # # # TODO:[*] 21-09-08 注意此处暂时将 ty_stamp 设置为一个固定值！！注意！！上线后要替换为:job_ty.ty_stamp
         case_field_surge(ty_code, ty_stamp, dt_forecast_start, dt_forecast_end)
+        log_in.info(f'ty_code:{ty_code}|timestamp:{job_ty.timestamp_str},完成surge_field的.nc->.tiff的转换')
         # # step 3-2:
         # #
         job_txt2ncpro = JobTxt2NcPro(ty_code, timestamp_str)
         job_txt2ncpro.to_do(forecast_start_dt=dt_forecast_start)
+        log_in.info(f'ty_code:{ty_code}|timestamp:{job_ty.timestamp_str},完成surge_pro的.dat->.nc的转换')
         case_pro_surge(ty_code, ty_stamp, dt_forecast_start, dt_forecast_end)
+        log_in.info(f'ty_code:{ty_code}|timestamp:{job_ty.timestamp_str},完成surge_pro的.nc->.tiff的转换')
     pass
 
 

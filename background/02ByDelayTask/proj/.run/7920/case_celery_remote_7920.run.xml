@@ -6,14 +6,19 @@
     <envs>
       <env name="PYTHONUNBUFFERED" value="1" />
     </envs>
-    <option name="SDK_HOME" value="docker://typhoon:1.2//opt/conda/envs/py37/bin/python" />
+    <option name="SDK_HOME" value="" />
     <option name="WORKING_DIRECTORY" value="" />
-    <option name="IS_MODULE_SDK" value="false" />
+    <option name="IS_MODULE_SDK" value="true" />
     <option name="ADD_CONTENT_ROOTS" value="true" />
     <option name="ADD_SOURCE_ROOTS" value="true" />
     <EXTENSION ID="DockerContainerSettingsRunConfigurationExtension">
       <option name="envVars">
-        <list />
+        <list>
+          <DockerEnvVarImpl>
+            <option name="name" value="--name" />
+            <option name="value" value="celery" />
+          </DockerEnvVarImpl>
+        </list>
       </option>
       <option name="extraHosts">
         <list />
@@ -27,7 +32,7 @@
         <list />
       </option>
       <option name="publishAllPorts" value="false" />
-      <option name="runCliOptions" value="--entrypoint= --rm" />
+      <option name="runCliOptions" value="--entrypoint= --rm " />
       <option name="version" value="2" />
       <option name="volumeBindings">
         <list>
@@ -35,6 +40,18 @@
             <option name="containerPath" value="/opt/project" />
             <option name="editable" value="true" />
             <option name="hostPath" value="$PROJECT_DIR$" />
+            <option name="readOnly" value="false" />
+          </DockerVolumeBindingImpl>
+          <DockerVolumeBindingImpl>
+            <option name="containerPath" value="/log" />
+            <option name="editable" value="true" />
+            <option name="hostPath" value="E:/05DATA/99test/06shared_log/celery" />
+            <option name="readOnly" value="false" />
+          </DockerVolumeBindingImpl>
+          <DockerVolumeBindingImpl>
+            <option name="containerPath" value="/my_shared_data" />
+            <option name="editable" value="true" />
+            <option name="hostPath" value="E:/05DATA/01nginx_data/nmefc_download/TY_GROUP_RESULT" />
             <option name="readOnly" value="false" />
           </DockerVolumeBindingImpl>
         </list>

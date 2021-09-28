@@ -14,3 +14,4 @@ CELERY_RESULT_SERIALIZER = 'json'
 CELERY_TASK_RESULT_EXPIRES = 60 * 60 * 24
 # 指定接受的内容类型，是个数组，可以写多个
 CELERY_ACCEPT_CONTENT = ['json', 'pickle']
+

@@ -16,6 +16,7 @@ from util.const import UNLESS_ID, UNLESS_CELERY_ID
 from .models import CaseStatusModel, CaseInstanceModel
 from .serializers import CaseStatusModelSerializer
 from util.customer_exception import QueryNoneError
+from util.log import log_in
 from others.my_celery import app
 
 # Create your views here.
@@ -178,7 +179,9 @@ class TaskCreateView(BaseView):
         params_obj = {'ty_code': ty_code, 'max_wind_radius_diff': max_wind_radius_diff, 'members_num': members_num,
                       'deviation_radius_list': deviation_radius_list, 'is_customer_ty': is_customer_ty,
                       'ty_customer_cma': list_customer_cma}
+        log_in.info(f'接收到:ty_code:{ty_code}提交至celery')
         res = self.celery.send_task(self.CELERY_TASK_NAME, args=[params_obj, '123', 19], kwargs=params_obj)
+        log_in.info(f'ty_code:{ty_code}提交至celery成功!')
         return True
 
     def _convert_ty_customer_cma(self, list_customer_cma: List[any]):

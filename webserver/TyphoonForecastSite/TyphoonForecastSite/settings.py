@@ -195,3 +195,12 @@ CELERY_RESULT_SERIALIZER = 'json'
 CELERY_TASK_RESULT_EXPIRES = 60 * 60 * 24
 # 指定接受的内容类型，是个数组，可以写多个
 CELERY_ACCEPT_CONTENT = ['json', 'pickle']
+
+
+# + 21-09-28 新加入的 loguru 的配置文件
+LOG_LOGURU = {
+    # 'LOG_PATH': r'E:\05DATA\99test\05log',  # 日志文件路径
+    'LOG_PATH': r'/log',  # 日志文件路径
+    'LOG_SPLIT_TIME': '1 day',
+    'LOG_EXPIRATION_TIME': '30 days',
+}

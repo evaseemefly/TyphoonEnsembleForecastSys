@@ -8,6 +8,7 @@ from common.const import UNLESS_ID_STR
 from local.globals import get_celery
 from model.models import CaseStatus
 from core.db import DbFactory
+from util.log import Loggings, log_in
 
 session = DbFactory().Session
 
@@ -53,21 +54,21 @@ def store_job_rate(level=logging.DEBUG, job_instance=JobInstanceEnum.GET_TY_DETA
         @functools.wraps(func)
         def wrapper(*args, **kwargs):
             # 注意是先执行 func 后在执行写入操作
+
             celery_id: str = UNLESS_ID_STR
             if len(args) > 0 and hasattr(args[0], 'request'):
                 celery_id = args[0].request.get('id')
             get_celery().celery_id = celery_id if get_celery().celery_id == UNLESS_ID_STR else UNLESS_ID_STR
             local_celery_id = get_celery().celery_id
-            print(f'当前接收到的延时任务task_id:{local_celery_id}')
+            log_in.info(msg=f'当前接收到的延时任务task_id:{local_celery_id}')
             # TODO:[-] 21-09-07 加入 task 持久化保存功能
             # celery_id:str= kwargs.get('celery_id',UNLESS_ID_STR)
             case = CaseStatus(celery_id=local_celery_id, case_state=job_instance.value, case_rate=job_rate)
             session.add(case)
             session.commit()
             res = func(*args, **kwargs)
-
-            print(f'level:{level},job_instance:{job_instance},job_rate:{job_rate}')
-            log.log(level, logmsg)
+            log_in.info(f'level:{level},job_instance:{job_instance},job_rate:{job_rate}')
+            # log.log(level, logmsg)
 
             return res
 

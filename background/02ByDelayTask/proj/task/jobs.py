@@ -20,6 +20,7 @@ from datetime import timedelta, datetime
 from typing import List
 from model.models import CaseStatus
 from util.customer_decorators import log_count_time, store_job_rate
+from util.log import Loggings,log_in
 from common.enum import JobInstanceEnum, TaskStateEnum
 from conf.settings import TEST_ENV_SETTINGS
 
@@ -234,6 +235,7 @@ class JobGetTyDetail(IBaseJob):
 
     def to_do(self, list_customer_cma=None, **kwargs):
         """
+            生成台风技术信息 list ，可接受自定义的台风路径
             + 21-09-18
                 此处加入了 可选参数 list_customer_cma 传入自定义的 台风路径信息
                 # eg: ['TY2112_2021090116_CMA_original',
@@ -259,11 +261,13 @@ class JobGetTyDetail(IBaseJob):
         if list_customer_cma is None:
             list_customer_cma = []
         list_cmd: List[any] = []
+        
         if len(list_customer_cma) > 0:
             list_cmd = list_customer_cma
         else:
             list_cmd = self.get_typath_cma(SHARED_PATH, self.ty_code)
         self.list_cmd = list_cmd
+        
         # list_lon = list_cmd[2]
         # list_lat = list_cmd[3]
         # list_bp = list_cmd[4]
@@ -1279,6 +1283,7 @@ class JobTaskBatch(IBaseJob):
         """
         full_path_controlfile: str = kwargs.get('full_path_controlfile')
         self.to_do_task_batch(145, full_path_controlfile)
+
 
     def to_do_task_batch(self, pnum: int, path_control_file: str):
         """
