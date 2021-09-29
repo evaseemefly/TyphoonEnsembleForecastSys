@@ -24,8 +24,12 @@ class Loggings:
                    封装了 - info -debug -warning -error 方法
     """
     __instance = None
-    logger.add(f"{LOG_PATH}/interface_log_{t}.log", rotation=LOG_SPLIT_TIME, encoding="utf-8", enqueue=True,
-               retention=LOG_EXPIRATION_TIME)
+    logger.add(f"{LOG_PATH}/info_log_{t}.log", rotation=LOG_SPLIT_TIME, encoding="utf-8", enqueue=True,
+               retention=LOG_EXPIRATION_TIME, filter=lambda x: x.get('level').name in ['INFO', 'DEBUG'])
+    logger.add(f"{LOG_PATH}/warning_log_{t}.log", rotation=LOG_SPLIT_TIME, encoding="utf-8", enqueue=True,
+               retention=LOG_EXPIRATION_TIME, filter=lambda x: x.get('level').name == 'WARNING')
+    logger.add(f"{LOG_PATH}/error_log_{t}.log", rotation=LOG_SPLIT_TIME, encoding="utf-8", enqueue=True,
+               retention=LOG_EXPIRATION_TIME, filter=lambda x: x.get('level').name == 'ERROR')
 
     def __new__(cls, *args, **kwargs):
         if not cls.__instance:

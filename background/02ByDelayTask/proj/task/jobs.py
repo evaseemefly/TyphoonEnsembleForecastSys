@@ -23,6 +23,7 @@ from util.customer_decorators import log_count_time, store_job_rate
 from util.log import Loggings, log_in
 from common.enum import JobInstanceEnum, TaskStateEnum
 from util.customer_excption import CalculateTimeOutError
+from util.customer_decorators import except_log
 from conf.settings import TEST_ENV_SETTINGS, JOB_SETTINGS
 
 SHARED_PATH = TEST_ENV_SETTINGS.get('TY_GROUP_PATH_ROOT_DIR')
@@ -235,6 +236,7 @@ class JobGetTyDetail(IBaseJob):
 
         return list_dt_range
 
+    @except_log()
     def to_do(self, list_customer_cma=None, **kwargs):
         """
             生成台风技术信息 list ，可接受自定义的台风路径
@@ -754,6 +756,8 @@ class JobGetTyDetail(IBaseJob):
 
 
 class JobGetCustomerTyDetail(JobGetTyDetail):
+
+    @except_log()
     def to_do(self, list_customer_cma=None, **kwargs):
         """
             + 21-09-18
@@ -928,6 +932,7 @@ class JobGeneratePathFile(IBaseJob):
 
         return list_dt_range
 
+    @except_log()
     def to_do(self, **kwargs):
         # list_cmd=kwargs.get('list_cmd')
         # 此部分代码之前放在外侧，我移动至main函数内部调用
@@ -1277,6 +1282,7 @@ class JobTaskBatch(IBaseJob):
     def to_store(self, **kwargs):
         pass
 
+    @except_log()
     def to_do(self, **kwargs):
         """
 
@@ -1284,15 +1290,16 @@ class JobTaskBatch(IBaseJob):
         @return:
         """
         full_path_controlfile: str = kwargs.get('full_path_controlfile')
-        try:
-            self.to_do_task_batch(145, full_path_controlfile)
-        except CalculateTimeOutError as timeout:
-            log_in.error(timeout.message)
-            raise CalculateTimeOutError(timeout.message)
-        except Exception as ex:
-            log_in.error(ex.args)
-            raise Exception(ex.args)
-
+        self.to_do_task_batch(145, full_path_controlfile)
+        # 将异常捕捉封装至装饰器中
+        # try:
+        #     self.to_do_task_batch(145, full_path_controlfile)
+        # except CalculateTimeOutError as timeout:
+        #     log_in.error(timeout.message)
+        #     raise CalculateTimeOutError(timeout.message)
+        # except Exception as ex:
+        #     log_in.error(ex.args)
+        #     raise Exception(ex.args)
 
     def to_do_task_batch(self, pnum: int, path_control_file: str):
         """
@@ -1349,6 +1356,7 @@ class JobTxt2Nc(IBaseJob):
     def to_store(self, **kwargs):
         pass
 
+    @except_log()
     def to_do(self, **kwargs):
         """
 
@@ -1534,6 +1542,7 @@ class JobTxt2NcPro(IBaseJob):
     def to_store(self, **kwargs):
         pass
 
+    @except_log()
     def to_do(self, **kwargs):
         forecast_start_dt: datetime = kwargs.get('forecast_start_dt')
         # timestamp_str: str = '2021080415'
