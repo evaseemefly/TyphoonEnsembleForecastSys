@@ -20,11 +20,13 @@ from datetime import timedelta, datetime
 from typing import List
 from model.models import CaseStatus
 from util.customer_decorators import log_count_time, store_job_rate
-from util.log import Loggings,log_in
+from util.log import Loggings, log_in
 from common.enum import JobInstanceEnum, TaskStateEnum
-from conf.settings import TEST_ENV_SETTINGS
+from util.customer_excption import CalculateTimeOutError
+from conf.settings import TEST_ENV_SETTINGS, JOB_SETTINGS
 
 SHARED_PATH = TEST_ENV_SETTINGS.get('TY_GROUP_PATH_ROOT_DIR')
+MAX_TIME_INTERVAL: int = JOB_SETTINGS.get('MAX_TIME_INTERVAL')
 
 
 class IBaseJob(metaclass=ABCMeta):
@@ -261,13 +263,13 @@ class JobGetTyDetail(IBaseJob):
         if list_customer_cma is None:
             list_customer_cma = []
         list_cmd: List[any] = []
-        
+
         if len(list_customer_cma) > 0:
             list_cmd = list_customer_cma
         else:
             list_cmd = self.get_typath_cma(SHARED_PATH, self.ty_code)
         self.list_cmd = list_cmd
-        
+
         # list_lon = list_cmd[2]
         # list_lat = list_cmd[3]
         # list_bp = list_cmd[4]
@@ -1282,7 +1284,14 @@ class JobTaskBatch(IBaseJob):
         @return:
         """
         full_path_controlfile: str = kwargs.get('full_path_controlfile')
-        self.to_do_task_batch(145, full_path_controlfile)
+        try:
+            self.to_do_task_batch(145, full_path_controlfile)
+        except CalculateTimeOutError as timeout:
+            log_in.error(timeout.message)
+            raise CalculateTimeOutError(timeout.message)
+        except Exception as ex:
+            log_in.error(ex.args)
+            raise Exception(ex.args)
 
 
     def to_do_task_batch(self, pnum: int, path_control_file: str):
@@ -1306,11 +1315,17 @@ class JobTaskBatch(IBaseJob):
             a = subprocess.check_call(path_control_file, shell=True)
 
             filenum = 0
+            job_start_dt: arrow = arrow.utcnow()
             # wdir = wdir0 + 'result/' + caseno + '/'
             wdir = self.path_result_full
             if not os.path.exists(wdir):
                 os.makedirs(wdir)
             while filenum < pnum * 2 + 1:
+                job_current_dt: arrow = arrow.utcnow()
+                # 弱当前计算的时间超出了最大时间间隔，则抛出异常
+                if (job_current_dt - job_start_dt).seconds > MAX_TIME_INTERVAL:
+                    raise CalculateTimeOutError(f'执行作业:{path_control_file}时超时，请检查!')
+                    break
                 path1 = os.listdir(wdir)
                 files = []
                 for fn in path1:
@@ -1318,6 +1333,7 @@ class JobTaskBatch(IBaseJob):
                         files.append(fn)
                 filenum = len(files)
                 time.sleep(0.2)
+
         else:
             return
 

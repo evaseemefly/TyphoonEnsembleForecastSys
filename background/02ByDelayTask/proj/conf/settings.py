@@ -59,6 +59,10 @@ LOG_LOGURU = {
     'LOG_EXPIRATION_TIME': '30 days',
 }
 
+JOB_SETTINGS={
+    'MAX_TIME_INTERVAL':3600 # 计算任务允许的最大时间(单位:s)
+}
+
 # TODO:[-] 21-08-31 celery 相关配置
 
 # 使用RabbitMQ作为消息代理

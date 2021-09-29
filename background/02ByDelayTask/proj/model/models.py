@@ -209,4 +209,4 @@ class RelaTyTaskModel(IIdModel):
     """
     __tablename__ = 'rela_ty_task'
     ty_id = Column(Integer, nullable=False, default=NONE_ID)
-    task_id = Column(Integer, nullable=False, default=NONE_ID)
+    celery_id = Column(Integer, nullable=False, default=NONE_ID)

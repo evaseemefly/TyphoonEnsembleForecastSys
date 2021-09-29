@@ -16,7 +16,7 @@
         <list>
           <DockerEnvVarImpl>
             <option name="name" value="--name" />
-            <option name="value" value="celery" />
+            <option name="value" value="celery-proj" />
           </DockerEnvVarImpl>
         </list>
       </option>

@@ -30,6 +30,7 @@ from common.enum import LayerType
 from local.globals import get_celery
 
 from util.customer_decorators import log_count_time, store_job_rate
+from util.log import Loggings, log_in
 from common.enum import JobInstanceEnum, TaskStateEnum
 
 from conf.settings import TEST_ENV_SETTINGS
@@ -90,7 +91,8 @@ def to_ty_task_rela(ty_id: int, celery_id: int = None, **kwargs) -> bool:
         session.commit()
         is_ok = True
     except Exception as ex:
-        print(ex.args)
+        log_in.error(ex.args)
+        # print(ex.args)
     return is_ok
 
 
