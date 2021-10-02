@@ -26,7 +26,9 @@ def log_count_time():
             start_time = time.time_ns()
             func(*args, **kwargs)
             end_time = time.time_ns()
-            print(f'logging:func:{func.__name__},runs count times(ns){end_time - start_time}')
+            # 记录方法耗时并log
+            log_in.debug(f'logging:func:{func.__name__},runs count times(ns){end_time - start_time}')
+            # print(f'logging:func:{func.__name__},runs count times(ns){end_time - start_time}')
 
         return inner_log_wrapper
 
@@ -37,8 +39,7 @@ def store_job_rate(level=logging.DEBUG, job_instance=JobInstanceEnum.GET_TY_DETA
                    message=None):
     """
         + 21-09-05
-            记录当前 job 的进度
-
+            记录当前 job 的进度 并 log
     @param level:
     @param job_instance:
     @param job_rate:
@@ -48,9 +49,9 @@ def store_job_rate(level=logging.DEBUG, job_instance=JobInstanceEnum.GET_TY_DETA
     """
 
     def decorate(func):
-        logname = name if name else func.__module__
-        log = logging.getLogger(logname)
-        logmsg = message if message else func.__name__
+        model_name = name if name else func.__module__
+        # log = logging.getLogger(logname)
+        func_name = message if message else func.__name__
 
         @functools.wraps(func)
         def wrapper(*args, **kwargs):
@@ -69,6 +70,8 @@ def store_job_rate(level=logging.DEBUG, job_instance=JobInstanceEnum.GET_TY_DETA
             session.commit()
             res = func(*args, **kwargs)
             log_in.info(f'level:{level},job_instance:{job_instance},job_rate:{job_rate}')
+            log_in.info(
+                f'model_name:{model_name}|func_name:{func_name}|job_instance:{job_instance}|job_rate:{job_rate}')
             # log.log(level, logmsg)
 
             return res
