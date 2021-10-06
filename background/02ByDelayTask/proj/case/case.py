@@ -268,7 +268,7 @@ def to_do(*args, **kwargs):
         return
     # + 21-09-18 获取传过来的提交参数
     post_data: dict = kwargs
-    ty_code: str = '2114' if is_debug else post_data.get('ty_code', None)
+    ty_code: str = post_data.get('ty_code', None)
     post_data_max_wind_radius_diff: int = post_data.get('max_wind_radius_diff')
     post_data_members_num: int = post_data.get('members_num')
     post_data_deviation_radius_list: List[any] = post_data.get('deviation_radius_list')
@@ -301,7 +301,7 @@ def to_do(*args, **kwargs):
     # ty_code: str = '2114'
     if ty_code is None:
         return
-    job_ty: Union[JobGetTyDetail, JobGetCustomerTyDetail] = None
+    job_ty: Union[JobGetTyDetail, JobGetCustomerTyDetail, None] = None
     if is_customer_ty:
         job_ty = JobGetCustomerTyDetail(ty_code)
         pass
@@ -350,25 +350,26 @@ def to_do(*args, **kwargs):
         # timestamp_str: str = '1632639075'
         # ty_stamp: str = 'TY2144_1632639075'
         # ty_id: int = 62
-        case_station(dt_forecast_start, dt_forecast_end, ty_stamp, ty_id=ty_id)
-        log_in.info(f'ty_code:{ty_code}|timestamp:{job_ty.timestamp_str},完成海洋站数据入库')
-        # # # step-3:
-        # # TODO:[-] + 21-09-02 txt -> nc 目前没问题，需要注意一下当前传入的 时间戳是 yyyymmddHH 的格式，与上面的不同
-        # TODO:[*] 21-09-08 注意此处暂时将 时间戳设置为一个固定值！！注意！！
-        job_txt2nc = JobTxt2Nc(ty_code, timestamp_str)
-        job_txt2nc.to_do(forecast_start_dt=dt_forecast_start)
-        log_in.info(f'ty_code:{ty_code}|timestamp:{job_ty.timestamp_str},完成surge_max的.dat->.nc的转换')
-        # # # step 3-1:
-        # # # # TODO:[*] 21-09-08 注意此处暂时将 ty_stamp 设置为一个固定值！！注意！！上线后要替换为:job_ty.ty_stamp
-        case_field_surge(ty_code, ty_stamp, dt_forecast_start, dt_forecast_end)
-        log_in.info(f'ty_code:{ty_code}|timestamp:{job_ty.timestamp_str},完成surge_field的.nc->.tiff的转换')
-        # # step 3-2:
-        # #
-        job_txt2ncpro = JobTxt2NcPro(ty_code, timestamp_str)
-        job_txt2ncpro.to_do(forecast_start_dt=dt_forecast_start)
-        log_in.info(f'ty_code:{ty_code}|timestamp:{job_ty.timestamp_str},完成surge_pro的.dat->.nc的转换')
-        case_pro_surge(ty_code, ty_stamp, dt_forecast_start, dt_forecast_end)
-        log_in.info(f'ty_code:{ty_code}|timestamp:{job_ty.timestamp_str},完成surge_pro的.nc->.tiff的转换')
+        if not is_debug:
+            case_station(dt_forecast_start, dt_forecast_end, ty_stamp, ty_id=ty_id)
+            log_in.info(f'ty_code:{ty_code}|timestamp:{job_ty.timestamp_str},完成海洋站数据入库')
+            # # # step-3:
+            # # TODO:[-] + 21-09-02 txt -> nc 目前没问题，需要注意一下当前传入的 时间戳是 yyyymmddHH 的格式，与上面的不同
+            # TODO:[*] 21-09-08 注意此处暂时将 时间戳设置为一个固定值！！注意！！
+            job_txt2nc = JobTxt2Nc(ty_code, timestamp_str)
+            job_txt2nc.to_do(forecast_start_dt=dt_forecast_start)
+            log_in.info(f'ty_code:{ty_code}|timestamp:{job_ty.timestamp_str},完成surge_max的.dat->.nc的转换')
+            # # # step 3-1:
+            # # # # TODO:[*] 21-09-08 注意此处暂时将 ty_stamp 设置为一个固定值！！注意！！上线后要替换为:job_ty.ty_stamp
+            case_field_surge(ty_code, ty_stamp, dt_forecast_start, dt_forecast_end)
+            log_in.info(f'ty_code:{ty_code}|timestamp:{job_ty.timestamp_str},完成surge_field的.nc->.tiff的转换')
+            # # step 3-2:
+            # #
+            job_txt2ncpro = JobTxt2NcPro(ty_code, timestamp_str)
+            job_txt2ncpro.to_do(forecast_start_dt=dt_forecast_start)
+            log_in.info(f'ty_code:{ty_code}|timestamp:{job_ty.timestamp_str},完成surge_pro的.dat->.nc的转换')
+            case_pro_surge(ty_code, ty_stamp, dt_forecast_start, dt_forecast_end)
+            log_in.info(f'ty_code:{ty_code}|timestamp:{job_ty.timestamp_str},完成surge_pro的.nc->.tiff的转换')
     pass
 
 
