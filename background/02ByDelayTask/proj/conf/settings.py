@@ -59,19 +59,20 @@ LOG_LOGURU = {
     'LOG_EXPIRATION_TIME': '30 days',
 }
 
-JOB_SETTINGS={
-    'MAX_TIME_INTERVAL':3600 # 计算任务允许的最大时间(单位:s)
+JOB_SETTINGS = {
+    'MAX_TIME_INTERVAL': 3600  # 计算任务允许的最大时间(单位:s)
 }
 
 # TODO:[-] 21-08-31 celery 相关配置
 
 # 使用RabbitMQ作为消息代理
 # CELERY_BROKER_URL = f'amqp://guest:guest@localhost:5672/'
-CELERY_BROKER_URL = f'amqp://guest:guest@rabbitmq:5672/'
+# CELERY_BROKER_URL = f'amqp://guest:guest@rabbitmq:5672/'
 # 针对mac使用 redis 作为消息代理
-# CELERY_BROKER_URL = f'redis://localhost:6379/0'
+CELERY_BROKER_URL = f'redis://redis:6379/0'
 # 把任务结果存在了Redis
 # CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
+# CELERY_RESULT_BACKEND = 'redis://redis:6379/0'
 # 任务序列化和反序列化使用JSON方案
 CELERY_TASK_SERIALIZER = 'pickle'
 # 读取任务结果使用JSON
@@ -80,3 +81,9 @@ CELERY_RESULT_SERIALIZER = 'json'
 CELERY_TASK_RESULT_EXPIRES = 60 * 60 * 24
 # 指定接受的内容类型，是个数组，可以写多个
 CELERY_ACCEPT_CONTENT = ['json', 'pickle']
+
+# CELERY_worker_cancel_long_running_tasks_on_connection_loss = True
+
+# CELERY_BROKER_CONNECTION_RETRY = False
+CELERY_BROKER_HEARTBEAT = 30 * 60
+CELERY_BROKER_TRANSPORT_OPTIONS = {'visibility_timeout': 43200}
