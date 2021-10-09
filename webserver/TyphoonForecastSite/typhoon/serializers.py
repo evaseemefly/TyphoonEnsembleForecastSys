@@ -22,9 +22,11 @@ class TyphoonGroupPathSerializer(serializers.Serializer):
     bp = serializers.FloatField()
     is_bp_increase = serializers.BooleanField()
 
+
 class TyphoonContainsCodeAndStSerializer(serializers.Serializer):
-    ty_code=serializers.CharField()
-    timestamp=serializers.CharField()
+    ty_code = serializers.CharField()
+    timestamp = serializers.CharField()
+
 
 class TyphoonDistGroupPathMidSerializer(serializers.Serializer):
     """
@@ -57,4 +59,10 @@ class TyphoonComplexGroupRealDataModelSerializer(serializers.Serializer):
     ty_path_marking = serializers.IntegerField()
     bp = serializers.FloatField()
     is_bp_increase = serializers.BooleanField()
-    list_realdata = serializers.ListField(child=TyphoonForecastRealDataSerializer())
+    # list_realdata = serializers.ListField(child=TyphoonForecastRealDataSerializer())
+    list_realdata = TyphoonForecastRealDataSerializer(many=True, read_only=True)
+
+    @staticmethod
+    def setup_eager_loading(queryset):
+        queryset = queryset.prefetch_related('list_realdata')
+        return queryset

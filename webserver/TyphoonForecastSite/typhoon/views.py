@@ -142,7 +142,19 @@ class TyComplexGroupRealDatasetView(BaseView):
                 paginator = Paginator(query, page_count)
                 contacts = paginator.get_page(page_index)
             try:
-                for group_temp in contacts if is_paged else query:
+                # TODO:[-] 21-10-09 此处尝试减少连接 db 的次数
+                # 一下部分考虑采用 先 filter 在 extra 的方法查询
+                # sql ：
+                # SELECT
+                # rd.lat, rd.lon, rd.bp, rd.gale_radius, gp.
+                # `timestamp`, gp.ty_path_type, gp.ty_path_marking, gp.is_bp_increase
+                # FROM
+                # typhoon_forecast_realdata as rd, typhoon_forecast_grouppath as gp
+                # WHERE
+                # rd.gp_id = gp.id
+                # AND
+                # gp.ty_id = 27
+                for group_temp in contacts if is_paged else query.iterator():
                     list_realdata: List[TyphoonForecastRealDataModel] = []
                     group_id: int = group_temp.id
                     # 根据当前的 group_id 获取 ty_realdata
@@ -153,7 +165,10 @@ class TyComplexGroupRealDatasetView(BaseView):
                         ty_path_marking=group_temp.ty_path_marking, bp=group_temp.bp,
                         is_bp_increase=group_temp.is_bp_increase, list_realdata=list_realdata)
                     list_groupComplex.append(groupComplex_temp)
-                self.json_data = TyphoonComplexGroupRealDataModelSerializer(list_groupComplex, many=True).data
+                json_data = TyphoonComplexGroupRealDataModelSerializer(list_groupComplex, many=True).data
+                # ty_qs = TyphoonComplexGroupRealDataModelSerializer.setup_eager_loading(list_groupComplex)
+                # json_data = TyphoonComplexGroupRealDataModelSerializer(ty_qs, many=True).data
+                self.json_data = json_data
                 self._status = 200
             except Exception as ex:
                 # ERROR:
@@ -162,6 +177,16 @@ class TyComplexGroupRealDatasetView(BaseView):
                 # Original exception text was: 'list' object has no attribute 'ty_id'.
                 self.json = ex.args
         return Response(self.json_data, status=self._status)
+
+    def get_new(self, request: Request) -> Response:
+        ty_id: int = int(request.GET.get('ty_id', str(DEFAULT_NULL_KEY)))
+        is_paged = bool(int(request.GET.get('is_paged', '0')))
+        page_index = request.GET.get('page_index', str(DEFAULT_PAGE_INDEX))
+        page_count = DEFAULT_PAGE_COUNT
+        list_groupComplex: List[TyComplexGroupRealDatasetView] = []
+        if ty_id != DEFAULT_NULL_KEY:
+            query = TyphoonGroupPathModel.objects.filter(
+                ty_id=ty_id)
 
 
 class TyDataRangeView(TyGroupBaseView):
