@@ -66,3 +66,47 @@ class TyphoonComplexGroupRealDataModelSerializer(serializers.Serializer):
     def setup_eager_loading(queryset):
         queryset = queryset.prefetch_related('list_realdata')
         return queryset
+
+
+class TyphoonComplexGroupRealDataNewModelSerializer(serializers.Serializer):
+    """
+        + 21-10-10 新加入的序列化器 用于 序列化 关联查询
+        tb:typhoon_forecast_realdata + tb:typhoon_forecast_grouppath
+        拼接后的结果
+    """
+    timestamp = serializers.CharField()
+    forecast_dt = serializers.DateTimeField()
+    lat = serializers.FloatField()
+    lon = serializers.FloatField()
+    bp = serializers.FloatField()
+    gale_radius = serializers.FloatField()
+    ty_path_type = serializers.CharField()
+    ty_path_marking = serializers.IntegerField()
+    is_bp_increase = serializers.BooleanField()
+
+
+class TyphoonComplexGroupRealDataDictModelSerializer(serializers.Serializer):
+    """
+        + 21-10-10 新加入的序列化器 用于 序列化 关联查询
+        tb:typhoon_forecast_realdata + tb:typhoon_forecast_grouppath
+        拼接后的结果
+    """
+    timestamp = serializers.CharField()
+    forecast_dt = serializers.DateTimeField()
+    lat = serializers.FloatField()
+    lon = serializers.FloatField()
+    bp = serializers.FloatField()
+    gale_radius = serializers.FloatField()
+    ty_path_type = serializers.CharField()
+    ty_path_marking = serializers.IntegerField()
+    is_bp_increase = serializers.BooleanField()
+
+
+class TyphoonComplexGroupDictMidSerializer(serializers.Serializer):
+    gp_id = serializers.IntegerField()
+    bp = serializers.FloatField()
+    # gale_radius = serializers.FloatField()
+    ty_path_type = serializers.CharField()
+    ty_path_marking = serializers.IntegerField()
+    is_bp_increase = serializers.BooleanField()
+    list_realdata = TyphoonComplexGroupRealDataDictModelSerializer(many=True)

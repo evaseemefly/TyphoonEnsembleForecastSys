@@ -32,7 +32,39 @@ class TyphoonGroupDistMidModel:
         self.forecast_start = start
         self.forecast_end = end
 
+
 class TyphoonContainsCodeAndStMidModel:
-    def __init__(self,ty_code:str,timestamp_str:str):
-        self.ty_code=ty_code
-        self.timestamp_str=timestamp_str
+    def __init__(self, ty_code: str, timestamp_str: str):
+        self.ty_code = ty_code
+        self.timestamp_str = timestamp_str
+
+
+class TyphoonGroupRealDataDistMidModel:
+    """
+        + 21-07-25 新加入的用来作为 台风集合 model 的middel
+          desc:
+                主要用来存储 台风编号信息及时间戳及创建时间等信息，供检索使用
+    """
+
+    def __init__(self, timestamp: int, forecast_dt: datetime, lat: float, lon: float, bp: float, gale_radius: float,
+                 ty_path_type: str, ty_path_marking: int, is_bp_increase: bool):
+        self.timestamp = timestamp
+        self.forecast_dt = forecast_dt
+        self.lat = lat
+        self.lon = lon
+        self.bp = bp
+        self.gale_radius = gale_radius
+        self.ty_path_type = ty_path_type
+        self.ty_path_marking = ty_path_marking
+        self.is_bp_increase = is_bp_increase
+
+
+class TyphoonComplexGroupDictMidModel:
+    def __init__(self, gp_id: int, ty_path_type: str, ty_path_marking: int,
+                 bp: float, is_bp_increase: bool, list_realdata: List[TyphoonGroupRealDataDistMidModel]):
+        self.gp_id = gp_id
+        self.ty_path_type = ty_path_type
+        self.ty_path_marking = ty_path_marking
+        self.bp = bp
+        self.is_bp_increase = is_bp_increase
+        self.list_realdata = list_realdata

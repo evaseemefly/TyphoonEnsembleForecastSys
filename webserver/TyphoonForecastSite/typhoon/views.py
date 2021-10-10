@@ -13,9 +13,11 @@ import arrow
 from common.view_base import BaseView
 from typhoon.views_base import TyGroupBaseView
 from .models import TyphoonForecastDetailModel, TyphoonGroupPathModel, TyphoonForecastRealDataModel
-from .mid_models import TyphoonComplexGroupRealDataMidModel, TyphoonGroupDistMidModel, TyphoonContainsCodeAndStMidModel
+from .mid_models import TyphoonComplexGroupRealDataMidModel, TyphoonGroupDistMidModel, TyphoonContainsCodeAndStMidModel, \
+    TyphoonGroupRealDataDistMidModel, TyphoonComplexGroupDictMidModel
 from .serializers import TyphoonForecastDetailSerializer, TyphoonGroupPathSerializer, TyphoonForecastRealDataSerializer, \
-    TyphoonComplexGroupRealDataModelSerializer, TyphoonDistGroupPathMidSerializer, TyphoonContainsCodeAndStSerializer
+    TyphoonComplexGroupRealDataModelSerializer, TyphoonDistGroupPathMidSerializer, TyphoonContainsCodeAndStSerializer, \
+    TyphoonComplexGroupRealDataNewModelSerializer, TyphoonComplexGroupDictMidSerializer
 from TyphoonForecastSite.settings import MY_PAGINATOR
 from util.const import DEFAULT_NULL_KEY, UNLESS_TY_CODE, DEFAULT_TIMTSTAMP_STR
 
@@ -123,7 +125,7 @@ class TyRealDataView(BaseView):
 
 
 class TyComplexGroupRealDatasetView(BaseView):
-    def get(self, request: Request) -> Response:
+    def get_old(self, request: Request) -> Response:
         """
             + 21-04-19
             根据 ty_id 获取 group 集合 + realdata list 的这种组合
@@ -175,18 +177,67 @@ class TyComplexGroupRealDatasetView(BaseView):
                 # Got AttributeError when attempting to get a value for field `ty_id` on serializer `TyphoonComplexGroupRealDataModelSerializer`.
                 # The serializer field might be named incorrectly and not match any attribute or key on the `list` instance.
                 # Original exception text was: 'list' object has no attribute 'ty_id'.
-                self.json = ex.args
+                self.json_data = ex.args
         return Response(self.json_data, status=self._status)
 
-    def get_new(self, request: Request) -> Response:
+    def get(self, request: Request) -> Response:
         ty_id: int = int(request.GET.get('ty_id', str(DEFAULT_NULL_KEY)))
-        is_paged = bool(int(request.GET.get('is_paged', '0')))
-        page_index = request.GET.get('page_index', str(DEFAULT_PAGE_INDEX))
-        page_count = DEFAULT_PAGE_COUNT
-        list_groupComplex: List[TyComplexGroupRealDatasetView] = []
         if ty_id != DEFAULT_NULL_KEY:
-            query = TyphoonGroupPathModel.objects.filter(
-                ty_id=ty_id)
+            try:
+                # step-1 : 根据 ty_id 拼接两张表
+                query = TyphoonGroupPathModel.objects.filter(
+                    ty_id=ty_id).extra(
+                    select={'timestamp': 'typhoon_forecast_grouppath.timestamp',
+                            'lat': 'typhoon_forecast_realdata.lat',
+                            'lon': 'typhoon_forecast_realdata.lon', 'bp': 'typhoon_forecast_realdata.bp',
+                            'gale_radius': 'typhoon_forecast_realdata.gale_radius',
+                            'ty_path_type': 'typhoon_forecast_grouppath.ty_path_type',
+                            'ty_path_marking': 'typhoon_forecast_grouppath.ty_path_marking',
+                            'is_bp_increase': 'typhoon_forecast_grouppath.is_bp_increase',
+                            'forecast_dt': 'typhoon_forecast_realdata.forecast_dt',
+                            'gp_id': 'typhoon_forecast_grouppath.id'},
+                    tables=['typhoon_forecast_realdata', 'typhoon_forecast_grouppath'],
+                    where=['typhoon_forecast_realdata.gp_id=typhoon_forecast_grouppath.id'])
+                # step-2 : 将不同的 gp_id 抽取出来放到不同的数组中
+                query_list = list(query)
+                list_group_dict: dict = {}
+                # { gp_id:'',realdata_list:[xx]}
+                list_group: List[any] = []
+                for temp in query_list:
+                    # 方式 2-1
+                    if temp.gp_id not in list_group_dict:
+                        list_group_dict[temp.gp_id] = []
+                    list_group_dict[temp.gp_id].append(temp)
+                for item in list_group_dict:
+                    # item['gp_id'] = item
+                    first_realdata = list_group_dict[item][0]
+                    item_dist_group: TyphoonComplexGroupDictMidModel = TyphoonComplexGroupDictMidModel(item,
+                                                                                                       first_realdata.ty_path_type,
+                                                                                                       first_realdata.ty_path_marking,
+                                                                                                       first_realdata.bp,
+                                                                                                       first_realdata.is_bp_increase,
+                                                                                                       list_group_dict[
+                                                                                                           item])
+                    list_group.append(item_dist_group)
+                    # pass
+
+                    # 方式 2-2
+                #     if len(list_group) > 0:
+                #         for temp_dict in list_group:
+                #             if temp_dict['gp_id'] and temp_dict['gp_id'] == temp.gp_id:
+                #                 temp_dict['real_data'].append(temp)
+                #             else:
+                #                 list_group.append({'gp_id': temp.gp_id, 'real_data': [temp]})
+                #     else:
+                #         list_group.append({'gp_id': temp.gp_id, 'real_data': [temp]})
+                # json_data = TyphoonComplexGroupRealDataNewModelSerializer(query, many=True).data
+                # json_data=
+                json_data = TyphoonComplexGroupDictMidSerializer(list_group, many=True).data
+                self.json_data = json_data
+                self._status = 200
+            except Exception as ex:
+                self.json_data = ex.args
+        return Response(self.json_data, status=self._status)
 
 
 class TyDataRangeView(TyGroupBaseView):
