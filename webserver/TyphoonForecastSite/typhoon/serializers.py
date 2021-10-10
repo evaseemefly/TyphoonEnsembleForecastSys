@@ -95,7 +95,7 @@ class TyphoonComplexGroupRealDataDictModelSerializer(serializers.Serializer):
     forecast_dt = serializers.DateTimeField()
     lat = serializers.FloatField()
     lon = serializers.FloatField()
-    bp = serializers.FloatField()
+    realdata_bp = serializers.FloatField()
     gale_radius = serializers.FloatField()
     ty_path_type = serializers.CharField()
     ty_path_marking = serializers.IntegerField()
@@ -104,7 +104,8 @@ class TyphoonComplexGroupRealDataDictModelSerializer(serializers.Serializer):
 
 class TyphoonComplexGroupDictMidSerializer(serializers.Serializer):
     gp_id = serializers.IntegerField()
-    bp = serializers.FloatField()
+    group_bp = serializers.FloatField()
+    # is_bp_increase=serializers.BooleanField()
     # gale_radius = serializers.FloatField()
     ty_path_type = serializers.CharField()
     ty_path_marking = serializers.IntegerField()

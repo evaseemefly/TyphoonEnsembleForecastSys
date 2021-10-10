@@ -189,7 +189,9 @@ class TyComplexGroupRealDatasetView(BaseView):
                     ty_id=ty_id).extra(
                     select={'timestamp': 'typhoon_forecast_grouppath.timestamp',
                             'lat': 'typhoon_forecast_realdata.lat',
-                            'lon': 'typhoon_forecast_realdata.lon', 'bp': 'typhoon_forecast_realdata.bp',
+                            'lon': 'typhoon_forecast_realdata.lon',
+                            'realdata_bp': 'typhoon_forecast_realdata.bp',
+                            'group_bp': 'typhoon_forecast_grouppath.bp',
                             'gale_radius': 'typhoon_forecast_realdata.gale_radius',
                             'ty_path_type': 'typhoon_forecast_grouppath.ty_path_type',
                             'ty_path_marking': 'typhoon_forecast_grouppath.ty_path_marking',

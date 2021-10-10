@@ -52,7 +52,7 @@ class TyphoonGroupRealDataDistMidModel:
         self.forecast_dt = forecast_dt
         self.lat = lat
         self.lon = lon
-        self.bp = bp
+        self.realdata_bp = bp
         self.gale_radius = gale_radius
         self.ty_path_type = ty_path_type
         self.ty_path_marking = ty_path_marking
@@ -65,6 +65,7 @@ class TyphoonComplexGroupDictMidModel:
         self.gp_id = gp_id
         self.ty_path_type = ty_path_type
         self.ty_path_marking = ty_path_marking
-        self.bp = bp
+        self.group_bp = bp
         self.is_bp_increase = is_bp_increase
+        # self.is_bp_increase = is_bp_increase
         self.list_realdata = list_realdata
