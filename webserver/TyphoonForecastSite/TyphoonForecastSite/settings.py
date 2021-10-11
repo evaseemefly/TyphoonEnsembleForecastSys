@@ -98,8 +98,10 @@ DATABASES = {
         # 'PASSWORD': '123456',
         # 'HOST': '127.0.0.1',  # HOST
         # 访问宿主的mysql服务,
-        'HOST': 'host.docker.internal',
-        'POST': 3306,  # 端口
+        'HOST': 'mysql',  # TODO:[-] 21-10-11 注意此处使用 mysql 的容器
+        # 'HOST': 'host.docker.internal',
+        # 'POST': 3306,  # 端口
+        'POST': 3308,  # TODO:[-] 21-10-11 端口暂时改为 3308
         'OPTIONS': {
             "init_command": "SET foreign_key_checks = 0;",
         },
@@ -195,7 +197,6 @@ CELERY_RESULT_SERIALIZER = 'json'
 CELERY_TASK_RESULT_EXPIRES = 60 * 60 * 24
 # 指定接受的内容类型，是个数组，可以写多个
 CELERY_ACCEPT_CONTENT = ['json', 'pickle']
-
 
 # + 21-09-28 新加入的 loguru 的配置文件
 LOG_LOGURU = {
