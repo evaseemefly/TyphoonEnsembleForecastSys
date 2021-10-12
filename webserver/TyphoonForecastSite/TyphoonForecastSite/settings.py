@@ -204,3 +204,5 @@ LOG_LOGURU = {
     'LOG_SPLIT_TIME': '1 day',
     'LOG_EXPIRATION_TIME': '30 days',
 }
+
+PROJ_VERSIONS='title:typhoon_django_server,content:typhoon drf server,version:1.5'

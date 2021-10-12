@@ -18,7 +18,7 @@ from .mid_models import TyphoonComplexGroupRealDataMidModel, TyphoonGroupDistMid
 from .serializers import TyphoonForecastDetailSerializer, TyphoonGroupPathSerializer, TyphoonForecastRealDataSerializer, \
     TyphoonComplexGroupRealDataModelSerializer, TyphoonDistGroupPathMidSerializer, TyphoonContainsCodeAndStSerializer, \
     TyphoonComplexGroupRealDataNewModelSerializer, TyphoonComplexGroupDictMidSerializer
-from TyphoonForecastSite.settings import MY_PAGINATOR
+from TyphoonForecastSite.settings import MY_PAGINATOR, PROJ_VERSIONS
 from util.const import DEFAULT_NULL_KEY, UNLESS_TY_CODE, DEFAULT_TIMTSTAMP_STR
 
 DEFAULT_PAGE_INDEX = MY_PAGINATOR.get('PAGE_INDEX')
@@ -26,6 +26,12 @@ DEFAULT_PAGE_COUNT = MY_PAGINATOR.get('PAGE_COUNT')
 
 
 # Create your views here.
+class TyTestView(BaseView):
+    def get(self, request):
+        self.json_data = PROJ_VERSIONS
+        self._status = 200
+        return Response(self.json_data, status=self._status)
+
 
 class TyDetailModelView(BaseView):
     """
