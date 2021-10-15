@@ -151,9 +151,11 @@ class RasterBaseView(BaseView):
         store_relative_path: str = STORE_RELATIVE_PATH_OPTIONS.get('TY_GROUP_CASE')
         # TODO:[*] 21-08-10 此处需要注意，store_relative_path 不包含 /result/ 需要手动在后面加上，暂时手动加上，注意 p5750 的环境
         # TODO:[*] 21-09-08 注意修改 后的新的路径为 E:\05DATA\01nginx_data\nmefc_download\TY_GROUP_RESULT\TY2114_1631066272\result
+        # TODO:[-] 21-10-14 上线后的路径修改为 : http://128.5.10.21:82/images/result/TY2097_1634180640/fieldSurge_TY2097_1634180640_c0_p00_202009180100.tif
         # http://localhost:82/images/nmefc_download/TY_GROUP_RESULT//TY2022_2021010416\\proSurge_TY2022_2021010416_gt0_5m.tif
-        # url_base : eg : 'http://localhost:82/images/nmefc_download/TY_GROUP_RESULT/result//'
-        url_base = f'http://{store_url}:{store_host}/{store_common_base}/{store_head}/{store_relative_path}/result/{store_ty_stamp}'
+        # TODO:[-] 21-10-14 之前本地的备份
+        # url_base = f'http://{store_url}:{store_host}/{store_common_base}/{store_head}/{store_relative_path}/result/{store_ty_stamp}'
+        url_base = f'http://{store_url}:{store_host}/{store_common_base}/result/{store_ty_stamp}'
         url_file = None
         if res_tif is not None:
             file_full_name: str = f'{res_tif.file_name}.{res_tif.file_ext}'

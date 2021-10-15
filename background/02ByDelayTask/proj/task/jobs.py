@@ -24,7 +24,7 @@ from util.log import Loggings, log_in
 from common.enum import JobInstanceEnum, TaskStateEnum
 from util.customer_excption import CalculateTimeOutError
 from util.customer_decorators import except_log
-from conf.settings import TEST_ENV_SETTINGS, JOB_SETTINGS
+from conf.settings import TEST_ENV_SETTINGS, JOB_SETTINGS, MODIFY_CHMOD_PATH, MODIFY_CHMOD_FILENAME
 
 SHARED_PATH = TEST_ENV_SETTINGS.get('TY_GROUP_PATH_ROOT_DIR')
 MAX_TIME_INTERVAL: int = JOB_SETTINGS.get('MAX_TIME_INTERVAL')
@@ -1309,8 +1309,9 @@ class JobTaskBatch(IBaseJob):
         @return:
         """
         # path0 = os.listdir(wdir0+'pathfiles/' + caseno + '/')
-        path0 = self.path_pathfiles_full
-        #
+        # path0 = self.path_pathfiles_full
+        path0 = os.listdir(self.path_pathfiles_full)
+        log_in.info(f'当前文件存储pathfiles的目录共有文件{len(path0)}个，判断标准为:{pnum}')        #
         if len(path0) >= pnum:
             # os.startfile(wdir0 + "sz_start_gpu_model.bat")
             # TODO:[-] 21-09-24 修改 控制文件为外部传入的
@@ -1319,6 +1320,15 @@ class JobTaskBatch(IBaseJob):
             # os.startfile(path_control_file)
             # linux 原始版本
             # a = subprocess.check_call('./sz_start_gpu_model.sh', shell=True, cwd=wdir0)
+            # TODO:[-] 21-10-13 手动加入对 control 文件夹手动赋予权限的操作
+            modify_sh_full_path: str = str(pathlib.Path(MODIFY_CHMOD_PATH) / MODIFY_CHMOD_FILENAME)
+            try:
+                log_in.warning(f'执行{modify_sh_full_path}可执行文件，请注意！！')
+                b = subprocess.check_call(modify_sh_full_path, shell=True)
+            except Exception as ex:
+                log_in.warning(f'执行{modify_sh_full_path}时出错:{ex.args}')
+                pass
+            log_in.warning(f'执行{modify_sh_full_path}可执行文件，请注意！！')
             a = subprocess.check_call(path_control_file, shell=True)
 
             filenum = 0

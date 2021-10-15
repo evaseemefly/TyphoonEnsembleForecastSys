@@ -16,7 +16,7 @@ class CaseStatusModel(IModel, IDelModel, IIdModel):
     is_lock = models.BooleanField(default=False)
 
     class Meta:
-        db_table = 'Task_CaseStatus'
+        db_table = 'task_casestatus'
 
 
 class CaseInstanceModel(IModel, IDelModel, IIdModel):
@@ -33,4 +33,4 @@ class CaseInstanceModel(IModel, IDelModel, IIdModel):
     # radius = models.IntegerField(default=-9999)
 
     class Meta:
-        db_table = 'Task_CaseInstance'
+        db_table = 'task_caseinstance'

@@ -24,7 +24,8 @@ SECRET_KEY = '^belj%#qs2a$bo&*xs9p*@rs76qwst@+x4a%a^3nl5%!pyb2xu'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+# TODO:[-] 21-10-13 添加实际线上环境
+ALLOWED_HOSTS = ['128.5.10.21']
 
 # Application definition
 
@@ -151,11 +152,10 @@ MY_PAGINATOR = {
 
 # TODO:[-] 20-11-03 加入的测试时使用的读取存储文件的网络存储的相关信息
 STORE_OPTIONS = {
-    'URL': 'localhost',
+    'URL': '128.5.10.21',
     'HOST': 82,  # TODO:[-] 21-01-03 暂时将 nginx 的端口改为了 82 ，注意！
     'STORE_COMMON_BASE': 'images',  # 对应 nginx 的映射的根目录
     'HEAD': 'nmefc_download',  # nginx 实际存储的 起始路径
-
 }
 # TODO:[-] 21-08-01 由于不同的数据中间还会继续分层，所以引入了 STORE_RELATIVE_PATH_OPTIONS
 # TODO:[-] 21-08-01 由于不同的数据中间还会继续分层，所以引入了 STORE_RELATIVE_PATH_OPTIONS

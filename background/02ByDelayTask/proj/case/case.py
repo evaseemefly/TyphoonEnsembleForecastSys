@@ -339,9 +339,9 @@ def to_do(*args, **kwargs):
 
         # step-2: 执行批处理 调用模型——暂时跳过
         job_task = JobTaskBatch(ty_code, timestamp_str)
-        log_in.info(f'ty_code:{ty_code}|timestamp:{job_ty.timestamp_str},提交gpu进行计算')
+        log_in.info(f'ty_code:{ty_code}|timestamp:{job_ty.timestamp_str},提交gpu进行计算！new')
         job_task.to_do(full_path_controlfile=job_generate.full_path_controlfile)
-        log_in.info(f'ty_code:{ty_code}|timestamp:{job_ty.timestamp_str},gpu计算结束')
+        log_in.info(f'ty_code:{ty_code}|timestamp:{job_ty.timestamp_str},gpu计算结束！new')
         # -----
         # step 3: 处理海洋站
         # 注意 此处的 ty_id 由 case_group_ty_path 处理后创建的一个 ty id

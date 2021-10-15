@@ -729,7 +729,7 @@ class GroupTyphoonPath(IBaseOpt):
             if pathlib.Path(full_path).is_file():
                 with open(full_path, 'rb') as f:
                     data = pd.read_table(f, encoding='utf-8', header=None, infer_datetime_format=False)
-                    print('读取成功')
+                    # print('读取成功')
                     if data is not None:
                         self.dict_data['DF'] = data
         return data
