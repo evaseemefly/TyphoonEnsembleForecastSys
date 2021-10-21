@@ -19,6 +19,7 @@ from util.customer_exception import QueryNoneError
 from util.log import log_in
 from others.my_celery import app
 
+
 # Create your views here.
 # CELERY = app
 
@@ -204,7 +205,8 @@ class TaskCreateView(BaseView):
         @return:
         """
         list_res: List[List[str]] = []
-        list_dt: List[str] = []
+        list_dt_utc: List[str] = []
+        list_dt_local: List[str] = []
         list_lat: List[str] = []
         list_lon: List[str] = []
         list_bp: List[str] = []
@@ -216,10 +218,12 @@ class TaskCreateView(BaseView):
             dt_str: str = temp_customer_cma.get('forecastDt')
             arrow_utc = arrow.get(dt_str)
             # utc -> local
-            arrow_local = arrow_utc.to('local')
+            arrow_local = arrow_utc.to('Asia/Shanghai')
             # arrow local -> format YYYYMMDDHH
             dt_local_str: str = arrow_local.format('YYYYMMDDHH')
-            list_dt.append(dt_local_str)
+            dt_utc_str: str = arrow_utc.format('YYYYMMDDHH')
+            list_dt_local.append(dt_local_str)
+            list_dt_utc.append(dt_utc_str)
             # list_dt.append(temp_customer_cma.get(''))
             # TODO:[-] 21-09-22 !注意此处要注意顺序，list[2] 为 lon 经度 ,list[3] 为 lat 纬度,切记!
             # step -2 : convert lon
@@ -232,7 +236,7 @@ class TaskCreateView(BaseView):
             # step -4 : convert bp
             temp_bp: float = temp_customer_cma.get('bp')
             list_bp.append(str(temp_bp))
-        list_res = ['', list_dt, list_lon, list_lat, list_bp, []]
+        list_res = ['', list_dt_local, list_lon, list_lat, list_bp, [], list_dt_utc]
         return list_res
 
 

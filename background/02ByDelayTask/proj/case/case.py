@@ -307,6 +307,7 @@ def to_do(*args, **kwargs):
         pass
     else:
         job_ty = JobGetTyDetail(ty_code)
+    # TDOO:[*] 21-10-21 注意需此处爬取后的台风时间为 local ，而django传递过来的为utc时间
     job_ty.to_do(list_customer_cma=ty_customer_cma)
     log_in.info(f'获取提交:ty_code:{ty_code}|timestamp:{job_ty.timestamp_str}')
     if len(job_ty.list_cmd) == 0:

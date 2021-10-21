@@ -25,7 +25,7 @@ SECRET_KEY = '^belj%#qs2a$bo&*xs9p*@rs76qwst@+x4a%a^3nl5%!pyb2xu'
 DEBUG = True
 
 # TODO:[-] 21-10-13 添加实际线上环境
-ALLOWED_HOSTS = ['128.5.10.21']
+ALLOWED_HOSTS = ['128.5.10.21', '127.0.0.1']
 
 # Application definition
 
@@ -99,8 +99,8 @@ DATABASES = {
         # 'PASSWORD': '123456',
         # 'HOST': '127.0.0.1',  # HOST
         # 访问宿主的mysql服务,
-        'HOST': 'mysql',  # TODO:[-] 21-10-11 注意此处使用 mysql 的容器
-        # 'HOST': 'host.docker.internal',
+        # 'HOST': 'mysql',  # TODO:[-] 21-10-11 注意此处使用 mysql 的容器
+        'HOST': 'host.docker.internal',
         # 'POST': 3306,  # 端口
         'POST': 3308,  # TODO:[-] 21-10-11 端口暂时改为 3308
         'OPTIONS': {
@@ -206,4 +206,4 @@ LOG_LOGURU = {
     'LOG_EXPIRATION_TIME': '30 days',
 }
 
-PROJ_VERSIONS='title:typhoon_django_server,content:typhoon drf server,version:1.5'
+PROJ_VERSIONS = 'title:typhoon_django_server,content:typhoon drf server,version:1.5'
