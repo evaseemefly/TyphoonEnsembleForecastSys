@@ -208,7 +208,7 @@ class JobGetTyDetail(IBaseJob):
         if len(self.list_cmd) > 4:
             list_dt = self.list_cmd[1]
             if len(list_dt) > 0:
-                dt_forecast_str = arrow.get(list_dt[0], 'YYYYMMDDHH').datetime
+                dt_forecast_str = arrow.get(list_dt[0], 'YYYYMMDDHH', tzinfo='Asia/Shanghai').datetime
         return dt_forecast_str
 
     @property
@@ -218,7 +218,8 @@ class JobGetTyDetail(IBaseJob):
         @return:
         """
 
-        arrow_utc = arrow.get(self.forecast_start_dt_local).shift(hours=-8)
+        # arrow_utc = arrow.get(self.forecast_start_dt_local).shift(hours=-8)
+        arrow_utc = arrow.get(self.forecast_start_dt_local).to('utc')
         return arrow_utc.datetime
 
     @property
@@ -227,7 +228,8 @@ class JobGetTyDetail(IBaseJob):
         if len(self.list_cmd) > 4:
             list_dt = self.list_cmd[1]
             if len(list_dt) > 0:
-                dt_forecast = arrow.get(list_dt[-1], 'YYYYMMDDHH').datetime
+                # TODO:[-] 21-10-22 需要手动加入时区为本地时区
+                dt_forecast = arrow.get(list_dt[-1], 'YYYYMMDDHH', tzinfo='Asia/Shanghai').datetime
         return dt_forecast
 
     @property
@@ -237,7 +239,7 @@ class JobGetTyDetail(IBaseJob):
         @return:
         """
 
-        arrow_utc = arrow.get(self.forecast_end_dt_local).shift(hours=-8)
+        arrow_utc = arrow.get(self.forecast_end_dt_local).to('utc')
         return arrow_utc.datetime
 
     @property
