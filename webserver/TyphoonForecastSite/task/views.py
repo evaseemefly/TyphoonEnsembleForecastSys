@@ -217,6 +217,7 @@ class TaskCreateView(BaseView):
             # step -1 : convert dt
             dt_str: str = temp_customer_cma.get('forecastDt')
             arrow_utc = arrow.get(dt_str)
+            # TODO:[-] 21-10-22 此处发现一个会导致严重bug的问题，建议不使用 xx.to('local')
             # utc -> local
             arrow_local = arrow_utc.to('Asia/Shanghai')
             # arrow local -> format YYYYMMDDHH
@@ -236,7 +237,7 @@ class TaskCreateView(BaseView):
             # step -4 : convert bp
             temp_bp: float = temp_customer_cma.get('bp')
             list_bp.append(str(temp_bp))
-        list_res = ['', list_dt_local, list_lon, list_lat, list_bp, [], list_dt_utc]
+        list_res = ['', list_dt_local, list_lon, list_lat, list_bp, []]
         return list_res
 
 
