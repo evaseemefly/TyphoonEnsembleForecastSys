@@ -291,7 +291,7 @@ def to_do(*args, **kwargs):
     #  list[3] ['31.3', '33.8']   维度
     #  list[4] ['998', '998']     气压
     #  list[5] ['15', '15']       暂时不用
-    # TODO:[-] 21-10-22 注意传入的是 local 时间，而非 utc 时间,切记！
+    # 21-10-22 注意传入的是 local 时间，而非 utc 时间,切记！
     ty_customer_cma: List[List[any]] = []
 
     if is_customer_ty:

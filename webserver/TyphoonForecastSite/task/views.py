@@ -159,6 +159,7 @@ class TaskCreateView(BaseView):
         ty_customer_cma: dict = kwargs.get('ty_customer_cma')
         ty_customer_list: List[dict] = ty_customer_cma.get('customer_ty_cma_list')
         # step -2 : 对 model 进行转换 convert
+        # + 注意数组中的时间为 本地时区！！
         list_customer_cma: List[List[any]] = self._convert_ty_customer_cma(ty_customer_list) if is_customer_ty else []
 
         # eg: [{'hours': 24, 'radius': 60}, {'hours': 48, 'radius': 100},
@@ -169,7 +170,7 @@ class TaskCreateView(BaseView):
                                                                            member_num=members_num,
                                                                            max_wind_radius_dif=max_wind_radius_diff,
                                                                            json_field=deviation_radius_list)
-        # TODO:[-] 21-09-20 customer_ty_cma_list -> forecastDt 需要转换为 2021071905 (local time)
+        # 21-09-20 customer_ty_cma_list -> forecastDt 需要转换为 2021071905 (local time)
         # 'customer_ty_cma_list': [
         #     {'forecastDt': '2021-09-04T06:00:00.000Z',
         #      'lat': 115.7,
@@ -196,7 +197,7 @@ class TaskCreateView(BaseView):
                      'radius': 80}, ....],
             return : 'customer_ty_cma_list':
                       list[0] TY2112_2021090116_CMA_original 是具体的编号
-                      List[1] ['2021082314', '2021082320'] 时间
+                      List[1] ['2021082314', '2021082320'] 时间(切记返回的时区为本地时区切记！！)
                       list[2] ['125.3', '126.6'] 经度
                       list[3] ['31.3', '33.8']   维度
                       list[4] ['998', '998']     气压
