@@ -91,3 +91,5 @@ CELERY_BROKER_TRANSPORT_OPTIONS = {'visibility_timeout': 43200}
 
 MODIFY_CHMOD_PATH = '/public/home/surge/TYPHOON_PROJ/celery_new_server/shells'
 MODIFY_CHMOD_FILENAME = 'modify_chmod.sh'
+
+TIME_ZONE = 'Asia/Shanghai'

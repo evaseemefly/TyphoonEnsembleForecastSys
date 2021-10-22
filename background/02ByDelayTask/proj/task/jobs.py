@@ -24,7 +24,7 @@ from util.log import Loggings, log_in
 from common.enum import JobInstanceEnum, TaskStateEnum
 from util.customer_excption import CalculateTimeOutError
 from util.customer_decorators import except_log
-from conf.settings import TEST_ENV_SETTINGS, JOB_SETTINGS, MODIFY_CHMOD_PATH, MODIFY_CHMOD_FILENAME
+from conf.settings import TEST_ENV_SETTINGS, JOB_SETTINGS, MODIFY_CHMOD_PATH, MODIFY_CHMOD_FILENAME, TIME_ZONE
 
 SHARED_PATH = TEST_ENV_SETTINGS.get('TY_GROUP_PATH_ROOT_DIR')
 MAX_TIME_INTERVAL: int = JOB_SETTINGS.get('MAX_TIME_INTERVAL')
@@ -153,6 +153,7 @@ class JobGetTyDetail(IBaseJob):
 
     def __init__(self, ty_code: str, timestamp: str = None, list_cmd=[]):
         super(JobGetTyDetail, self).__init__(ty_code, timestamp)
+        # 切记 此处 的 list_cmd 是 local 时间
         self.list_cmd = list_cmd
 
     # def __init__(self, ty_code: str, timestamp: str = None):
@@ -198,9 +199,9 @@ class JobGetTyDetail(IBaseJob):
         return list_temp
 
     @property
-    def forecast_start_dt(self) -> datetime:
+    def forecast_start_dt_local(self) -> datetime:
         """
-            当前获取 台风 路径的 起始预报时间
+            当前获取 台风 路径的 起始预报时间(lcoal time zone)
         @return:
         """
         dt_forecast_str = None
@@ -211,13 +212,33 @@ class JobGetTyDetail(IBaseJob):
         return dt_forecast_str
 
     @property
-    def forecast_end_dt(self) -> datetime:
-        dt_forecast_str = None
+    def forecast_start_dt_utc(self) -> datetime:
+        """
+            + 21-10-22 新加入的 utc 属性
+        @return:
+        """
+
+        arrow_utc = arrow.get(self.forecast_start_dt_local).to('utc')
+        return arrow_utc.datetime
+
+    @property
+    def forecast_end_dt_local(self) -> datetime:
+        dt_forecast = None
         if len(self.list_cmd) > 4:
             list_dt = self.list_cmd[1]
             if len(list_dt) > 0:
-                dt_forecast_str = arrow.get(list_dt[-1], 'YYYYMMDDHH').datetime
-        return dt_forecast_str
+                dt_forecast = arrow.get(list_dt[-1], 'YYYYMMDDHH').datetime
+        return dt_forecast
+
+    @property
+    def forecast_end_dt_utc(self) -> datetime:
+        """
+            + 21-10-22 新加入的 utc 属性
+        @return:
+        """
+
+        arrow_utc = arrow.get(self.forecast_end_dt_local).to('utc')
+        return arrow_utc.datetime
 
     @property
     def list_timeDiff(self):
@@ -903,7 +924,7 @@ class JobGeneratePathFile(IBaseJob):
         return str(pathlib.Path(self.path_controlfile) / self.name_controlfile)
 
     @property
-    def forecast_start_dt(self) -> datetime:
+    def forecast_start_dt_local(self) -> datetime:
         """
             当前获取 台风 路径的 起始预报时间
         @return:
@@ -914,6 +935,15 @@ class JobGeneratePathFile(IBaseJob):
             if len(list_dt) > 0:
                 dt_forecast_str = arrow.get(list_dt[0], 'YYYYMMDDHH').datetime
         return dt_forecast_str
+
+    @property
+    def forecast_start_dt_utc(self) -> datetime:
+        """
+            + 21-10-22 新加入的 utc 属性
+        @return:
+        """
+        arrow_utc = arrow.get(self.forecast_start_dt_local).to('utc')
+        return arrow_utc.datetime
 
     @property
     def list_timeDiff(self):
@@ -965,7 +995,9 @@ class JobGeneratePathFile(IBaseJob):
         pNum = kwargs.get('members_num')
         hrs1, tlon1, tlat1, pres1 = self.interp6h(self.list_timeDiff, self.list_lons, self.list_lats, self.list_bp)
         # ['TYTD03_2020042710_c0_p00', 'TYTD03_2020042710_c0_p05', 'TYTD03_2020042710_c0_p10',...]
-        filename_list = self.gen_typathfile(SHARED_PATH, self.forecast_start_dt, dR, self.ty_stamp, list_radius, pNum,
+        # TODO:[*] 21-10-22 注意此处的时间由 local -> utc
+        filename_list = self.gen_typathfile(SHARED_PATH, self.forecast_start_dt_utc, dR, self.ty_stamp, list_radius,
+                                            pNum,
                                             tlon1,
                                             tlat1, pres1)
         self.output_controlfile(SHARED_PATH, filename_list)
@@ -1311,7 +1343,7 @@ class JobTaskBatch(IBaseJob):
         # path0 = os.listdir(wdir0+'pathfiles/' + caseno + '/')
         # path0 = self.path_pathfiles_full
         path0 = os.listdir(self.path_pathfiles_full)
-        log_in.info(f'当前文件存储pathfiles的目录共有文件{len(path0)}个，判断标准为:{pnum}')        #
+        log_in.info(f'当前文件存储pathfiles的目录共有文件{len(path0)}个，判断标准为:{pnum}')  #
         if len(path0) >= pnum:
             # os.startfile(wdir0 + "sz_start_gpu_model.bat")
             # TODO:[-] 21-09-24 修改 控制文件为外部传入的

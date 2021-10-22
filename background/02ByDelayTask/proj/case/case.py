@@ -273,7 +273,7 @@ def to_do(*args, **kwargs):
     post_data_members_num: int = post_data.get('members_num')
     post_data_deviation_radius_list: List[any] = post_data.get('deviation_radius_list')
     is_customer_ty: bool = post_data.get('is_customer_ty', False)
-    # TODO:[*] 21-09-21
+    # - 21-09-21
     # 原始正常的 数组
     # ['TYtd03_2021071606_CMA_original',                LIST[0] * 需要加上
     #   ['2021070805', '2021070811', '2021070817'],     LIST[1]
@@ -286,11 +286,12 @@ def to_do(*args, **kwargs):
     # - 21-09-21
     # 'customer_ty_cma_list':
     #  list[0] TY2112_2021090116_CMA_original 是具体的编号
-    #  List[1] ['2021082314', '2021082320'] 时间
+    #  List[1] ['2021082314', '2021082320'] 时间 注意传入的是 local 时间，而非 utc 时间,切记！
     #  list[2] ['125.3', '126.6'] 经度
     #  list[3] ['31.3', '33.8']   维度
     #  list[4] ['998', '998']     气压
     #  list[5] ['15', '15']       暂时不用
+    # TODO:[-] 21-10-22 注意传入的是 local 时间，而非 utc 时间,切记！
     ty_customer_cma: List[List[any]] = []
 
     if is_customer_ty:
@@ -314,8 +315,8 @@ def to_do(*args, **kwargs):
         log_in.error(f'获取提交:ty_code:{ty_code}|timestamp:{job_ty.timestamp_str},未爬取到或自定义台风路径为空')
         return
     if len(job_ty.list_cmd) > 0:
-        dt_forecast_start: datetime = job_ty.forecast_start_dt
-        dt_forecast_end: datetime = job_ty.forecast_end_dt
+        dt_forecast_start: datetime = job_ty.forecast_start_dt_utc
+        dt_forecast_end: datetime = job_ty.forecast_end_dt_utc
         timestamp_str: str = job_ty.timestamp_str
         # step 1-2: 生成 pathfile 与 批处理文件
         list_cmd = job_ty.list_cmd
