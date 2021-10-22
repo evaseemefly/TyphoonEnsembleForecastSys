@@ -39,12 +39,13 @@ DATABASES = {
         # 'PASSWORD': '12345678',
         # 5820,p52s,p500,razer
         'PASSWORD': '123456',
-        'HOST': '128.5.10.21',  # HOST
+        # 'HOST': '128.5.10.21',  # HOST
         # 'HOST': '172.18.0.1',  # HOST
         # 访问宿主的mysql服务,
-        # 'HOST': 'host.docker.internal',
+        'HOST': 'host.docker.internal',
+        'POST': 3306,  # 端口
         # 'HOST': 'mysql',  # HOST
-        'POST': 3308,  # 端口
+        # 'POST': 3308,  # 端口
         'OPTIONS': {
             "init_command": "SET foreign_key_checks = 0;",
         },
@@ -69,8 +70,9 @@ JOB_SETTINGS = {
 # CELERY_BROKER_URL = f'amqp://guest:guest@localhost:5672/'
 # CELERY_BROKER_URL = f'amqp://guest:guest@rabbitmq:5672/'
 # 针对mac使用 redis 作为消息代理
-# CELERY_BROKER_URL = f'redis://redis:6379/0'
-CELERY_BROKER_URL = f'redis://localhost:6379/0'
+CELERY_BROKER_URL = f'redis://redis:6379/0'
+# CELERY_BROKER_URL = f'redis://localhost:6379/0'
+# CELERY_BROKER_URL = f'redis://0.0.0.0:6379/0'
 # 把任务结果存在了Redis
 # CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
 # CELERY_RESULT_BACKEND = 'redis://redis:6379/0'
