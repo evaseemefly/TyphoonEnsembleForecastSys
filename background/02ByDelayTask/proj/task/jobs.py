@@ -218,7 +218,7 @@ class JobGetTyDetail(IBaseJob):
         @return:
         """
 
-        arrow_utc = arrow.get(self.forecast_start_dt_local).to('utc')
+        arrow_utc = arrow.get(self.forecast_start_dt_local).shift(hours=-8)
         return arrow_utc.datetime
 
     @property
@@ -237,7 +237,7 @@ class JobGetTyDetail(IBaseJob):
         @return:
         """
 
-        arrow_utc = arrow.get(self.forecast_end_dt_local).to('utc')
+        arrow_utc = arrow.get(self.forecast_end_dt_local).shift(hours=-8)
         return arrow_utc.datetime
 
     @property

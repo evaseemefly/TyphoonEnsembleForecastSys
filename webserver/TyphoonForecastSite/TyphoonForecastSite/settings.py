@@ -188,7 +188,8 @@ GDAL_LIBRARY_PATH = r'C:\Users\evase\Anaconda3\envs\new_oil_gdal\Library\bin\gda
 # 使用RabbitMQ作为消息代理
 # CELERY_BROKER_URL = f'amqp://guest:guest@localhost:5672/'
 # 把任务结果存在了Redis
-CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
+# CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
+CELERY_BROKER_URL = f'redis://redis:6379/0'
 # 任务序列化和反序列化使用JSON方案
 CELERY_TASK_SERIALIZER = 'pickle'
 # 读取任务结果使用JSON
