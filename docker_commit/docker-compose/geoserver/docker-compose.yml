@@ -1,0 +1,10 @@
+version: "2.1"
+
+services: 
+  geoserver: # 提供 geoserver 服务 ，注意采用的挂在映射的方式实现 share data
+    container_name: geoserver_docker
+    image: customer/geoserver:2.15.0
+    volumes:
+      - /public/home/surge/TYPHOON_PROJ/docker_share/geoserver_data:/opt/geoserver/data_dir
+    ports:
+      - "8084:8080"
