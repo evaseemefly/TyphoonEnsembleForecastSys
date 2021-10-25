@@ -1,0 +1,93 @@
+version: "2.1"
+
+services:
+  # 对应 typhoon
+  mysql: # 这个地方的mysql就对应django配置文件settings.py中的据库设置的HOST
+    # image: typhoon_init_mysql:1.5 # mysql镜像
+    image: mysql:8.0.21 # mysql镜像
+    container_name: typhoon_mysql # 创建出来的容器名
+    command: 
+        --default-authentication-plugin=mysql_native_password #这行代码解决无法访问的问题
+        # --character-set-server=utf8mb4
+        # --collation-server=utf8mb4_general_ci
+    ports: # 端口映射（主机：容器）
+      - "3308:3306"
+    # 预设置数据库
+    environment:
+      # - MYSQL_ROOT_HOST=localhost # root只能使用localhost链接，无法使用远程链接
+      MYSQL_DATABASE: typhoon_forecast_db # 数据库名
+      MYSQL_ROOT_PASSWORD: 123456 # root用户密码
+    volumes: # 目录挂载（主机目录：容器目录）
+      - /public/home/surge/TYPHOON_PROJ/docker_share/mysql/mysql-files:/var/lib/mysql-files 
+      - /public/home/surge/TYPHOON_PROJ/docker_share/mysql/db:/var/lib/mysql 
+      - /public/home/surge/TYPHOON_PROJ/docker_share/mysql/conf:/etc/mysql
+      - /public/home/surge/TYPHOON_PROJ/docker_share/mysql/log:/var/log/mysql
+
+    healthcheck: # 心跳检测
+      test: ["CMD", "curl", "-f", "http://localhost"]
+      interval: 1m30s
+      timeout: 10s
+      retries: 3
+    # restart: always  # 若容器运行出现问题，会自动重启容器
+
+  #   # django-server:
+
+
+
+  django-server:
+    build:
+      context: .
+      dockerfile: ./dockerfiles/django_server_file
+    image: typhoon:1.5
+    container_name: django_sever
+    working_dir: /code
+    volumes:
+      # - ./opt/project:/opt/project # 处理生成的group等文件
+      - /public/home/surge/TYPHOON_PROJ/log/django_log:/log # 日志
+      - /public/home/surge/TYPHOON_PROJ/django_server:/code
+    ports:
+      - "8000:8000"
+    tty: true # 第一次上线测试时加入，去掉上面的 command，手动进入容器后方便查看问题
+    # command: ./shells/django_server_start.sh
+    # command: bash conda activate py37 ./manage.py runserver 0.0.0.0:8000
+    # command: >
+    #   /bin/sh -c "/opt/conda/envs/py37/bin/python ./manage.py runserver 0.0.0.0:8000"
+    depends_on:
+      - mysql
+      - redis
+
+  # celery-server:
+  #   build:
+  #     context: .
+  #     dockerfile: ./dockerfiles/celery_server_file
+  #   image: typhoon:1.5
+  #   container_name: celery_server
+  #   working_dir: /code
+  #   volumes:
+  #     # - .:/app
+  #     - /public/home/surge/szsurge:/my_shared_data # 处理生成的group等文件
+  #     - /public/home/surge/TYPHOON_PROJ/log/celery_log:/log # 日志
+  #     - /public/home/surge/TYPHOON_PROJ/celery_server:/code
+  #   # ports:
+  #   #   - "8000:8000"
+  #   # command: /shells/celery_server_start.sh
+  #   # command: /opt/conda/envs/py37/bin/python /opt/conda/envs/py37/bin/celery -A .main worker --pool=solo -l info
+  #   # command: /opt/conda/envs/py37/bin/celery -A .main worker --pool=solo -l info
+  #   tty: true # 第一次上线测试时加入，去掉上面的 command，手动进入容器后方便查看问题
+  #   depends_on:
+  #     - mysql
+  #     - redis
+
+  # geoserver: # 提供 geoserver 服务 ，注意采用的挂在映射的方式实现 share data
+  #   container_name: geoserver_docker
+  #   image: customer/geoserver:2.15.0
+  #   volumes:
+  #     - /public/home/surge/TYPHOON_PROJ/docker_share/geoserver_data:/opt/geoserver/data_dir
+  #   ports:
+  #     - "8084:8080"
+
+  redis:
+    container_name: redis
+    image: redis:latest
+    ports:
+      - "6379:6379"

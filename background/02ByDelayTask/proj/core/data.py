@@ -871,16 +871,15 @@ class FieldSurgeDataInfo:
            foreach    -> tif
     """
 
-    dict_data = {
-        'coverage_file': None,
-        'tif_files': []
-    }
-
     def __init__(self, file: FieldSurgeCoverageFile, dir_path: str):
         self.file: FieldSurgeCoverageFile = file
         self.dir_path = dir_path
         self.ds: xar.Dataset = None
         self.session = DbFactory().Session
+        self.dict_data = {
+            'coverage_file': None,
+            'tif_files': []
+        }
 
     @property
     def full_file_name(self) -> str:
@@ -1052,16 +1051,20 @@ class ProSurgeDataInfo:
            foreach    -> tif
     """
 
-    dict_data = {
-        'coverage_file': None,  # 注意存储的是文件名，非 full_path
-        'tif_files': []
-    }
+    # dict_data = {
+    #     'coverage_file': None,  # 注意存储的是文件名，非 full_path
+    #     'tif_files': []
+    # }
 
     def __init__(self, file: ProSurgeCoverageFile, dir_path: str):
         self.file: ProSurgeCoverageFile = file
         self.dir_path = dir_path
         self.ds: xar.Dataset = None
         self.session = DbFactory().Session
+        self.dict_data = {
+            'coverage_file': None,  # 注意存储的是文件名，非 full_path
+            'tif_files': []
+        }
 
     @property
     def full_file_name(self) -> str:

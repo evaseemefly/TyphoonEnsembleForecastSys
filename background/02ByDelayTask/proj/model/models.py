@@ -13,6 +13,7 @@ from sqlalchemy import Column, Date, Float, ForeignKey, Integer, text
 from sqlalchemy.dialects.mysql import DATETIME, INTEGER, TINYINT, VARCHAR
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import ForeignKey, Sequence, MetaData, Table
+from sqlalchemy.sql import func
 from sqlalchemy.orm import relationship, sessionmaker
 from datetime import datetime
 # geoalchemy2 相关y
@@ -50,8 +51,8 @@ class IModel(BaseMeta):
         model 抽象父类，主要包含 创建及修改时间
     """
     __abstract__ = True
-    gmt_created = Column(DATETIME(fsp=6), default=datetime.utcnow())
-    gmt_modified = Column(DATETIME(fsp=6), default=datetime.utcnow())
+    gmt_created = Column(DATETIME(fsp=6), default=datetime.utcnow)
+    gmt_modified = Column(DATETIME(fsp=6), default=datetime.utcnow)
 
 
 class ITimeStamp(BaseMeta):
