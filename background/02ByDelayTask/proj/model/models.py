@@ -94,6 +94,19 @@ class StationForecastRealDataModel(IIdModel, IDel, IModel, ITimeStamp):
     forecast_index = Column(Integer, nullable=False)
     surge = Column(Float, nullable=False)
 
+class StationStatisticsModel(IIdModel, IDel, IModel, ITimeStamp):
+    """
+        台站逐时潮位信息
+    """
+    __tablename__ = 'station_quantile_realdata'
+    ty_code = Column(VARCHAR(200), nullable=False)
+    station_code = Column(VARCHAR(200), nullable=False)
+    forecast_dt = Column(DATETIME(fsp=2))
+    forecast_index = Column(Integer, nullable=False)
+    quarter_val = Column(Float, nullable=False)
+    three_quarters_val = Column(Float, nullable=False)
+    median_val = Column(Float, nullable=False)
+
 
 class TyphoonForecastDetailModel(IDel, IIdModel, IModel, ITimeStamp):
     __tablename__ = 'typhoon_forecast_detailinfo'

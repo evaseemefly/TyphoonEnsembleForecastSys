@@ -97,13 +97,13 @@ DATABASES = {
         # by cwb
         # 'USER': 'root',  # 账号
         # 'PASSWORD': '123456',
-        # 'HOST': '127.0.0.1',  # HOST
+        'HOST': '127.0.0.1',  # HOST
         # 'HOST': '128.5.10.21',  # HOST
         # 访问宿主的mysql服务,
         # 'HOST': 'mysql',  # TODO:[-] 21-10-11 注意此处使用 mysql 的容器
-        'HOST': 'host.docker.internal',  # docker访问宿主机的mysql服务
-        # 'POST': 3306,  # 端口
-        'POST': 3308,  # TODO:[-] 21-10-11 端口暂时改为 3308
+        # 'HOST': 'host.docker.internal',  # docker访问宿主机的mysql服务
+        'POST': 3306,  # 端口
+        # 'POST': 3308,  # TODO:[-] 21-10-11 端口暂时改为 3308
         'OPTIONS': {
             "init_command": "SET foreign_key_checks = 0;",
         },

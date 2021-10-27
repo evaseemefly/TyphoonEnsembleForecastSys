@@ -69,6 +69,24 @@ class StationAlertTideModel(IIdModel, IDelModel, IModel):
     tide = models.FloatField()
     alert = models.IntegerField()
 
+
+class StationStatisticsModel(IIdModel, IDelModel, IModel):
+    """
+        + 21-10-27 海洋站分位数表
+                   主要用来保存海洋站各统计 分位数
+    """
+    quarter_val = models.FloatField()  # 1/4 分位数
+    three_quarters_val = models.FloatField()  # 3/4 分位数
+    median_val = models.FloatField()  # 中位数
+    ty_code = models.CharField(max_length=200)
+    station_code = models.CharField(max_length=10, default=DEFAULT_CODE)
+    forecast_dt = models.DateTimeField(default=now)
+    forecast_index = models.IntegerField(default=UNLESS_INDEX)
+    timestamp = models.CharField(max_length=100, default='2021010416')  # + 21-05-11 新加入的时间戳字段
+
+    class Meta:
+        db_table = 'station_quantile_realdata'
+
 # class StationComplexModel(IIdModel):
 #     ty_code = models.CharField(max_length=200)
 #     gp_id = models.IntegerField(default=DEFAULT_FK)
