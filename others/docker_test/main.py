@@ -23,9 +23,17 @@ def print_hi(name):
     print(f'Hi, {name}')  # 按 F9 切换断点。
     todo_docker_shared_dir('/my_shared_data')
 
+def case_file_write():
+    read_path=r'G:/99test/test.txt'
+    with open(read_path,'a') as f:
+        content=f.readlines()
+        content.append('\n sdfsdfsfsdf')
+        f.write(content)
+
 
 # 按间距中的绿色按钮以运行脚本。
 if __name__ == '__main__':
-    print_hi('PyCharm')
+    # print_hi('PyCharm')
+    case_file_write()
 
 # 访问 https://www.jetbrains.com/help/pycharm/ 获取 PyCharm 帮助
