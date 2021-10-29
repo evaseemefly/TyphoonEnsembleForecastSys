@@ -55,3 +55,13 @@ class StationAlertSerializer(serializers.Serializer):
 
 class StationForecastRealDataMixin(StationForecastRealDataComplexSerializer, StationForecastRealDataRangeSerializer):
     pass
+
+
+class StationStatisticsSerializer(serializers.Serializer):
+    ty_code = serializers.CharField()
+    station_code = serializers.CharField()
+    forecast_index = serializers.IntegerField()
+    forecast_dt = serializers.DateTimeField()
+    quarter_val = serializers.FloatField()
+    three_quarters_val = serializers.FloatField()
+    median_val = serializers.FloatField()

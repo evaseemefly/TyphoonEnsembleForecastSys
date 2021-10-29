@@ -19,10 +19,10 @@ from rest_framework.decorators import (APIView, api_view,
 # --
 # 本项目的
 from .models import StationForecastRealDataModel, StationInfoModel, StationAstronomicTideRealDataModel, \
-    StationAlertTideModel
+    StationAlertTideModel, StationStatisticsModel
 from .serializers import StationForecastRealDataSerializer, StationForecastRealDataComplexSerializer, \
     StationForecastRealDataRangeSerializer, StationForecastRealDataMixin, StationForecastRealDataRangeComplexSerializer, \
-    StationAstronomicTideRealDataSerializer, StationAlertSerializer
+    StationAstronomicTideRealDataSerializer, StationAlertSerializer, StationStatisticsSerializer
 # 公共的
 from TyphoonForecastSite.settings import MY_PAGINATOR
 from util.const import DEFAULT_NULL_KEY, UNLESS_TY_CODE, DEFAULT_CODE
@@ -332,6 +332,32 @@ class StationSurgeRealListRangeValueView(StationListBaseView):
         return Response(self.json_data, status=self._status)
 
     pass
+
+
+class StationSurgeRealDataQuarterListView(StationListBaseView):
+    """
+        + 21-10-29 加入 对于 中位数 ,1/4,3/4 百分位数的统计
+    """
+
+    def get(self, request: Request) -> Response:
+        ty_code: str = request.GET.get('ty_code', None)
+        forecast_dt_str: datetime = request.GET.get('forecast_dt', None)
+        timestamp_str: str = request.GET.get('timestamp', None)
+        station_code: str = request.GET.get('station_code', DEFAULT_CODE)
+        query: QuerySet = None
+        if any([ty_code, timestamp_str]) is not None and station_code is not DEFAULT_CODE:
+            try:
+                if forecast_dt_str is None:
+                    query = StationStatisticsModel.objects.filter(ty_code=ty_code, station_code=station_code,
+                                                                  timestamp=timestamp_str)
+                else:
+                    query = StationStatisticsModel.objects.filter(ty_code=ty_code, station_code=station_code,
+                                                                  timestamp=timestamp_str, forecast_dt=forecast_dt_str)
+                self.json_data = StationStatisticsSerializer(query, many=True).data
+            except Exception as ex:
+                self.json_data = ex.args
+        return Response(self.json_data, status=self._status)
+        pass
 
 
 class StationAstronomicTideRealDataListView(StationListBaseView):

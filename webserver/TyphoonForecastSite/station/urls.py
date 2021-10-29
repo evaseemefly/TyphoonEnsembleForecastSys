@@ -12,7 +12,7 @@ from rest_framework import routers
 
 # 本项目
 from .views import StationListView, StationSurgeRangeValueListView, StationSurgeRealListRangeValueView, \
-    StationAstronomicTideRealDataListView,StationAlertView
+    StationAstronomicTideRealDataListView, StationAlertView, StationSurgeRealDataQuarterListView
 
 app_name = '[station]'
 
@@ -23,5 +23,6 @@ urlpatterns = [
     url(r'^station/reallist/list$', StationSurgeRealListRangeValueView.as_view()),
     url(r'^station/astronomictide/range/list$', StationAstronomicTideRealDataListView.as_view()),
     url(r'^station/alert$', StationAlertView.as_view()),
+    url(r'^station/realdata/quarter/list$', StationSurgeRealDataQuarterListView.as_view()),
 
 ]

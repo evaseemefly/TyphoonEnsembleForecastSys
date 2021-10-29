@@ -364,11 +364,12 @@ class TyCaseList(BaseView):
                     if len(ty_realdata_list) > 0:
                         start: dict = ty_realdata_list.aggregate(start=Min('forecast_dt'))
                         end: dict = ty_realdata_list.aggregate(end=Max('forecast_dt'))
-                    temp_mid = TyphoonGroupDistMidModel(ty_id=temp_gp_model.ty_id, ty_code=temp_gp_model.ty_code,
-                                                        timestamp=temp_gp_model.timestamp,
-                                                        gmt_created=temp_gp_model.gmt_created, start=start.get('start'),
-                                                        end=end.get('end'))
-                    ty_group_dist_list.append(temp_mid)
+                        temp_mid = TyphoonGroupDistMidModel(ty_id=temp_gp_model.ty_id, ty_code=temp_gp_model.ty_code,
+                                                            timestamp=temp_gp_model.timestamp,
+                                                            gmt_created=temp_gp_model.gmt_created,
+                                                            start=start.get('start'),
+                                                            end=end.get('end'))
+                        ty_group_dist_list.append(temp_mid)
         if len(ty_group_dist_list) > 0:
             json_data = TyphoonDistGroupPathMidSerializer(ty_group_dist_list, many=True)
             self.json_data = json_data.data
