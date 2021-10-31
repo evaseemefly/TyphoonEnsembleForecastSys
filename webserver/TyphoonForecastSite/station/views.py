@@ -354,6 +354,7 @@ class StationSurgeRealDataQuarterListView(StationListBaseView):
                     query = StationStatisticsModel.objects.filter(ty_code=ty_code, station_code=station_code,
                                                                   timestamp=timestamp_str, forecast_dt=forecast_dt_str)
                 self.json_data = StationStatisticsSerializer(query, many=True).data
+                self._status = 200
             except Exception as ex:
                 self.json_data = ex.args
         return Response(self.json_data, status=self._status)
