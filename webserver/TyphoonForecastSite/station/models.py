@@ -78,6 +78,8 @@ class StationStatisticsModel(IIdModel, IDelModel, IModel):
     quarter_val = models.FloatField()  # 1/4 分位数
     three_quarters_val = models.FloatField()  # 3/4 分位数
     median_val = models.FloatField()  # 中位数
+    max_val = models.FloatField() # 最大值
+    min_val = models.FloatField() # 最小值
     ty_code = models.CharField(max_length=200)
     station_code = models.CharField(max_length=10, default=DEFAULT_CODE)
     forecast_dt = models.DateTimeField(default=now)

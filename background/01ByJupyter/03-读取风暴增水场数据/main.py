@@ -111,6 +111,8 @@ class StationStatisticsModel(IIdModel, IDel, IModel, ITimeStamp):
     quarter_val = Column(Float, nullable=False)
     three_quarters_val = Column(Float, nullable=False)
     median_val = Column(Float, nullable=False)
+    max_val = Column(Float, nullable=False)
+    min_val = Column(Float, nullable=False)
 
 
 class StationForecastRealDataModel(IIdModel, IDel, IModel, ITimeStamp):
@@ -153,8 +155,12 @@ def get_target_dt_surge_quantile(ty_code: str, ty_timestamp: str, station_code: 
     count = len(query.all())
     # 找到百分位数位置
     index_quantile: int = int(count * quantile)
+    if index_quantile == count:
+        index_quantile = -1
     # 对于 query先根据 surge进行排序，再取数
-    val_quantile: float = query.order_by(StationForecastRealDataModel.surge)[index_quantile].surge
+    val_quantile: float = query.order_by(StationForecastRealDataModel.surge)[
+        index_quantile].surge
+
     return val_quantile
 
 
@@ -194,11 +200,15 @@ def main():
     ty_timestamp = '2021010416'
     # list_dist_forecast_dt = get_dist_forecast_dt_list(ty_code, ty_timestamp, station_code)
     # get_target_dt_surge_quantile(ty_code, ty_timestamp, station_code, list_dist_forecast_dt)
-    list_dist_forecast_dt = get_dist_forecast_dt_list(ty_code, ty_timestamp, station_code)
+    list_dist_forecast_dt = get_dist_forecast_dt_list(
+        ty_code, ty_timestamp, station_code)
     list_dist_station_code = get_dist_station_code(ty_code, ty_timestamp)
 
     for temp_station_code in list_dist_station_code:
         for temp_forecast_index, temp_forecast_dt in enumerate(list_dist_forecast_dt):
+            min = get_target_dt_surge_quantile(ty_code, ty_timestamp, temp_station_code,
+                                               list_dist_forecast_dt,
+                                               temp_forecast_index, 0)
             median_surge = get_target_dt_surge_quantile(ty_code, ty_timestamp, temp_station_code, list_dist_forecast_dt,
                                                         temp_forecast_index)
             quarter_surge = get_target_dt_surge_quantile(ty_code, ty_timestamp, temp_station_code,
@@ -207,6 +217,9 @@ def main():
             three_quarters_surge = get_target_dt_surge_quantile(ty_code, ty_timestamp, temp_station_code,
                                                                 list_dist_forecast_dt,
                                                                 temp_forecast_index, 0.75)
+            max = get_target_dt_surge_quantile(ty_code, ty_timestamp, temp_station_code,
+                                               list_dist_forecast_dt,
+                                               temp_forecast_index, 1)
             temp_station_statistics_model: StationStatisticsModel = StationStatisticsModel(ty_code=ty_code,
                                                                                            timestamp=ty_timestamp,
                                                                                            station_code=temp_station_code,
@@ -214,7 +227,9 @@ def main():
                                                                                            forecast_index=temp_forecast_index,
                                                                                            quarter_val=quarter_surge,
                                                                                            three_quarters_val=three_quarters_surge,
-                                                                                           median_val=median_surge)
+                                                                                           median_val=median_surge,
+                                                                                           max_val=max,
+                                                                                           min_val=min)
             session.add(temp_station_statistics_model)
             pass
         session.commit()

@@ -65,3 +65,5 @@ class StationStatisticsSerializer(serializers.Serializer):
     quarter_val = serializers.FloatField()
     three_quarters_val = serializers.FloatField()
     median_val = serializers.FloatField()
+    max_val = serializers.FloatField()
+    min_val = serializers.FloatField()
