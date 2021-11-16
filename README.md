@@ -28,3 +28,8 @@
 ![页面初始状态](./documents/pic/pic010.png)
 显示详细海洋站信息及右侧对应的潮位预报form
 ![页面初始状态](./documents/pic/pic011.png)
++ 21-11-15 
++ 加入了箱式图显示百分位数
+![页面初始状态](./documents/pic/pic012.png)
++ 对于数据显示可拖动放大调整尺寸
+![页面初始状态](./documents/pic/pic013.png)
