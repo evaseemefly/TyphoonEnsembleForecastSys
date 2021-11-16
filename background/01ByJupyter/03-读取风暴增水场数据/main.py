@@ -196,8 +196,8 @@ def get_dist_forecast_dt_list(ty_code: str, ty_timestamp: str, station_code: str
 
 def main():
     station_code = 'SHW'
-    ty_code = '2022'
-    ty_timestamp = '2021010416'
+    ty_code = '2078'
+    ty_timestamp = '1635231596'
     # list_dist_forecast_dt = get_dist_forecast_dt_list(ty_code, ty_timestamp, station_code)
     # get_target_dt_surge_quantile(ty_code, ty_timestamp, station_code, list_dist_forecast_dt)
     list_dist_forecast_dt = get_dist_forecast_dt_list(

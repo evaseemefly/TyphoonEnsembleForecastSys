@@ -10,7 +10,7 @@ from typing import List, Union
 import pathlib
 from datetime import datetime, timedelta
 from core.data import GroupTyphoonPath, get_match_files, to_ty_group, to_station_realdata, get_gp, to_ty_field_surge, \
-    to_ty_pro_surge, to_ty_detail, to_ty_task_rela
+    to_ty_pro_surge, to_ty_detail, to_ty_task_rela,to_ty_max_surge
 from model.models import TyphoonForecastDetailModel
 from core.file import StationSurgeRealDataFile
 from common.enum import ForecastOrganizationEnum, TyphoonForecastSourceEnum
@@ -189,6 +189,30 @@ def case_pro_surge(ty_code: str, ty_stamp: str, gmt_start: datetime, gmt_end: da
     to_ty_pro_surge(filter_list_files, dir_path=dir_path, gmt_start=gmt_start)
     pass
 
+def case_max_surge(ty_code: str, ty_stamp: str, gmt_start: datetime, gmt_end: datetime):
+    """
+        最大增水场
+    @param ty_code:
+    @param ty_stamp:
+    @param gmt_start:
+    @param gmt_end:
+    @return:
+    """
+    # 概率场的正则匹配表达式
+    # TODO:[-] 此处注意若再次执行时会出现 xxx_converted.nc的文件，需要忽略，所以加入了 xxm.nc 的正则，忽略了m_converted.nc 这种已经转换后的文件
+    re_str: str = '^maxSurge\w*m.nc'
+    dir_path: str = str(pathlib.Path(ROOT_DIR) / 'result' / ty_stamp)
+    list_match_files: List[str] = get_match_files(re_str, dir_path)
+    ty_detail: TyphoonForecastDetailModel = TyphoonForecastDetailModel(code=ty_code,
+                                                                       organ_code=ForecastOrganizationEnum.NMEFC.value,
+                                                                       gmt_start=gmt_start,
+                                                                       gmt_end=gmt_end,
+                                                                       forecast_source=TyphoonForecastSourceEnum.DEFAULT.value,
+                                                                       timestamp=TY_TIMESTAMP)
+    # 注意此处会包含 _converted.nc 的文件需要剔除该文件
+    filter_list_files: List[str] = list_match_files
+    to_ty_max_surge(filter_list_files, dir_path=dir_path, gmt_start=gmt_start)
+    pass
 
 def case_get_gp():
     """
@@ -361,6 +385,8 @@ def to_do(*args, **kwargs):
             # TODO:[*] 21-09-08 注意此处暂时将 时间戳设置为一个固定值！！注意！！
             job_txt2nc = JobTxt2Nc(ty_code, timestamp_str)
             job_txt2nc.to_do(forecast_start_dt=dt_forecast_start)
+            # TODO:[-] 21-11-16 加入了处理最大增水场的步骤！
+            case_max_surge(ty_code, ty_stamp, dt_forecast_start, dt_forecast_end)
             log_in.info(f'ty_code:{ty_code}|timestamp:{job_ty.timestamp_str},完成surge_max的.dat->.nc的转换')
             # # # step 3-1:
             # # # # TODO:[*] 21-09-08 注意此处暂时将 ty_stamp 设置为一个固定值！！注意！！上线后要替换为:job_ty.ty_stamp

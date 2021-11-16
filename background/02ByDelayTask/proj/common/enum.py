@@ -66,11 +66,12 @@ class JobInstanceEnum(Enum):
     GET_TY_DETAIL = 1
     GEN_PATH_FILES = 2
     GEN_CONTROL_FILES = 3
-    STORE_TY_DETAIL=4 # 存储 获取到的 ty
+    STORE_TY_DETAIL = 4  # 存储 获取到的 ty
     STORE_GROUP_PATH = 5
     STORE_STATION = 6
     TASK_BATCH = 7
     TXT_2_NC = 8
-    STORE_FIELD_SURGE = 9
-    TXT_2_NC_PRO = 10
-    STORE_PRO_SURGE = 11
+    STORE_MAX_SURGE = 9  # 处理最大增水场
+    STORE_FIELD_SURGE = 10
+    TXT_2_NC_PRO = 11
+    STORE_PRO_SURGE = 12
