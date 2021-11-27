@@ -60,7 +60,12 @@ def store_job_rate(level=logging.DEBUG, job_instance=JobInstanceEnum.GET_TY_DETA
             celery_id: str = UNLESS_ID_STR
             if len(args) > 0 and hasattr(args[0], 'request'):
                 celery_id = args[0].request.get('id')
-            get_celery().celery_id = celery_id if get_celery().celery_id == UNLESS_ID_STR else UNLESS_ID_STR
+            # TODO:[-] 21-11-27 注意此处会引发一个严重的隐蔽 bug
+            # 需要判断此时的 job_instance , 若为 JobInstanceEnum。INIT_CELERY 则需要修改全局 celery_id 的值！
+            if job_instance == JobInstanceEnum.INIT_CELERY:
+                get_celery().celery_id = celery_id
+            else:
+                get_celery().celery_id = celery_id if get_celery().celery_id == UNLESS_ID_STR else UNLESS_ID_STR
             local_celery_id = get_celery().celery_id
             log_in.info(msg=f'当前接收到的延时任务task_id:{local_celery_id}')
             # TODO:[-] 21-09-07 加入 task 持久化保存功能
