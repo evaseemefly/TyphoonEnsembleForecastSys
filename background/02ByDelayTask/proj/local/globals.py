@@ -46,12 +46,12 @@ class CeleryData:
         @return:
         """
         # TODO:[-] 21-11-27 注意此处赋值去掉了限制
-        self._local_celery.celery_id = value
+        # self._local_celery.celery_id = value
         # if cover:
         #     self._local_celery.celery_id = value
         # elif not hasattr(self._local_celery, 'celery_id'):
 
-        # if self._local_celery.celery_id == UNLESS_ID_STR:
-        #     self._local_celery.celery_id = value
+        if self._local_celery.celery_id == UNLESS_ID_STR:
+            self._local_celery.celery_id = value
 
 # global_celery_id: str = UNLESS_ID_STR
