@@ -3,7 +3,8 @@ from django.utils.timezone import now
 # 同项目的其他组件
 # from typhoon.models import IDelModel, IIdModel, IModel
 from common.imodels import IDelModel, IIdModel, IModel, ITimeStamp, ITimeStamp
-from util.const import DEFAULT_FK, UNLESS_INDEX, DEFAULT_CODE, ABS_KEY, DEFAULT_NULL_VAL, UNLESS_CELERY_ID
+from util.const import DEFAULT_FK, UNLESS_INDEX, DEFAULT_CODE, ABS_KEY, DEFAULT_NULL_VAL, UNLESS_CELERY_ID, \
+    DEFAULT_TIMTSTAMP_STR
 
 
 # Create your models here.
@@ -28,7 +29,9 @@ class CaseInstanceModel(IModel, IDelModel, IIdModel):
     gmt_commit = models.DateTimeField(default=now)
     member_num = models.IntegerField(default=-1)  # 成员数
     max_wind_radius_dif = models.IntegerField(default=-9999)  # 大风半径增减值(可能出现负数)
-    json_field=models.JSONField(default={})
+    json_field = models.JSONField(default={})
+    timestamp = models.CharField(default=DEFAULT_TIMTSTAMP_STR, max_length=100) # TODO:[-] 21-12-02 加入了时间戳
+
     # hours = models.IntegerField(default=-1)
     # radius = models.IntegerField(default=-9999)
 

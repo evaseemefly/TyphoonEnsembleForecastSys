@@ -75,7 +75,9 @@ class TaskCreateView(BaseView):
         #      {'hours': 72, 'radius': 120}, {'hours': 96, 'radius': 150}]}
         deviation_radius_list: List[Dict[str, int]] = post_data.get('deviation_radius_list')
         if self.verify(request) and self.to_idempotence(request):
-            self.commit(request, is_debug, is_customer_ty=is_customer_ty, ty_customer_cma=ty_customer_cma)
+            task_id: int = self.commit(request, is_debug, is_customer_ty=is_customer_ty,
+                                       ty_customer_cma=ty_customer_cma)
+            self.json_data = task_id
             self._status = 200
         elif not self.verify(request):
             self.json_data = '提交数据验证失败'
@@ -141,7 +143,14 @@ class TaskCreateView(BaseView):
             is_ok = True
         return is_ok
 
-    def commit(self, request: Request, is_debug: bool = True, **kwargs) -> bool:
+    def commit(self, request: Request, is_debug: bool = True, **kwargs) -> int:
+        """
+            - 21-12-01 提交后返回 task id
+        @param request:
+        @param is_debug:
+        @param kwargs:
+        @return:
+        """
 
         # step -1 : 将命名参数提取出来
         post_data: dict = request.data
@@ -165,7 +174,10 @@ class TaskCreateView(BaseView):
         # eg: [{'hours': 24, 'radius': 60}, {'hours': 48, 'radius': 100},
         #      {'hours': 72, 'radius': 120}, {'hours': 96, 'radius': 150}]}
         deviation_radius_list: List[Dict[str, int]] = post_data.get('deviation_radius_list')
+        # TODO:[-] 21-12-02 在后台接受post请求后生成时间戳
+        timestamp: int = arrow.utcnow().int_timestamp
         commit_model: CaseInstanceModel = CaseInstanceModel.objects.create(ty_code=ty_code,
+                                                                           timestamp=timestamp,
                                                                            gmt_commit=datetime.datetime.utcnow(),
                                                                            member_num=members_num,
                                                                            max_wind_radius_dif=max_wind_radius_diff,
@@ -178,13 +190,15 @@ class TaskCreateView(BaseView):
         #      'bp': 990,
         #      'radius': 80}, ....],
         # 提交至 celery
-        params_obj = {'ty_code': ty_code, 'max_wind_radius_diff': max_wind_radius_diff, 'members_num': members_num,
+        params_obj = {'ty_code': ty_code, 'timestamp': timestamp, 'max_wind_radius_diff': max_wind_radius_diff,
+                      'members_num': members_num,
                       'deviation_radius_list': deviation_radius_list, 'is_customer_ty': is_customer_ty,
                       'ty_customer_cma': list_customer_cma}
         log_in.info(f'接收到:ty_code:{ty_code}提交至celery')
         res = self.celery.send_task(self.CELERY_TASK_NAME, args=[params_obj, '123', 19], kwargs=params_obj)
         log_in.info(f'ty_code:{ty_code}提交至celery成功!')
-        return True
+        return commit_model.id
+        # return True
 
     def _convert_ty_customer_cma(self, list_customer_cma: List[any]):
         """

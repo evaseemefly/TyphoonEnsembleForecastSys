@@ -10,7 +10,7 @@ from typing import List, Union
 import pathlib
 from datetime import datetime, timedelta
 from core.data import GroupTyphoonPath, get_match_files, to_ty_group, to_station_realdata, get_gp, to_ty_field_surge, \
-    to_ty_pro_surge, to_ty_detail, to_ty_task_rela,to_ty_max_surge
+    to_ty_pro_surge, to_ty_detail, to_ty_task_rela, to_ty_max_surge
 from model.models import TyphoonForecastDetailModel
 from core.file import StationSurgeRealDataFile
 from common.enum import ForecastOrganizationEnum, TyphoonForecastSourceEnum
@@ -189,6 +189,7 @@ def case_pro_surge(ty_code: str, ty_stamp: str, gmt_start: datetime, gmt_end: da
     to_ty_pro_surge(filter_list_files, dir_path=dir_path, gmt_start=gmt_start)
     pass
 
+
 def case_max_surge(ty_code: str, ty_stamp: str, gmt_start: datetime, gmt_end: datetime):
     """
         最大增水场
@@ -213,6 +214,7 @@ def case_max_surge(ty_code: str, ty_stamp: str, gmt_start: datetime, gmt_end: da
     filter_list_files: List[str] = list_match_files
     to_ty_max_surge(filter_list_files, dir_path=dir_path, gmt_start=gmt_start)
     pass
+
 
 def case_get_gp():
     """
@@ -297,6 +299,9 @@ def to_do(*args, **kwargs):
     post_data_members_num: int = post_data.get('members_num')
     post_data_deviation_radius_list: List[any] = post_data.get('deviation_radius_list')
     is_customer_ty: bool = post_data.get('is_customer_ty', False)
+    # TODO:[-] 21-12-02 获取 django 传入的 时间戳
+    timestamp: int = post_data.get('timestamp')
+    timestamp_str: str = str(timestamp)
     # - 21-09-21
     # 原始正常的 数组
     # ['TYtd03_2021071606_CMA_original',                LIST[0] * 需要加上
@@ -328,10 +333,10 @@ def to_do(*args, **kwargs):
         return
     job_ty: Union[JobGetTyDetail, JobGetCustomerTyDetail, None] = None
     if is_customer_ty:
-        job_ty = JobGetCustomerTyDetail(ty_code)
+        job_ty = JobGetCustomerTyDetail(ty_code, timestamp_str)
         pass
     else:
-        job_ty = JobGetTyDetail(ty_code)
+        job_ty = JobGetTyDetail(ty_code, timestamp_str)
     # TDOO:[*] 21-10-21 注意需此处爬取后的台风时间为 local ，而django传递过来的为utc时间
     job_ty.to_do(list_customer_cma=ty_customer_cma)
     log_in.info(

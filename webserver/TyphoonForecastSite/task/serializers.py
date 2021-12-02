@@ -8,4 +8,5 @@ class CaseStatusModelSerializer(serializers.Serializer):
     # is_lock = serializers.BooleanField()
     # id = serializers.IntegerField()
     gmt_created = serializers.DateTimeField()
+    # timestamp = serializers.CharField()
     # gmt_modified = serializers.DateTimeField()
