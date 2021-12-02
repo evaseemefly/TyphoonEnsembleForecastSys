@@ -33,6 +33,14 @@ class TyTestView(BaseView):
         return Response(self.json_data, status=self._status)
 
 
+class JsonTestView(BaseView):
+    def get(self, request):
+        json = {'tycode': '1234', 'timestamp': '123456'}
+        self.json_data = json
+        self._status = 200
+        return Response(self.json_data, status=self._status)
+
+
 class TyDetailModelView(BaseView):
     """
         根据预报时间获取对应的 detailModel 列表
@@ -374,4 +382,18 @@ class TyCaseList(BaseView):
             json_data = TyphoonDistGroupPathMidSerializer(ty_group_dist_list, many=True)
             self.json_data = json_data.data
             self._status = 200
+        return Response(self.json_data, self._status)
+
+
+class TyTargetCase(BaseView):
+    def get(self, request: Request) -> Response:
+        ty_code: str = request.GET.get('ty_code', None)
+        timestamp: str = request.GET.get('timestamp', None)
+        if any([ty_code, timestamp]) is not None:
+            query: QuerySet = TyphoonForecastDetailModel.objects.filter(code=ty_code, timestamp=timestamp)
+            if len(query) > 0:
+                target_ty: TyphoonForecastDetailModel = query.first()
+                json_data = TyphoonForecastDetailSerializer(target_ty).data
+                self.json_data = json_data
+                self._status = 200
         return Response(self.json_data, self._status)

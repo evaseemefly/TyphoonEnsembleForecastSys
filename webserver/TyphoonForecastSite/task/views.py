@@ -75,9 +75,9 @@ class TaskCreateView(BaseView):
         #      {'hours': 72, 'radius': 120}, {'hours': 96, 'radius': 150}]}
         deviation_radius_list: List[Dict[str, int]] = post_data.get('deviation_radius_list')
         if self.verify(request) and self.to_idempotence(request):
-            task_id: int = self.commit(request, is_debug, is_customer_ty=is_customer_ty,
-                                       ty_customer_cma=ty_customer_cma)
-            self.json_data = task_id
+            case: CaseInstanceModel = self.commit(request, is_debug, is_customer_ty=is_customer_ty,
+                                                  ty_customer_cma=ty_customer_cma)
+            self.json_data = {'ty_code': case.ty_code, 'timestamp': case.timestamp}
             self._status = 200
         elif not self.verify(request):
             self.json_data = '提交数据验证失败'
@@ -143,9 +143,9 @@ class TaskCreateView(BaseView):
             is_ok = True
         return is_ok
 
-    def commit(self, request: Request, is_debug: bool = True, **kwargs) -> int:
+    def commit(self, request: Request, is_debug: bool = True, **kwargs) -> CaseInstanceModel:
         """
-            - 21-12-01 提交后返回 task id
+            - 21-12-01 提交后返回 task 的时间戳
         @param request:
         @param is_debug:
         @param kwargs:
@@ -197,7 +197,7 @@ class TaskCreateView(BaseView):
         log_in.info(f'接收到:ty_code:{ty_code}提交至celery')
         res = self.celery.send_task(self.CELERY_TASK_NAME, args=[params_obj, '123', 19], kwargs=params_obj)
         log_in.info(f'ty_code:{ty_code}提交至celery成功!')
-        return commit_model.id
+        return commit_model
         # return True
 
     def _convert_ty_customer_cma(self, list_customer_cma: List[any]):
