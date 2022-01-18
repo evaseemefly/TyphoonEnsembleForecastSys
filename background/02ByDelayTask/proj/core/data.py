@@ -152,8 +152,9 @@ def to_ty_max_surge(list_files: List[str], **kwargs):
     # eg: fieldSurge_TY2022_2021010416_c0_p00_201809150900.nc
     dir_path: str = kwargs.get('dir_path')
     for file_temp in list_files:
-        field_surge_file = MaxSurgeCoverageFile(dir_path, file_temp)
-        field_surge_data: ProSurgeDataInfo = ProSurgeDataInfo(field_surge_file, dir_path)
+        max_surge_file = MaxSurgeCoverageFile(dir_path, file_temp)
+        # 修改此处改为最大增水 dataInfo
+        field_surge_data: MaxSurgeDataInfo = MaxSurgeDataInfo(max_surge_file, dir_path)
         field_surge_data.to_do(gmt_start=gmt_start)
         pass
     pass
