@@ -21,6 +21,18 @@ class TyphoonForecastSourceEnum(Enum):
 
 
 @unique
+class ForecastAreaEnum(Enum):
+    '''
+        + 22-01-18
+        预报区域枚举
+        对应 tb: dict_base
+    '''
+    BHI = 510  # 一区
+    ECS = 511  # 二区
+    SCS = 512  # 三区 ,注意三区目前为默认预报区域
+
+
+@unique
 class LayerType(Enum):
     """
         + 21-08-02
