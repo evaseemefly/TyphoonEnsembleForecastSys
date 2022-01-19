@@ -21,7 +21,7 @@ from typing import List
 from model.models import CaseStatus
 from util.customer_decorators import log_count_time, store_job_rate
 from util.log import Loggings, log_in
-from common.enum import JobInstanceEnum, TaskStateEnum
+from common.enum import JobInstanceEnum, TaskStateEnum, ForecastAreaEnum
 from util.customer_excption import CalculateTimeOutError
 from util.customer_decorators import except_log
 from conf.settings import TEST_ENV_SETTINGS, JOB_SETTINGS, MODIFY_CHMOD_PATH, MODIFY_CHMOD_FILENAME, TIME_ZONE
@@ -858,6 +858,44 @@ class JobGeneratePathFile(IBaseJob):
         super(JobGeneratePathFile, self).__init__(ty_code, timestamp)
         self.list_cmd = list_cmd
 
+    def _get_filed_surge_shell_suffix(self, area: ForecastAreaEnum) -> str:
+        """
+            + 22-01-18:
+            获取指定区域的生成逐时场的控制文件shell的后缀
+        @param area:
+        @return:
+        """
+        suffix_name: str = 'CTSgpu_sz_plus.exe'
+        # 南海，区域3
+        if area == ForecastAreaEnum.SCS:
+            suffix_name = 'CTSgpu3_plus.exe'
+        # 东海，区域2
+        elif area == ForecastAreaEnum.ECS:
+            suffix_name = 'CTSgpu2_plus.exe'
+        # 渤海，区域1
+        elif area == ForecastAreaEnum.BHI:
+            suffix_name = 'CTSgpu1_plus.exe'
+        return suffix_name
+
+    def _get_grouppath_surge_shell_suffix(self, area: ForecastAreaEnum) -> str:
+        """
+            + 22-01-18:
+            获取指定区域的生成不同集合路径的控制文件shell的后缀
+        @param area:
+        @return:
+        """
+        suffix_name: str = 'CTSgpu_sz.exe'
+        # 南海，区域3
+        if area == ForecastAreaEnum.SCS:
+            suffix_name = 'CTSgpu3.exe'
+        # 东海，区域2
+        elif area == ForecastAreaEnum.ECS:
+            suffix_name = 'CTSgpu2.exe'
+        # 渤海，区域1
+        elif area == ForecastAreaEnum.BHI:
+            suffix_name = 'CTSgpu1.exe'
+        return suffix_name
+
     @property
     def list_lons(self):
         """
@@ -978,6 +1016,7 @@ class JobGeneratePathFile(IBaseJob):
         # r05 = 180
         # pNum = 145
         dR = kwargs.get('max_wind_radius_diff')  # 大风半径增减值
+        area = kwargs.get('forecast_area')  # 获取预报区域
         # 'deviation_radius_list':
         #    [{'hours': 96, 'radius': 150},
         #    {'hours': 72, 'radius': 120},
@@ -1002,7 +1041,7 @@ class JobGeneratePathFile(IBaseJob):
                                             pNum,
                                             tlon1,
                                             tlat1, pres1)
-        self.output_controlfile(SHARED_PATH, filename_list)
+        self.output_controlfile(SHARED_PATH, filename_list, area)
         pass
 
     def to_store(self, **kwargs):
@@ -1253,7 +1292,7 @@ class JobGeneratePathFile(IBaseJob):
     # -----------------------------output control file------------------------------------#
     # output gpus_path_list.bat
     @store_job_rate(job_instance=JobInstanceEnum.GEN_CONTROL_FILES, job_rate=30)
-    def output_controlfile(self, wdir0, filename):
+    def output_controlfile(self, wdir0, filename, forecast_area: ForecastAreaEnum):
         """
             生成批处理文件，并分类存储
             [*] 21-09-01 注意此处生成的批处理的内容将文件路径写死！
@@ -1265,6 +1304,7 @@ class JobGeneratePathFile(IBaseJob):
                     sz_start_gpu_model.bat
         @param wdir0:
         @param filename:
+        @param forecast_area: + 22-01-18 - 预报区域
         @return:
         """
         # + 21-09-24: 需要先判断存储目录是否存在，不存在则创建
@@ -1290,9 +1330,13 @@ class JobGeneratePathFile(IBaseJob):
         fi.write('sstartsec=${date1:17:2}\n')
         fi.write('echo StartTime $date1\n')
         fi.write('\n')
-        fi.write('echo ' + filename[0] + '|./CTSgpu_sz_plus.exe\n')
+        # TODO:[-] 22-01-18 由于调用不同区域加入了根据 预报区域 生成对应调用的shell的调用模型(.exe)的后缀
+        field_suffix_name: str = self._get_filed_surge_shell_suffix(forecast_area)  # 为计算逐时增水场的shell语句后缀
+        fi.write(f'echo ' + filename[0] + f'|./{field_suffix_name}\n')
+
+        group_path_suffix_name: str = self._get_grouppath_surge_shell_suffix(forecast_area)  # 为计算集合预报路径的shell语句后缀
         for i in range(len(filename)):
-            fi.write('echo ' + filename[i] + '|./CTSgpu_sz.exe\n')
+            fi.write(f'echo ' + filename[i] + f'|./{group_path_suffix_name}\n')
         fi.write('\n')
         fi.write('date2=$(date "+%Y-%m-%d %H:%M:%S")\n')
         fi.write('echo EndTime $date2\n')
@@ -1324,7 +1368,8 @@ class JobTaskBatch(IBaseJob):
         @return:
         """
         full_path_controlfile: str = kwargs.get('full_path_controlfile')
-        self.to_do_task_batch(145, full_path_controlfile)
+        members_num: int = kwargs.get('members_num')
+        self.to_do_task_batch(members_num, full_path_controlfile)
         # 将异常捕捉封装至装饰器中
         # try:
         #     self.to_do_task_batch(145, full_path_controlfile)
@@ -1357,34 +1402,34 @@ class JobTaskBatch(IBaseJob):
             # TODO:[-] 21-10-13 手动加入对 control 文件夹手动赋予权限的操作
             modify_sh_full_path: str = str(pathlib.Path(MODIFY_CHMOD_PATH) / MODIFY_CHMOD_FILENAME)
             try:
-                log_in.warning(f'执行{modify_sh_full_path}可执行文件，请注意！！')
+                log_in.info(f'执行{modify_sh_full_path}可执行文件，请注意！！')
                 b = subprocess.check_call(modify_sh_full_path, shell=True)
             except Exception as ex:
                 log_in.warning(f'执行{modify_sh_full_path}时出错:{ex.args}')
                 pass
-            log_in.warning(f'执行{modify_sh_full_path}可执行文件，请注意！！')
+            log_in.info(f'执行{path_control_file}可执行文件，请注意！！')
             a = subprocess.check_call(path_control_file, shell=True)
-
+            log_in.info(f'执行{path_control_file}完毕，请检查结果。')
             filenum = 0
             job_start_dt: arrow = arrow.utcnow()
             # wdir = wdir0 + 'result/' + caseno + '/'
             wdir = self.path_result_full
             if not os.path.exists(wdir):
                 os.makedirs(wdir)
-            while filenum < pnum * 2 + 1:
-                job_current_dt: arrow = arrow.utcnow()
-                # 弱当前计算的时间超出了最大时间间隔，则抛出异常
-                if (job_current_dt - job_start_dt).seconds > MAX_TIME_INTERVAL:
-                    raise CalculateTimeOutError(f'执行作业:{path_control_file}时超时，请检查!')
-                    break
-                path1 = os.listdir(wdir)
-                files = []
-                for fn in path1:
-                    if fn[-4:] == '.dat':
-                        files.append(fn)
-                filenum = len(files)
-                time.sleep(0.2)
-
+            # while filenum < pnum * 2 + 1:
+            #     job_current_dt: arrow = arrow.utcnow()
+            #     # 弱当前计算的时间超出了最大时间间隔，则抛出异常
+            #     if (job_current_dt - job_start_dt).seconds > MAX_TIME_INTERVAL:
+            #         raise CalculateTimeOutError(f'执行作业:{path_control_file}时超时，请检查!')
+            #         break
+            #     path1 = os.listdir(wdir)
+            #     files = []
+            #     for fn in path1:
+            #         if fn[-4:] == '.dat':
+            #             files.append(fn)
+            #     filenum = len(files)
+            #     time.sleep(0.2)
+            log_in.info(f'执行控制文件执行结束，跳出to_do_task_batch')
         else:
             return
 

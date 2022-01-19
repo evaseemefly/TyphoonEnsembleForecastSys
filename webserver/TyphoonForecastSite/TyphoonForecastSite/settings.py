@@ -197,7 +197,10 @@ GDAL_LIBRARY_PATH = r'C:\Users\evase\Anaconda3\envs\new_oil_gdal\Library\bin\gda
 # CELERY_BROKER_URL = f'amqp://guest:guest@localhost:5672/'
 # 把任务结果存在了Redis
 # CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
-CELERY_BROKER_URL = f'redis://redis:6379/0'
+# TODO:[-] 22-01-19 线上环境的 celery redis配置
+# CELERY_BROKER_URL = f'redis://redis:6379/0'
+# TODO:[*] 22-01-19 本地使用docker中的redis服务
+CELERY_BROKER_URL = f'redis://host.docker.internal:6379/0'
 # 任务序列化和反序列化使用JSON方案
 CELERY_TASK_SERIALIZER = 'pickle'
 # 读取任务结果使用JSON

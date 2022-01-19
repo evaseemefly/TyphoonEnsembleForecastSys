@@ -51,7 +51,9 @@ class CeleryData:
         #     self._local_celery.celery_id = value
         # elif not hasattr(self._local_celery, 'celery_id'):
 
-        if self._local_celery.celery_id == UNLESS_ID_STR:
+        if hasattr(self._local_celery, 'celery_id') and self._local_celery.celery_id == UNLESS_ID_STR:
+            self._local_celery.celery_id = value
+        elif hasattr(self._local_celery, 'celery_id') is False:
             self._local_celery.celery_id = value
 
 # global_celery_id: str = UNLESS_ID_STR

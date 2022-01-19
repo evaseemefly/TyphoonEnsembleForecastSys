@@ -23,7 +23,7 @@ from util.customer_decorators import store_job_rate
 from util.log import Loggings, log_in
 
 from util.customer_decorators import log_count_time, store_job_rate
-from common.enum import JobInstanceEnum, TaskStateEnum
+from common.enum import JobInstanceEnum, TaskStateEnum, ForecastAreaEnum
 
 ROOT_DIR = TEST_ENV_SETTINGS.get('TY_GROUP_PATH_ROOT_DIR')
 TY_CODE = TEST_ENV_SETTINGS.get('TY_CODE')
@@ -99,7 +99,7 @@ def case_ty_detail(gmt_start, gmt_end, ty_code: str, timestamp: str, ty_stamp: s
     return ty_detail
 
 
-def case_station(start: datetime, end: datetime, ty_stamp: str, ty_id=UNLESS_INDEX):
+def case_station(start: datetime, end: datetime, ty_stamp: str, ty_id=UNLESS_INDEX, forecast_area=None):
     """
         批量写入 station 的 case
     @return:
@@ -135,7 +135,8 @@ def case_station(start: datetime, end: datetime, ty_stamp: str, ty_id=UNLESS_IND
     # new: Surge_TYTD04_2021071908_f6_p_05.dat
     list_match_files: List[str] = get_match_files('^Surge_[A-Z]+\d+_\d+_[a-z]{1}\d{1}_[a-z]{1}_?\d+.dat',
                                                   dir_path)
-    to_station_realdata(list_match_files, ty_detail, forecast_dt_start=forecast_dt_start, ty_id=ty_id)
+    to_station_realdata(list_match_files, ty_detail, forecast_dt_start=forecast_dt_start, ty_id=ty_id,
+                        forecast_area=forecast_area)
     pass
 
 
@@ -201,7 +202,7 @@ def case_max_surge(ty_code: str, ty_stamp: str, gmt_start: datetime, gmt_end: da
     """
     # 概率场的正则匹配表达式
     # TODO:[-] 此处注意若再次执行时会出现 xxx_converted.nc的文件，需要忽略，所以加入了 xxm.nc 的正则，忽略了m_converted.nc 这种已经转换后的文件
-    re_str: str = '^maxSurge\w*m.nc'
+    re_str: str = '^maxSurge\w*p00.nc'
     dir_path: str = str(pathlib.Path(ROOT_DIR) / 'result' / ty_stamp)
     list_match_files: List[str] = get_match_files(re_str, dir_path)
     ty_detail: TyphoonForecastDetailModel = TyphoonForecastDetailModel(code=ty_code,
@@ -299,6 +300,8 @@ def to_do(*args, **kwargs):
     post_data_members_num: int = post_data.get('members_num')
     post_data_deviation_radius_list: List[any] = post_data.get('deviation_radius_list')
     is_customer_ty: bool = post_data.get('is_customer_ty', False)
+    forecast_area_val: int = post_data.get('forecast_area', ForecastAreaEnum.SCS.value)
+    forecast_area: ForecastAreaEnum = ForecastAreaEnum(forecast_area_val)
     # TODO:[-] 21-12-02 获取 django 传入的 时间戳
     timestamp: int = post_data.get('timestamp')
     timestamp_str: str = str(timestamp)
@@ -340,7 +343,7 @@ def to_do(*args, **kwargs):
     # TDOO:[*] 21-10-21 注意需此处爬取后的台风时间为 local ，而django传递过来的为utc时间
     job_ty.to_do(list_customer_cma=ty_customer_cma)
     log_in.info(
-        f'获取提交:ty_code:{ty_code}|timestamp:{job_ty.timestamp_str}|forecast_start_utc:{job_ty.forecast_start_dt_utc}|forecast_end_utc:{job_ty.forecast_end_dt_utc}|')
+        f'获取提交:ty_code:{ty_code}|timestamp:{job_ty.timestamp_str}|forecast_start_utc:{job_ty.forecast_start_dt_utc}|forecast_end_utc:{job_ty.forecast_end_dt_utc}|集合预报路径条数:{post_data_members_num}')
     if len(job_ty.list_cmd) == 0:
         log_in.error(f'获取提交:ty_code:{ty_code}|timestamp:{job_ty.timestamp_str},未爬取到或自定义台风路径为空')
         return
@@ -354,7 +357,8 @@ def to_do(*args, **kwargs):
         job_generate = JobGeneratePathFile(ty_code, timestamp_str, list_cmd)
         # + 21-09-18 此处修改为传入的参数为动态的，有 celery 传入
         job_generate.to_do(max_wind_radius_diff=post_data_max_wind_radius_diff, members_num=post_data_members_num,
-                           deviation_radius_list=post_data_deviation_radius_list)
+                           deviation_radius_list=post_data_deviation_radius_list,
+                           forecast_area=forecast_area)
         log_in.info(f'ty_code:{ty_code}|timestamp:{job_ty.timestamp_str},生成对应pathfiles+批处理文件')
         # step 1-3: 将爬取到的台风基础信息入库
         # test_ty_stamp = 'TY2142_1632623874'
@@ -372,7 +376,7 @@ def to_do(*args, **kwargs):
         # step-2: 执行批处理 调用模型——暂时跳过
         job_task = JobTaskBatch(ty_code, timestamp_str)
         log_in.info(f'ty_code:{ty_code}|timestamp:{job_ty.timestamp_str},提交gpu进行计算！new')
-        job_task.to_do(full_path_controlfile=job_generate.full_path_controlfile)
+        job_task.to_do(full_path_controlfile=job_generate.full_path_controlfile, members_num=post_data_members_num)
         log_in.info(f'ty_code:{ty_code}|timestamp:{job_ty.timestamp_str},gpu计算结束！new')
         # -----
         # step 3: 处理海洋站
@@ -383,7 +387,7 @@ def to_do(*args, **kwargs):
         # ty_stamp: str = 'TY2144_1632639075'
         # ty_id: int = 62
         if not is_debug:
-            case_station(dt_forecast_start, dt_forecast_end, ty_stamp, ty_id=ty_id)
+            case_station(dt_forecast_start, dt_forecast_end, ty_stamp, ty_id=ty_id, forecast_area=forecast_area)
             log_in.info(f'ty_code:{ty_code}|timestamp:{job_ty.timestamp_str},完成海洋站数据入库')
             # # # step-3:
             # # TODO:[-] + 21-09-02 txt -> nc 目前没问题，需要注意一下当前传入的 时间戳是 yyyymmddHH 的格式，与上面的不同

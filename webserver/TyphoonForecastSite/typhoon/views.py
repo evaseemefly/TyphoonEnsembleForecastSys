@@ -315,7 +315,7 @@ class TyList(BaseView):
         year_start_arrow: arrow.Arrow = arrow.Arrow(int(year), 1, 1)
         year_end_arrow: arrow.Arrow = arrow.Arrow(int(year), 12, 31, 23, 59)
         ty_match_query: List[TyphoonForecastDetailModel] = TyphoonForecastDetailModel.objects.filter(
-            gmt_start__gte=year_start_arrow.datetime, gmt_end__lte=year_end_arrow.datetime).exclude(
+            gmt_start__gte=year_start_arrow.datetime, gmt_end__lte=year_end_arrow.datetime, is_del=False).exclude(
             timestamp=DEFAULT_TIMTSTAMP_STR)
         # TODO:[-] 21-09-12 只根据 code 进行去重，不需要根据 时间戳去重
         ty_match_mids: List[dict] = ty_match_query.values('code').distinct()

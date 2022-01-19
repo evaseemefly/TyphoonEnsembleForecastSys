@@ -25,8 +25,8 @@ from model.mid_models import GroupTyphoonPathMidModel, TyphoonForecastDetailMidM
 from model.models import TyphoonGroupPathModel, TyphoonForecastDetailModel, TyphoonForecastRealDataModel, \
     StationForecastRealDataModel, CoverageInfoModel, ForecastTifModel, ForecastProTifModel, RelaTyTaskModel
 from common.const import UNLESS_CODE, UNLESS_RANGE, NONE_ID
-from common.common_dict import DICT_STATION
-from common.enum import LayerType
+from common.common_dict import DICT_STATION, get_area_dict_station
+from common.enum import LayerType, ForecastAreaEnum
 from local.globals import get_celery
 
 from util.customer_decorators import log_count_time, store_job_rate
@@ -151,9 +151,12 @@ def to_ty_max_surge(list_files: List[str], **kwargs):
     gmt_start = kwargs.get('gmt_start')
     # eg: fieldSurge_TY2022_2021010416_c0_p00_201809150900.nc
     dir_path: str = kwargs.get('dir_path')
+    log_in.info(f"处理{dir_path}路径下的maxsurge.nc文件")
     for file_temp in list_files:
-        field_surge_file = MaxSurgeCoverageFile(dir_path, file_temp)
-        field_surge_data: ProSurgeDataInfo = ProSurgeDataInfo(field_surge_file, dir_path)
+        log_in.info(f"处理maxsurge.nc:{file_temp}文件")
+        max_surge_file = MaxSurgeCoverageFile(dir_path, file_temp)
+        # 修改此处改为最大增水 dataInfo
+        field_surge_data: MaxSurgeDataInfo = MaxSurgeDataInfo(max_surge_file, dir_path)
         field_surge_data.to_do(gmt_start=gmt_start)
         pass
     pass
@@ -202,6 +205,7 @@ def to_ty_pro_surge(list_files: List[str], **kwargs):
 def to_station_realdata(list_files: List[str], ty_detail: TyphoonForecastDetailModel, **kwargs):
     forecast_dt_start: datetime = kwargs.get('forecast_dt_start')
     ty_id: int = kwargs.get('ty_id')
+    forecast_area = kwargs.get('forecast_area', None)
     for file_temp in list_files:
         # eg: Surge_TY2022_2021010416_f0_p10.dat
         # eg2: Surge_TY2022_2021010416_c0_p_10.dat
@@ -230,7 +234,7 @@ def to_station_realdata(list_files: List[str], ty_detail: TyphoonForecastDetailM
             if pg is not None:
 
                 ty_group = StationRealDataFile(ROOT_PATH, file_name, ts_str, pg.id, forecast_dt_start)
-                ty_group.read_forecast_data(file_name=file_name_source, timestamp=ts_str)
+                ty_group.read_forecast_data(file_name=file_name_source, timestamp=ts_str, forecast_area=forecast_area)
                 ty_group.to_store(ty_detail=ty_detail)
             else:
                 # 若为 None 应抛出异常
@@ -830,15 +834,20 @@ class StationRealDataFile(ITyphoonPath):
         ty_detail = kwargs.get('ty_detail')
         file_name: str = kwargs.get('file_name')
         full_path: str = str(pathlib.Path(self.save_dir_path) / file_name)
+        forecast_area: ForecastAreaEnum = kwargs.get('forecast_area') if kwargs.get('forecast_area',
+                                                                                    None) is not None else ForecastAreaEnum.SCS
         df_temp: pd.DataFrame = self.init_forecast_data(group_path_file=full_path)
         list_station_realdata: List[StationForecastRealDataModel] = []
         # 先判断 df 中的预报时间是否与写入的 dt_range 匹配
         if df_temp is not None:
             num_columns = df_temp.shape[0]  # 行数
             num_rows = df_temp.shape[1]  # 列数
+            # TODO:[-] 22-01-18 加入了根据传入的参数获取对应海区的步骤
+            current_dict: dict = get_area_dict_station(forecast_area)
             # 列与 common/common_dict -> DICT_STATION 的 key 对应
             for index_column in range(num_rows):
-                station_code: str = DICT_STATION[index_column]
+                # TODO:[-] 22-01-18: 注意此处修改为动态字典
+                station_code: str = current_dict[index_column]
                 series_column = df_temp[index_column]
                 index_row = 0
                 current_dt: datetime = self.forecast_dt_start
@@ -1278,6 +1287,7 @@ class MaxSurgeDataInfo:
         return file_name_temp
 
     def to_do(self, **kwargs):
+        log_in.info(f'准备对{str(pathlib.Path(self.dir_path) / self.file.file_name)}convert处理')
         if self.to_converted_nc(True):
             self.to_tif()
             self.to_store()
@@ -1326,9 +1336,12 @@ class MaxSurgeDataInfo:
             self._read_nc()
         is_ok: bool = self._to_stand()
         if to_save and is_ok:
+            log_in.info(f'{self.file_name}满足convert条件')
             new_file_name: str = self.file_name + '_converted.nc'
             new_full_path: str = str(pathlib.Path(self.dir_path) / new_file_name)
+            log_in.info(f'{self.file_name}convertting...')
             self.ds.to_netcdf(new_full_path)
+            log_in.info(f'{self.file_name}converted!')
             # 注意 此处 converted_file 存储的是文件名
             self.dict_data['converted_file'] = new_file_name
         return is_ok
