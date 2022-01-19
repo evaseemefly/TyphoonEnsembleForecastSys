@@ -70,9 +70,12 @@ JOB_SETTINGS = {
 # CELERY_BROKER_URL = f'amqp://guest:guest@localhost:5672/'
 # CELERY_BROKER_URL = f'amqp://guest:guest@rabbitmq:5672/'
 # 针对mac使用 redis 作为消息代理
-CELERY_BROKER_URL = f'redis://redis:6379/0'
+# TODO:[-] 22-01-19 线上环境的 celery redis配置
+# CELERY_BROKER_URL = f'redis://redis:6379/0'
 # CELERY_BROKER_URL = f'redis://localhost:6379/0'
 # CELERY_BROKER_URL = f'redis://0.0.0.0:6379/0'
+# TODO:[*] 22-01-19 本地使用docker中的redis服务
+CELERY_BROKER_URL = f'redis://host.docker.internal:6379/0'
 # 把任务结果存在了Redis
 # CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
 # CELERY_RESULT_BACKEND = 'redis://redis:6379/0'

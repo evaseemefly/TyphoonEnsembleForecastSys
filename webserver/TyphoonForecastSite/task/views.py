@@ -17,6 +17,7 @@ from .models import CaseStatusModel, CaseInstanceModel
 from .serializers import CaseStatusModelSerializer
 from util.customer_exception import QueryNoneError
 from util.log import log_in
+from util.enum import ForecastAreaEnum
 from others.my_celery import app
 
 
@@ -63,11 +64,14 @@ class TaskCreateView(BaseView):
         post_data: dict = request.data
         is_debug: bool = post_data.get('is_debug', True)
         is_customer_ty: bool = post_data.get('is_customer_ty')
+        # todo :[-] 22-01-19 加入获取预报区域的判断
+        area: int = post_data.get('forecast_area', ForecastAreaEnum.SCS)
         ty_customer_cma = {}
         if is_customer_ty:
             ty_customer_cma = {
                 'ty_code': post_data.get('ty_code'),
-                'customer_ty_cma_list': post_data.get('customer_ty_cma_list')
+                'customer_ty_cma_list': post_data.get('customer_ty_cma_list'),
+                'forecast_area': area
             }
         max_wind_radius_diff: int = post_data.get('max_wind_radius_diff')
         members_num: int = post_data.get('members_num')
@@ -76,7 +80,7 @@ class TaskCreateView(BaseView):
         deviation_radius_list: List[Dict[str, int]] = post_data.get('deviation_radius_list')
         if self.verify(request) and self.to_idempotence(request):
             case: CaseInstanceModel = self.commit(request, is_debug, is_customer_ty=is_customer_ty,
-                                                  ty_customer_cma=ty_customer_cma)
+                                                  ty_customer_cma=ty_customer_cma, forecast_area=area)
             self.json_data = {'ty_code': case.ty_code, 'timestamp': case.timestamp}
             self._status = 200
         elif not self.verify(request):
@@ -158,6 +162,7 @@ class TaskCreateView(BaseView):
         max_wind_radius_diff: int = post_data.get('max_wind_radius_diff')
         members_num: int = post_data.get('members_num')
         is_customer_ty: bool = kwargs.get('is_customer_ty')
+        area: ForecastAreaEnum = kwargs.get('forecast_area')
         # {'ty_code': '2109',
         #  'customer_ty_cma_list':
         #      [{'forecastDt': '2021-09-04T06:00:00.000Z',
@@ -193,7 +198,8 @@ class TaskCreateView(BaseView):
         params_obj = {'ty_code': ty_code, 'timestamp': timestamp, 'max_wind_radius_diff': max_wind_radius_diff,
                       'members_num': members_num,
                       'deviation_radius_list': deviation_radius_list, 'is_customer_ty': is_customer_ty,
-                      'ty_customer_cma': list_customer_cma}
+                      'ty_customer_cma': list_customer_cma,
+                      'forecast_area': area.value}
         log_in.info(f'接收到:ty_code:{ty_code}提交至celery')
         res = self.celery.send_task(self.CELERY_TASK_NAME, args=[params_obj, '123', 19], kwargs=params_obj)
         log_in.info(f'ty_code:{ty_code}提交至celery成功!')

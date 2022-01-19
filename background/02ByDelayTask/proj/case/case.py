@@ -23,7 +23,7 @@ from util.customer_decorators import store_job_rate
 from util.log import Loggings, log_in
 
 from util.customer_decorators import log_count_time, store_job_rate
-from common.enum import JobInstanceEnum, TaskStateEnum
+from common.enum import JobInstanceEnum, TaskStateEnum, ForecastAreaEnum
 
 ROOT_DIR = TEST_ENV_SETTINGS.get('TY_GROUP_PATH_ROOT_DIR')
 TY_CODE = TEST_ENV_SETTINGS.get('TY_CODE')
@@ -300,7 +300,8 @@ def to_do(*args, **kwargs):
     post_data_members_num: int = post_data.get('members_num')
     post_data_deviation_radius_list: List[any] = post_data.get('deviation_radius_list')
     is_customer_ty: bool = post_data.get('is_customer_ty', False)
-    forecast_area = post_data.get('forecast_area', None)
+    forecast_area_val: int = post_data.get('forecast_area', ForecastAreaEnum.SCS.value)
+    forecast_area: ForecastAreaEnum = ForecastAreaEnum(forecast_area_val)
     # TODO:[-] 21-12-02 获取 django 传入的 时间戳
     timestamp: int = post_data.get('timestamp')
     timestamp_str: str = str(timestamp)
