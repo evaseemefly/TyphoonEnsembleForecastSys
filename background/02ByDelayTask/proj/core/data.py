@@ -1402,10 +1402,10 @@ class MaxSurgeDataInfo:
             field_relative_path: str = f'TY{self.file.ty_code}_{self.file.ty_timestamp}'
             for temp_tif_file in list_tif_files:
                 tif_model = ForecastTifModel(ty_code=self.file.ty_code, timestamp=self.file.ty_timestamp,
-                                                root_path=ROOT_PATH, file_name=temp_tif_file.file_name,
-                                                relative_path=field_relative_path,
-                                                file_ext=temp_tif_file.file_ext,
-                                                coverage_type=self.file.coverage_type.value)
+                                             root_path=ROOT_PATH, file_name=temp_tif_file.file_name,
+                                             relative_path=field_relative_path,
+                                             file_ext=temp_tif_file.file_ext,
+                                             coverage_type=LayerType.MAXSURGETIF.value)
                 self.session.add(tif_model)
             self.session.commit()
 
