@@ -202,7 +202,7 @@ def case_max_surge(ty_code: str, ty_stamp: str, gmt_start: datetime, gmt_end: da
     """
     # 概率场的正则匹配表达式
     # TODO:[-] 此处注意若再次执行时会出现 xxx_converted.nc的文件，需要忽略，所以加入了 xxm.nc 的正则，忽略了m_converted.nc 这种已经转换后的文件
-    re_str: str = '^maxSurge\w*m.nc'
+    re_str: str = '^maxSurge\w*p00.nc'
     dir_path: str = str(pathlib.Path(ROOT_DIR) / 'result' / ty_stamp)
     list_match_files: List[str] = get_match_files(re_str, dir_path)
     ty_detail: TyphoonForecastDetailModel = TyphoonForecastDetailModel(code=ty_code,
@@ -343,7 +343,7 @@ def to_do(*args, **kwargs):
     # TDOO:[*] 21-10-21 注意需此处爬取后的台风时间为 local ，而django传递过来的为utc时间
     job_ty.to_do(list_customer_cma=ty_customer_cma)
     log_in.info(
-        f'获取提交:ty_code:{ty_code}|timestamp:{job_ty.timestamp_str}|forecast_start_utc:{job_ty.forecast_start_dt_utc}|forecast_end_utc:{job_ty.forecast_end_dt_utc}|')
+        f'获取提交:ty_code:{ty_code}|timestamp:{job_ty.timestamp_str}|forecast_start_utc:{job_ty.forecast_start_dt_utc}|forecast_end_utc:{job_ty.forecast_end_dt_utc}|集合预报路径条数:{post_data_members_num}')
     if len(job_ty.list_cmd) == 0:
         log_in.error(f'获取提交:ty_code:{ty_code}|timestamp:{job_ty.timestamp_str},未爬取到或自定义台风路径为空')
         return

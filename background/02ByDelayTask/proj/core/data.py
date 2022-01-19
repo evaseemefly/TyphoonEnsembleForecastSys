@@ -151,7 +151,9 @@ def to_ty_max_surge(list_files: List[str], **kwargs):
     gmt_start = kwargs.get('gmt_start')
     # eg: fieldSurge_TY2022_2021010416_c0_p00_201809150900.nc
     dir_path: str = kwargs.get('dir_path')
+    log_in.info(f"处理{dir_path}路径下的maxsurge.nc文件")
     for file_temp in list_files:
+        log_in.info(f"处理maxsurge.nc:{file_temp}文件")
         max_surge_file = MaxSurgeCoverageFile(dir_path, file_temp)
         # 修改此处改为最大增水 dataInfo
         field_surge_data: MaxSurgeDataInfo = MaxSurgeDataInfo(max_surge_file, dir_path)
@@ -1285,6 +1287,7 @@ class MaxSurgeDataInfo:
         return file_name_temp
 
     def to_do(self, **kwargs):
+        log_in.info(f'准备对{str(pathlib.Path(self.dir_path) / self.file.file_name)}convert处理')
         if self.to_converted_nc(True):
             self.to_tif()
             self.to_store()
@@ -1333,9 +1336,12 @@ class MaxSurgeDataInfo:
             self._read_nc()
         is_ok: bool = self._to_stand()
         if to_save and is_ok:
+            log_in.info(f'{self.file_name}满足convert条件')
             new_file_name: str = self.file_name + '_converted.nc'
             new_full_path: str = str(pathlib.Path(self.dir_path) / new_file_name)
+            log_in.info(f'{self.file_name}convertting...')
             self.ds.to_netcdf(new_full_path)
+            log_in.info(f'{self.file_name}converted!')
             # 注意 此处 converted_file 存储的是文件名
             self.dict_data['converted_file'] = new_file_name
         return is_ok

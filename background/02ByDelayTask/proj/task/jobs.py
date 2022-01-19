@@ -1402,34 +1402,34 @@ class JobTaskBatch(IBaseJob):
             # TODO:[-] 21-10-13 手动加入对 control 文件夹手动赋予权限的操作
             modify_sh_full_path: str = str(pathlib.Path(MODIFY_CHMOD_PATH) / MODIFY_CHMOD_FILENAME)
             try:
-                log_in.warning(f'执行{modify_sh_full_path}可执行文件，请注意！！')
+                log_in.info(f'执行{modify_sh_full_path}可执行文件，请注意！！')
                 b = subprocess.check_call(modify_sh_full_path, shell=True)
             except Exception as ex:
                 log_in.warning(f'执行{modify_sh_full_path}时出错:{ex.args}')
                 pass
-            log_in.warning(f'执行{modify_sh_full_path}可执行文件，请注意！！')
+            log_in.info(f'执行{path_control_file}可执行文件，请注意！！')
             a = subprocess.check_call(path_control_file, shell=True)
-
+            log_in.info(f'执行{path_control_file}完毕，请检查结果。')
             filenum = 0
             job_start_dt: arrow = arrow.utcnow()
             # wdir = wdir0 + 'result/' + caseno + '/'
             wdir = self.path_result_full
             if not os.path.exists(wdir):
                 os.makedirs(wdir)
-            while filenum < pnum * 2 + 1:
-                job_current_dt: arrow = arrow.utcnow()
-                # 弱当前计算的时间超出了最大时间间隔，则抛出异常
-                if (job_current_dt - job_start_dt).seconds > MAX_TIME_INTERVAL:
-                    raise CalculateTimeOutError(f'执行作业:{path_control_file}时超时，请检查!')
-                    break
-                path1 = os.listdir(wdir)
-                files = []
-                for fn in path1:
-                    if fn[-4:] == '.dat':
-                        files.append(fn)
-                filenum = len(files)
-                time.sleep(0.2)
-
+            # while filenum < pnum * 2 + 1:
+            #     job_current_dt: arrow = arrow.utcnow()
+            #     # 弱当前计算的时间超出了最大时间间隔，则抛出异常
+            #     if (job_current_dt - job_start_dt).seconds > MAX_TIME_INTERVAL:
+            #         raise CalculateTimeOutError(f'执行作业:{path_control_file}时超时，请检查!')
+            #         break
+            #     path1 = os.listdir(wdir)
+            #     files = []
+            #     for fn in path1:
+            #         if fn[-4:] == '.dat':
+            #             files.append(fn)
+            #     filenum = len(files)
+            #     time.sleep(0.2)
+            log_in.info(f'执行控制文件执行结束，跳出to_do_task_batch')
         else:
             return
 
