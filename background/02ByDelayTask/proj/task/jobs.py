@@ -1368,7 +1368,8 @@ class JobTaskBatch(IBaseJob):
         @return:
         """
         full_path_controlfile: str = kwargs.get('full_path_controlfile')
-        self.to_do_task_batch(145, full_path_controlfile)
+        members_num: int = kwargs.get('members_num')
+        self.to_do_task_batch(members_num, full_path_controlfile)
         # 将异常捕捉封装至装饰器中
         # try:
         #     self.to_do_task_batch(145, full_path_controlfile)
