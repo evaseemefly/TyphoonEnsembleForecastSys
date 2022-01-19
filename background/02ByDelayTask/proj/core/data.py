@@ -1319,7 +1319,9 @@ class MaxSurgeDataInfo:
             temp_ds = temp_ds.swap_dims({'lat': 'y', 'lon': 'x'})
             temp_ds.rio.set_spatial_dims("x", "y", inplace=True)
             temp_ds = temp_ds.rio.write_crs("epsg:4326", inplace=True)
-            temp_ds = temp_ds.reindex(y=temp_ds.y[::-1])
+            # TODO:[-] 此处做如下修改，不使用 reindex
+            # temp_ds = temp_ds.reindex(y=temp_ds.y[::-1])
+            temp_ds['y'] = temp_ds['y'][::-1]
             self.ds = temp_ds
             is_standed = True
         except Exception as e:
