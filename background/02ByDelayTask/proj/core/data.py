@@ -1401,11 +1401,11 @@ class MaxSurgeDataInfo:
             # TODO:[-] 21-08-05 注意此处存储的时候存在一个bug，逐时的 file.ty_timestamp 不包含 TY2022_,需要手动加上
             field_relative_path: str = f'TY{self.file.ty_code}_{self.file.ty_timestamp}'
             for temp_tif_file in list_tif_files:
-                tif_model = ForecastProTifModel(ty_code=self.file.ty_code, timestamp=self.file.ty_timestamp,
+                tif_model = ForecastTifModel(ty_code=self.file.ty_code, timestamp=self.file.ty_timestamp,
                                                 root_path=ROOT_PATH, file_name=temp_tif_file.file_name,
                                                 relative_path=field_relative_path,
                                                 file_ext=temp_tif_file.file_ext,
-                                                coverage_type=self.file.coverage_type.value, pro=self.file.surge_val)
+                                                coverage_type=self.file.coverage_type.value)
                 self.session.add(tif_model)
             self.session.commit()
 
