@@ -99,23 +99,32 @@ def case_ty_detail(gmt_start, gmt_end, ty_code: str, timestamp: str, ty_stamp: s
     return ty_detail
 
 
-def case_station(start: datetime, end: datetime, ty_stamp: str, ty_id=UNLESS_INDEX, forecast_area=None):
+def case_station(start: datetime, end: datetime, ty_code: str, ty_timestamp_str: str, ty_id=UNLESS_INDEX,
+                 forecast_area=None):
     """
         批量写入 station 的 case
+    @param start:
+    @param end:
+    @param ty_code:
+    @param ty_timestamp_str: 1642658538 创建案例的时间戳字符串
+    @param ty_id:
+    @param forecast_area:
     @return:
     """
     # TODO:[-] 21-07-20 注意此处的 path_marking 手动指定为 0即可，或者去掉也可以
-    query_gp = get_gp(ty_code=TY_CODE, ts=TY_TIMESTAMP, path_type='c', path_marking=0, bp=0,
+    query_gp = get_gp(ty_code=ty_code, ts=ty_timestamp_str, path_type='c', path_marking=0, bp=0,
                       is_increase=True)
     # gmt_start = datetime(2020, 9, 15, 17)
     # gmt_end = datetime(2020, 9, 18, 0)
     gmt_start = start
     gmt_end = end  # 目前使用的结束时间为从台风网上爬取的时间的结束时间(预报)
+    ty_stamp: str = f'TY{ty_code}_{ty_timestamp_str}'  # TY2046_1642658538
     ty_detail: TyphoonForecastDetailModel = TyphoonForecastDetailModel(code=TY_CODE,
                                                                        organ_code=ForecastOrganizationEnum.NMEFC.value,
                                                                        gmt_start=gmt_start,
                                                                        gmt_end=gmt_end,
-                                                                       forecast_source=TyphoonForecastSourceEnum.DEFAULT.value)
+                                                                       forecast_source=TyphoonForecastSourceEnum.DEFAULT.value,
+                                                                       id=ty_id)
     # 对应的 tyGroupPathModel ，主要用来获取 -> id
     target_gp = None
     # TODO:[-] 21-07-20 预报起始时间与 gmt_start 相同
@@ -289,7 +298,7 @@ def to_do(*args, **kwargs):
     """
 
     # step-1: 爬取 指定台风编号的台风
-    is_debug: bool = False
+    is_debug: bool = True
 
     is_break: bool = False
     if is_break:
@@ -354,7 +363,8 @@ def to_do(*args, **kwargs):
         timestamp_str: str = job_ty.timestamp_str
         # step 1-2: 生成 pathfile 与 批处理文件
         list_cmd = job_ty.list_cmd
-        ty_stamp: str = job_ty.ty_stamp
+        ty_stamp: str = job_ty.ty_stamp  # TY2109_2021080415
+        ty_timestamp: str = job_ty.timestamp_str  # 2021080415
         job_generate = JobGeneratePathFile(ty_code, timestamp_str, list_cmd)
         # + 21-09-18 此处修改为传入的参数为动态的，有 celery 传入
         job_generate.to_do(max_wind_radius_diff=post_data_max_wind_radius_diff, members_num=post_data_members_num,
@@ -388,7 +398,8 @@ def to_do(*args, **kwargs):
         # ty_stamp: str = 'TY2144_1632639075'
         # ty_id: int = 62
         if not is_debug:
-            case_station(dt_forecast_start, dt_forecast_end, ty_stamp, ty_id=ty_id, forecast_area=forecast_area)
+            case_station(dt_forecast_start, dt_forecast_end, ty_code, ty_timestamp, ty_id=ty_id,
+                         forecast_area=forecast_area)
             log_in.info(f'ty_code:{ty_code}|timestamp:{job_ty.timestamp_str},完成海洋站数据入库')
             # # # step-3:
             # # TODO:[-] + 21-09-02 txt -> nc 目前没问题，需要注意一下当前传入的 时间戳是 yyyymmddHH 的格式，与上面的不同
@@ -430,8 +441,10 @@ def case_test_local():
 def main():
     # TODO:[-] 21-07-27 预报的起始时间，目前使用的是 pathfile -> c0_p00 中的路径起止时间
     # ! 注意时间是 utc 时间，文件里面读取的为 local 时间 ！
-    gmt_start = datetime(2020, 9, 15, 9)
-    gmt_end = datetime(2020, 9, 17, 9)  # 目前使用的结束时间为从台风网上爬取的时间的结束时间(预报)
+    gmt_start = datetime(2020, 9, 17, 21)
+    gmt_end = datetime(2020, 9, 19, 3)  # 目前使用的结束时间为从台风网上爬取的时间的结束时间(预报)
+    ty_stamp = '1642658538'
+    ty_code = '2046'
     # case_group_ty_path(gmt_start, gmt_end)
     # # 21-04-25 批量处理海洋站潮位数据
     # # 注意 此处的 ty_id 由 case_group_ty_path 处理后创建的一个 ty id
@@ -443,7 +456,9 @@ def main():
     # # TODO:[-] 21-09-01 加入了 测试 job相关的 case
     # case_job_craw_ty()
     # TODO:[-] 21-09-03 测试全部整合至 to_do 中
-    to_do()
+    # to_do()
+    # TODO:[-] 22-01-20 测试海洋站 to_store 操作
+    case_station(gmt_start, gmt_end, ty_code, ty_stamp, 76, ForecastAreaEnum.SCS)
     # TODO:[-] 21-09-06 测试 local
     # case_test_local()
     # 测试查询 gp

@@ -11,8 +11,9 @@
 TEST_ENV_SETTINGS = {
     # 'TY_GROUP_PATH_ROOT_DIR': r'E:\02data\03typhoon',  # win
     # 'TY_GROUP_PATH_ROOT_DIR': r'E:\02data\05docker-data\docker-shared\ty_docker',  # P5750
-    # 'TY_GROUP_PATH_ROOT_DIR': r'E:\05DATA\01nginx_data\nmefc_download\TY_GROUP_RESULT',  # T7920
-    'TY_GROUP_PATH_ROOT_DIR': r'/public/home/surge/szsurge',  # + 21-09-28 docker 需要与宿主机指定路径映射的路径
+    'TY_GROUP_PATH_ROOT_DIR': r'E:\05DATA\01nginx_data\nmefc_download\TY_GROUP_RESULT',  # T7920
+    # 'TY_GROUP_PATH_ROOT_DIR': r'/public/home/surge/szsurge',  # + 21-09-28 docker 需要与宿主机指定路径映射的路径 TODO:[*] 22-01-20 实际部署的环境
+    # 'TY_GROUP_PATH_ROOT_DIR':r'E:\05DATA\01nginx_data\nmefc_download\TY_GROUP_RESULT',      # 7920 测试环境
     # 'TY_GROUP_PATH_ROOT_DIR': r'/Users/evaseemefly/04data/01nginx_data/nmefc_download/TY_GROUP_RESULT',  # mac-m1
     # + 21-08-02 数据处理统一在 nginx 目录下
     # 'TY_GROUP_PATH_ROOT_DIR': r'D:\03nginx_data\nmefc_download\TY_GROUP_RESULT',  # p5750
@@ -41,8 +42,9 @@ DATABASES = {
         'PASSWORD': '123456',
         # 'HOST': '128.5.10.21',  # HOST
         # 'HOST': '172.18.0.1',  # HOST
+        'HOST': '127.0.0.1',  # HOST
         # 访问宿主的mysql服务,
-        'HOST': 'host.docker.internal',
+        # 'HOST': 'host.docker.internal',   # TODO:[*] 22-01-20 暂时注释掉，由于路径使用win的路径，暂时不使用docker作为解释器
         'POST': 3306,  # 端口
         # 'HOST': 'mysql',  # HOST
         # 'POST': 3308,  # 端口
@@ -54,8 +56,8 @@ DATABASES = {
 
 # + 21-09-28 新加入的 loguru 的配置文件
 LOG_LOGURU = {
-    # 'LOG_PATH': r'E:\05DATA\99test\05log',  # 日志文件路径
-    'LOG_PATH': r'/public/home/surge/TYPHOON_PROJ/log/celery_log',  # 日志文件路径
+    'LOG_PATH': r'E:\05DATA\99test\05log',  # 日志文件路径 TODO:[*] 22-01-20 测试环境
+    # 'LOG_PATH': r'/public/home/surge/TYPHOON_PROJ/log/celery_log',  # 日志文件路径
     'LOG_SPLIT_TIME': '1 day',
     'LOG_EXPIRATION_TIME': '30 days',
 }

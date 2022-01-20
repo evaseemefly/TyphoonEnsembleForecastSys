@@ -201,7 +201,8 @@ def to_ty_pro_surge(list_files: List[str], **kwargs):
     pass
 
 
-@store_job_rate(job_instance=JobInstanceEnum.STORE_STATION, job_rate=50)
+# TODO:[*] 22-01-20 暂时注释掉进度
+# @store_job_rate(job_instance=JobInstanceEnum.STORE_STATION, job_rate=50)
 def to_station_realdata(list_files: List[str], ty_detail: TyphoonForecastDetailModel, **kwargs):
     forecast_dt_start: datetime = kwargs.get('forecast_dt_start')
     ty_id: int = kwargs.get('ty_id')
