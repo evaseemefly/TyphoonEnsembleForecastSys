@@ -206,6 +206,7 @@ def to_station_realdata(list_files: List[str], ty_detail: TyphoonForecastDetailM
     forecast_dt_start: datetime = kwargs.get('forecast_dt_start')
     ty_id: int = kwargs.get('ty_id')
     forecast_area = kwargs.get('forecast_area', None)
+    log_in.info(f'准备读取海洋站realdata,共有{len(list_files)}个')
     for file_temp in list_files:
         # eg: Surge_TY2022_2021010416_f0_p10.dat
         # eg2: Surge_TY2022_2021010416_c0_p_10.dat
@@ -216,6 +217,7 @@ def to_station_realdata(list_files: List[str], ty_detail: TyphoonForecastDetailM
         ty_code_stamp: str = name_split[1]  # TY1822
         ts_str: str = name_split[2]  # 2020042710
         path_type_stamp: str = name_split[3]
+        log_in.info(f'[当前准备写入海洋站数据-处理文件为:{file_temp}:')
         # 注意此处需要加入判断，若切分后的 len > 4，说明最后是 p_xx 此种形式
         bp_stamp: str = None
         if len(name_split) > 5:
@@ -226,20 +228,28 @@ def to_station_realdata(list_files: List[str], ty_detail: TyphoonForecastDetailM
             bp_stamp: str = name_split[4]
         if len(ty_code_stamp) > 2 and ty_code_stamp[:2].lower() == 'ty':
             ty_code: str = ty_code_stamp[2:]  # 1822
+            log_in.info(
+                f'实例化StationSurgeRealDataFile,dir_path:{str(pathlib.Path(file_temp).parents[0])},file_name:{str(pathlib.Path(file_temp).name)}')
             station_surge_file: StationSurgeRealDataFile = StationSurgeRealDataFile(
                 str(pathlib.Path(file_temp).parents[0]), str(pathlib.Path(file_temp).name))
+            log_in.info('尝试获取group path model')
             pg = station_surge_file.get_pg(ty_id)
+            log_in.info(f'读取group path model 成功id为:{pg.id}')
             # 创建 台风集合预报路径 类
             # TODO:[-] 21-04-27 此处需要加入判断 pg 是否为 None
             if pg is not None:
-
-                ty_group = StationRealDataFile(ROOT_PATH, file_name, ts_str, pg.id, forecast_dt_start)
-                ty_group.read_forecast_data(file_name=file_name_source, timestamp=ts_str, forecast_area=forecast_area)
-                ty_group.to_store(ty_detail=ty_detail)
+                station_realdata = StationRealDataFile(ROOT_PATH, file_name, ts_str, pg.id, forecast_dt_start)
+                station_realdata.read_forecast_data(file_name=file_name_source, timestamp=ts_str,
+                                                    forecast_area=forecast_area)
+                station_realdata.to_store(ty_detail=ty_detail)
+                log_in.info(
+                    f'当前文件{file_temp},对应的台风信息如下:{station_realdata.ty_code},{station_realdata.ty_bp_stamp},{station_realdata.ty_path_type},{station_realdata.ty_path_marking},{station_realdata.ty_bp_isIncrease},~')
             else:
                 # 若为 None 应抛出异常
                 # TODO:[*] 21-04-27 + 缺少抛出异常
+                log_in.warning(f'当前文件{file_temp}在数据库中不存在对应的group path!')
                 pass
+            log_in.info(f'处理写入海洋站数据结束]')
 
 
 def to_station_statistics(ty_detail: TyphoonForecastDetailModel, **kwargs):
@@ -894,6 +904,7 @@ class StationRealDataFile(ITyphoonPath):
                     ty_realdata.ty_id = ty_detail.id
                     self.session.add(ty_realdata)
                 self.session.commit()
+                log_in.info(f'group_id:{ty_detail.code},共插入:{len(list_ty_realdata)}个海洋站数据')
                 is_stored = True
         except Exception as ex:
             # ERROR:
