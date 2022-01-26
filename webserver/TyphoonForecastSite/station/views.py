@@ -259,11 +259,13 @@ class StationSurgeRangeValueListView(StationListBaseView):
         station_realdata_list: List[{}] = []
         station_finial_list: List[{}] = []
         # 方式2: 使用extra 的方式使用伪sql 代码实现 跨表拼接查询
+        # TODO:[*] 22-01-26 注意此处的查询较为耗时
         for temp_code in stations_codes:
             res = self.get_relation_surge_range_value(station_code=temp_code, forecast_dt_str=forecast_dt_str,
                                                       ty_code=ty_code, timestamp_str=timestamp_str)
             res['station_code'] = temp_code
             station_realdata_list.append(res)
+        # -----耗时查询结束-----
             # 测试一下关联查询
             # res = query.union(stations)
             # if is_paged:
