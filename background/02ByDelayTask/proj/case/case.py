@@ -298,7 +298,7 @@ def to_do(*args, **kwargs):
     """
 
     # step-1: 爬取 指定台风编号的台风
-    is_debug: bool = True
+    is_debug: bool = False
 
     is_break: bool = False
     if is_break:
@@ -443,8 +443,8 @@ def main():
     # ! 注意时间是 utc 时间，文件里面读取的为 local 时间 ！
     gmt_start = datetime(2020, 9, 17, 21)
     gmt_end = datetime(2020, 9, 19, 3)  # 目前使用的结束时间为从台风网上爬取的时间的结束时间(预报)
-    ty_stamp = '1642658538'
-    ty_code = '2046'
+    ty_stamp = '1643333148'
+    ty_code = '2045'
     # case_group_ty_path(gmt_start, gmt_end)
     # # 21-04-25 批量处理海洋站潮位数据
     # # 注意 此处的 ty_id 由 case_group_ty_path 处理后创建的一个 ty id
@@ -458,7 +458,7 @@ def main():
     # TODO:[-] 21-09-03 测试全部整合至 to_do 中
     # to_do()
     # TODO:[-] 22-01-20 测试海洋站 to_store 操作
-    case_station(gmt_start, gmt_end, ty_code, ty_stamp, 76, ForecastAreaEnum.SCS)
+    case_station(gmt_start, gmt_end, ty_code, ty_stamp, 77, ForecastAreaEnum.SCS)
     # TODO:[-] 21-09-06 测试 local
     # case_test_local()
     # 测试查询 gp
