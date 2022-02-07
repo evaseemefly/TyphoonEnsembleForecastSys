@@ -1,0 +1,1 @@
+/public/home/surge/apps/anaconda3/envs/py37/bin/celery -A main worker --pool=solo -l info
