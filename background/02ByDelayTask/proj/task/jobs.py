@@ -1115,8 +1115,9 @@ class JobGeneratePathFile(IBaseJob):
         fi.write('0\n')
         fi.write(str(kxi) + '\n')
         for i in range(kxi):
+            # TODO:[-] ! 22-02-09 注意此处保留小数点后四位!
             fi.write(
-                datex[i] + ' ' + "{:.1f}".format(tlonx[i]) + ' ' + "{:.1f}".format(tlatx[i]) + ' ' + "{:.0f}".format(
+                datex[i] + ' ' + "{:.4f}".format(tlonx[i]) + ' ' + "{:.4f}".format(tlatx[i]) + ' ' + "{:.0f}".format(
                     presx[i]) + ' ' + "{:.0f}".format(radsx[i]) + '\n')
         fi.close()
         return filename
