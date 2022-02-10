@@ -11,10 +11,10 @@
 TEST_ENV_SETTINGS = {
     # 'TY_GROUP_PATH_ROOT_DIR': r'E:\02data\03typhoon',  # win
     # 'TY_GROUP_PATH_ROOT_DIR': r'E:\02data\05docker-data\docker-shared\ty_docker',  # P5750
-    'TY_GROUP_PATH_ROOT_DIR': r'E:\05DATA\01nginx_data\nmefc_download\TY_GROUP_RESULT',  # T7920
+    # 'TY_GROUP_PATH_ROOT_DIR': r'E:\05DATA\01nginx_data\nmefc_download\TY_GROUP_RESULT',  # T7920
+    'TY_GROUP_PATH_ROOT_DIR': r'/my_shared_data',  # 22-02-05 mac 使用了 docker 挂在本地磁盘的方式
     # 'TY_GROUP_PATH_ROOT_DIR': r'/public/home/surge/szsurge',  # + 21-09-28 docker 需要与宿主机指定路径映射的路径 TODO:[*] 22-01-20 实际部署的环境
     # 'TY_GROUP_PATH_ROOT_DIR':r'E:\05DATA\01nginx_data\nmefc_download\TY_GROUP_RESULT',      # 7920 测试环境
-    # 'TY_GROUP_PATH_ROOT_DIR': r'/Users/evaseemefly/04data/01nginx_data/nmefc_download/TY_GROUP_RESULT',  # mac-m1
     # + 21-08-02 数据处理统一在 nginx 目录下
     # 'TY_GROUP_PATH_ROOT_DIR': r'D:\03nginx_data\nmefc_download\TY_GROUP_RESULT',  # p5750
     # 'TY_GROUP_PATH_ROOT_DIR': r'F:\03nginx_data\nmefc_download\TY_GROUP_RESULT',  # 7530
@@ -37,14 +37,14 @@ DATABASES = {
         # mac
         'USER': 'root',  # 账号
         # 7530,mac
-        # 'PASSWORD': '12345678',
+        'PASSWORD': '12345678',
         # 5820,p52s,p500,razer
-        'PASSWORD': '123456',
+        # 'PASSWORD': '123456',
         # 'HOST': '128.5.10.21',  # HOST
         # 'HOST': '172.18.0.1',  # HOST
-        'HOST': '127.0.0.1',  # HOST
+        # 'HOST': '127.0.0.1',  # HOST
         # 访问宿主的mysql服务,
-        # 'HOST': 'host.docker.internal',   # TODO:[*] 22-01-20 暂时注释掉，由于路径使用win的路径，暂时不使用docker作为解释器
+        'HOST': 'host.docker.internal',   # TODO:[*] 22-01-20 暂时注释掉，由于路径使用win的路径，暂时不使用docker作为解释器
         'POST': 3306,  # 端口
         # 'HOST': 'mysql',  # HOST
         # 'POST': 3308,  # 端口
