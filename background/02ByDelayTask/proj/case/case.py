@@ -298,7 +298,7 @@ def to_do(*args, **kwargs):
     """
 
     # step-1: 爬取 指定台风编号的台风
-    is_debug: bool = False
+    is_debug: bool = True
 
     is_break: bool = False
     if is_break:

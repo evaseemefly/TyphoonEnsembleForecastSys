@@ -233,6 +233,29 @@ class StationListView(StationListBaseView):
         return Response(self.json_data, status=self._status)
 
 
+class StationAreaListView(StationListBaseView):
+    """
+        根据传入的台风编号获取指定区域的海洋站站位信息
+    """
+
+    def get(self, request: Request) -> Response:
+        ty_code: str = request.GET.get('ty_code', UNLESS_TY_CODE)
+        list_station_info: List[StationInfoModel] = []
+        list_station_real: List[StationForecastRealDataModel] = []
+        if ty_code != UNLESS_TY_CODE:
+            # 1- 获取指定台风的所有海洋站 code
+            dist_station_code: List[str] = StationForecastRealDataModel.objects.filter(ty_code=ty_code).values(
+                'station_code').distinct()
+            if len(dist_station_code) > 0:
+                for station_code_temp in dist_station_code:
+                    station_temp: StationInfoModel = StationInfoModel.objects.filter(code=station_code_temp)
+                    list_station_info.append(station_temp)
+                    list_station_real.append(StationForecastRealDataModel(lat=station_temp.lat, lon=station_temp.lon,
+                                                                          station_codestation_temp=station_temp.code))
+
+        return Response(self.json_data, status=self._status)
+
+
 class StationSurgeRangeValueListView(StationListBaseView):
     """
         根据 forecast 与 ts 获取
@@ -266,11 +289,11 @@ class StationSurgeRangeValueListView(StationListBaseView):
             res['station_code'] = temp_code
             station_realdata_list.append(res)
         # -----耗时查询结束-----
-            # 测试一下关联查询
-            # res = query.union(stations)
-            # if is_paged:
-            #     paginator = Paginator(query, page_count)
-            #     contacts = paginator.get_page(page_index)
+        # 测试一下关联查询
+        # res = query.union(stations)
+        # if is_paged:
+        #     paginator = Paginator(query, page_count)
+        #     contacts = paginator.get_page(page_index)
         # TODO:[-] 21-05-14 此处还需要调用一下 self.get_relation_station
         res_station: List[StationForecastRealDataModel] = self.get_relation_station(gp_id=gp_id,
                                                                                     forecast_dt_str=forecast_dt_str)

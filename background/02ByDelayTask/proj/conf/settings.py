@@ -11,7 +11,7 @@
 TEST_ENV_SETTINGS = {
     # 'TY_GROUP_PATH_ROOT_DIR': r'E:\02data\03typhoon',  # win
     # 'TY_GROUP_PATH_ROOT_DIR': r'E:\02data\05docker-data\docker-shared\ty_docker',  # P5750
-    'TY_GROUP_PATH_ROOT_DIR': r'E:\05DATA\01nginx_data\nmefc_download\TY_GROUP_RESULT',  # T7920
+    # 'TY_GROUP_PATH_ROOT_DIR': r'E:\05DATA\01nginx_data\nmefc_download\TY_GROUP_RESULT',  # T7920
     # 'TY_GROUP_PATH_ROOT_DIR': r'/public/home/surge/szsurge',  # + 21-09-28 docker 需要与宿主机指定路径映射的路径 TODO:[*] 22-01-20 实际部署的环境
     # 'TY_GROUP_PATH_ROOT_DIR':r'E:\05DATA\01nginx_data\nmefc_download\TY_GROUP_RESULT',      # 7920 测试环境
     # 'TY_GROUP_PATH_ROOT_DIR': r'/Users/evaseemefly/04data/01nginx_data/nmefc_download/TY_GROUP_RESULT',  # mac-m1
@@ -20,7 +20,7 @@ TEST_ENV_SETTINGS = {
     # 'TY_GROUP_PATH_ROOT_DIR': r'F:\03nginx_data\nmefc_download\TY_GROUP_RESULT',  # 7530
     # 加入了 docker 的映射路径，目前docker环境有一些问题，暂时使用此种方式
     # 'TY_GROUP_PATH_ROOT_DIR': r'/Users/liusihan/data/typhoon_data/'  # mac
-    # 'TY_GROUP_PATH_ROOT_DIR': r'/my_shared_data/pathfiles/',
+    'TY_GROUP_PATH_ROOT_DIR': r'/my_shared_data/pathfiles/',
     'TY_CODE': '2022',
     # 'TY_TIMESTAMP': '2021010416'
     'TY_TIMESTAMP': '2021010416',
@@ -42,9 +42,9 @@ DATABASES = {
         'PASSWORD': '123456',
         # 'HOST': '128.5.10.21',  # HOST
         # 'HOST': '172.18.0.1',  # HOST
-        'HOST': '127.0.0.1',  # HOST
+        # 'HOST': '127.0.0.1',  # HOST
         # 访问宿主的mysql服务,
-        # 'HOST': 'host.docker.internal',   # TODO:[*] 22-01-20 暂时注释掉，由于路径使用win的路径，暂时不使用docker作为解释器
+        'HOST': 'host.docker.internal',   # TODO:[*] 22-01-20 暂时注释掉，由于路径使用win的路径，暂时不使用docker作为解释器
         'POST': 3306,  # 端口
         # 'HOST': 'mysql',  # HOST
         # 'POST': 3308,  # 端口
