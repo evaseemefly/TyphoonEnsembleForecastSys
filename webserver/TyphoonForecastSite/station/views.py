@@ -25,7 +25,7 @@ from .serializers import StationForecastRealDataSerializer, StationForecastRealD
     StationAstronomicTideRealDataSerializer, StationAlertSerializer, StationStatisticsSerializer
 # 公共的
 from TyphoonForecastSite.settings import MY_PAGINATOR
-from util.const import DEFAULT_NULL_KEY, UNLESS_TY_CODE, DEFAULT_CODE
+from util.const import DEFAULT_NULL_KEY, UNLESS_TY_CODE, DEFAULT_CODE, DEFAULT_TIMTSTAMP_STR
 from common.view_base import BaseView
 from typhoon.views_base import TyGroupBaseView
 # 自定义装饰器
@@ -240,18 +240,31 @@ class StationAreaListView(StationListBaseView):
 
     def get(self, request: Request) -> Response:
         ty_code: str = request.GET.get('ty_code', UNLESS_TY_CODE)
+        timestamp_str: str = request.GET.get('timestamp', DEFAULT_TIMTSTAMP_STR)
         list_station_info: List[StationInfoModel] = []
         list_station_real: List[StationForecastRealDataModel] = []
         if ty_code != UNLESS_TY_CODE:
             # 1- 获取指定台风的所有海洋站 code
-            dist_station_code: List[str] = StationForecastRealDataModel.objects.filter(ty_code=ty_code).values(
+            dist_station_code: List[str] = StationForecastRealDataModel.objects.filter(ty_code=ty_code,
+                                                                                       timestamp=timestamp_str).values(
                 'station_code').distinct()
             if len(dist_station_code) > 0:
-                for station_code_temp in dist_station_code:
-                    station_temp: StationInfoModel = StationInfoModel.objects.filter(code=station_code_temp)
+                for station_code_dict_temp in dist_station_code:
+                    station_temp: StationInfoModel = StationInfoModel.objects.filter(
+                        code=station_code_dict_temp.get('station_code')).first()
                     list_station_info.append(station_temp)
-                    list_station_real.append(StationForecastRealDataModel(lat=station_temp.lat, lon=station_temp.lon,
-                                                                          station_codestation_temp=station_temp.code))
+                    list_station_real.append(
+                        {'ty_code': ty_code, 'station_code': station_temp.code, 'surge': 0, 'name': station_temp.name,
+                         'lat': station_temp.lat, 'lon': station_temp.lon, 'gp_id': 0, 'forecast_dt': None,
+                         'forecast_index': 0, 'timestamp': None, 'surge_max': 0, 'surge_min': 0})
+            try:
+
+                self.json_data = StationForecastRealDataMixin(list_station_real,
+                                                              many=True).data
+                self._status = 200
+
+            except Exception as ex:
+                self.json = ex.args
 
         return Response(self.json_data, status=self._status)
 
