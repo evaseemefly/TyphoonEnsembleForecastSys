@@ -275,6 +275,15 @@ class StationCenterMaxListView(StationListBaseView):
             dist_station_codes: List[dict] = self.get_dist_station_code(ty_code, timestamp_str)
             for station_code_temp in dist_station_codes:
                 res = self.get_station_surge_max_value(station_code_temp.get('station_code'), gp_id)
+                station_temp = StationInfoModel.objects.filter(code=station_code_temp.get('station_code')).first()
+                res['station_code'] = station_code_temp.get('station_code')
+                res['surge_max'] = res['surge__max']
+                res['surge_min'] = res['surge__min']
+                res['surge'] = res['surge__max']
+                res['name'] = station_temp.name
+                res['lat'] = station_temp.lat
+                res['lon'] = station_temp.lon
+                res['ty_code'] = ty_code
                 station_realdata_list.append(res)
         try:
 
