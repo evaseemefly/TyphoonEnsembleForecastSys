@@ -20,6 +20,7 @@ from rest_framework.decorators import (APIView, api_view,
 # 本项目的
 from .models import StationForecastRealDataModel, StationInfoModel, StationAstronomicTideRealDataModel, \
     StationAlertTideModel, StationStatisticsModel
+from typhoon.models import TyphoonGroupPathModel
 from .serializers import StationForecastRealDataSerializer, StationForecastRealDataComplexSerializer, \
     StationForecastRealDataRangeSerializer, StationForecastRealDataMixin, StationForecastRealDataRangeComplexSerializer, \
     StationAstronomicTideRealDataSerializer, StationAlertSerializer, StationStatisticsSerializer
@@ -36,6 +37,18 @@ DEFAULT_PAGE_COUNT = MY_PAGINATOR.get('PAGE_COUNT')
 
 
 class StationListBaseView(TyGroupBaseView):
+    def get_dist_station_code(self, ty_code: str, timestamp_str: str) -> List[dict]:
+        """
+            + 获取 对应海洋站的code list
+        @param ty_code:
+        @param timestamp_str:
+        @return:
+        """
+        dist_station_code: List[str] = StationForecastRealDataModel.objects.filter(ty_code=ty_code,
+                                                                                   timestamp=timestamp_str).values(
+            'station_code').distinct()
+        return dist_station_code
+
     def get_all_station(self) -> List[StationInfoModel]:
         """
             获取全部的 非 is_del + is_abs 的station
@@ -99,8 +112,20 @@ class StationListBaseView(TyGroupBaseView):
         # select 就相当于是 sql 中的 SELECT 语句
         # tables 相当于 sql 中的 FROM
         # where 相当于 sql 中的 WHERE
+        # base_filter = StationForecastRealDataModel.objects.filter(station_code=station_code, forecast_dt=forecast_dt,
+        #                                                           ty_code=ty_code, timestamp=timestamp_str)
         query = StationForecastRealDataModel.objects.filter(station_code=station_code, forecast_dt=forecast_dt,
                                                             ty_code=ty_code, timestamp=timestamp_str).extra(
+            select={'station_code': 'station_forecast_realdata.station_code', 'lat': 'station_info.lat',
+                    'lon': 'station_info.lon', 'name': 'station_info.name', 'surge': 'station_forecast_realdata.surge'},
+            tables=['station_forecast_realdata', 'station_info'],
+            where=['station_forecast_realdata.station_code=station_info.code'])
+        # AttributeError: 'QuerySet' object has no attribute 'arregate'
+        query = query.aggregate(Max('surge'), Min('surge'))
+        return query
+
+    def get_station_surge_max_value(self, station_code: str, gp_id: int):
+        query = StationForecastRealDataModel.objects.filter(station_code=station_code, gp_id=gp_id).extra(
             select={'station_code': 'station_forecast_realdata.station_code', 'lat': 'station_info.lat',
                     'lon': 'station_info.lon', 'name': 'station_info.name', 'surge': 'station_forecast_realdata.surge'},
             tables=['station_forecast_realdata', 'station_info'],
@@ -231,6 +256,35 @@ class StationListView(StationListBaseView):
             except Exception as ex:
                 self.json = ex.args
         return Response(self.json_data, status=self._status)
+
+
+class StationCenterMaxListView(StationListBaseView):
+    """
+        + 22-02-11 获取台风中心路径 c bp=0 的所有潮位站的极值(max)
+    """
+
+    def get(self, request: Request) -> Response:
+        ty_code: str = request.GET.get('ty_code', DEFAULT_CODE)
+        timestamp_str: str = request.GET.get('timestamp', DEFAULT_TIMTSTAMP_STR)
+        station_realdata_list: List[{}] = []
+        if ty_code != DEFAULT_CODE and timestamp_str != DEFAULT_TIMTSTAMP_STR:
+            center_path: TyphoonGroupPathModel = TyphoonGroupPathModel.objects.filter(ty_code=ty_code,
+                                                                                      timestamp=timestamp_str,
+                                                                                      ty_path_type='c', bp=0).first()
+            gp_id = center_path.id
+            dist_station_codes: List[dict] = self.get_dist_station_code(ty_code, timestamp_str)
+            for station_code_temp in dist_station_codes:
+                res = self.get_station_surge_max_value(station_code_temp.get('station_code'), gp_id)
+                station_realdata_list.append(res)
+        try:
+
+            self.json_data = StationForecastRealDataMixin(station_realdata_list,
+                                                          many=True).data
+            self._status = 200
+
+        except Exception as ex:
+            self.json = ex.args
+        return Response(data=self.json_data, status=self._status)
 
 
 class StationAreaListView(StationListBaseView):
