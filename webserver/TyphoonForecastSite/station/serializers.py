@@ -17,11 +17,11 @@ class StationAstronomicTideRealDataSerializer(serializers.Serializer):
 
 
 class StationForecastRealDataComplexSerializer(serializers.Serializer):
-    ty_code = serializers.CharField()
-    gp_id = serializers.IntegerField()
+    ty_code = serializers.CharField(required=False)
+    gp_id = serializers.IntegerField(required=False)
     station_code = serializers.CharField()
-    forecast_index = serializers.IntegerField()
-    forecast_dt = serializers.DateTimeField()
+    forecast_index = serializers.IntegerField(required=False)
+    forecast_dt = serializers.DateTimeField(required=False)
     surge = serializers.FloatField()
     name = serializers.CharField()
     lat = serializers.FloatField()
