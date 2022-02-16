@@ -94,9 +94,9 @@ DATABASES = {
         # mac
         'USER': 'root',  # 账号
         # 7530,mac
-        # 'PASSWORD': '12345678',
+        'PASSWORD': '12345678',
         # 5820,p52s,p500,razer
-        'PASSWORD': '123456',
+        # 'PASSWORD': '123456',
         # 'HOST': '127.0.0.1',  # HOST
         # 'HOST': '0.0.0.0',  # HOST
         # 'HOST': '128.5.10.21',  # HOST
