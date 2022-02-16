@@ -7,6 +7,7 @@ from typing import List
 import arrow
 from django.shortcuts import render
 from django.core.serializers import serialize
+from django.db import connections, connection
 from django.db.models import Max, Min
 from django.db.models import QuerySet
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
@@ -130,8 +131,18 @@ class StationListBaseView(TyGroupBaseView):
                     'lon': 'station_info.lon', 'name': 'station_info.name', 'surge': 'station_forecast_realdata.surge'},
             tables=['station_forecast_realdata', 'station_info'],
             where=['station_forecast_realdata.station_code=station_info.code'])
-        # AttributeError: 'QuerySet' object has no attribute 'arregate'
         query = query.aggregate(Max('surge'), Min('surge'))
+        return query
+
+    @get_time
+    def get_station_all_path_surge_max(self, station_code: str, timestamp_str: str, ty_code: str, **kwargs):
+        """
+            + 22-02-15
+            获取指定 ty_code 与 timestamp_str 对应的 潮位站 的全路径中的极值(max,min)
+        """
+        query = StationForecastRealDataModel.objects.filter(station_code=station_code, timestamp=timestamp_str,
+                                                            ty_code=ty_code).values('surge')
+        query = query.aggregate(Max('surge'))
         return query
 
     def get_relation_station(self, gp_id: int, forecast_dt_str: str) -> {}:
@@ -296,6 +307,100 @@ class StationCenterMaxListView(StationListBaseView):
         return Response(data=self.json_data, status=self._status)
 
 
+class StationAllPathMaxListView(StationListBaseView):
+    """
+        + 22-02-14 海洋站极值风暴增水显示视图
+        response :{
+                    "ty_code": "2042",
+                    "station_code": "BAO",
+                    "surge": 0.0,           - 中心路径的极值
+                    "name": "博鳌",
+                    "lat": 19.2,
+                    "lon": 110.6,
+                    "surge_max": 1.26       - 所有路径的极值
+                },
+    """
+
+    @get_time
+    def get(self, request: Request) -> Response:
+        """
+            step:
+                1-
+        """
+        ty_code: str = request.GET.get('ty_code', DEFAULT_CODE)
+        timestamp_str: str = request.GET.get('timestamp', DEFAULT_TIMTSTAMP_STR)
+        station_realdata_list: List[{}] = []
+        if ty_code != DEFAULT_CODE and timestamp_str != DEFAULT_TIMTSTAMP_STR:
+            dist_station_codes: List[dict] = self.get_dist_station_code(ty_code, timestamp_str)
+            center_path: TyphoonGroupPathModel = TyphoonGroupPathModel.objects.filter(ty_code=ty_code,
+                                                                                      timestamp=timestamp_str,
+                                                                                      ty_path_type='c', bp=0).first()
+            gp_id = center_path.id
+            station_codes: List[str] = [station_code_temp.get('station_code') for station_code_temp in
+                                        dist_station_codes]
+            station_codes_str: str = ''
+            for station_code in station_codes:
+                station_codes_str = station_codes_str + f'\'{station_code}\','
+            station_codes_str = station_codes_str[:-1]
+            # 获取指定 station_code 的对应的所有路径的极值
+            """
+                SELECT station_code,MAX(surge)
+                FROM station_forecast_realdata
+                WHERE (station_forecast_realdata.station_code in ('PTN','FQH','SCH','FHW') AND station_forecast_realdata.timestamp = 1644027304 AND
+                       station_forecast_realdata.ty_code = 2042)
+                GROUP BY station_forecast_realdata.station_code
+            """
+            sql_str: str = f'''
+                        SELECT station_code,MAX(surge)
+                        FROM station_forecast_realdata
+                        WHERE (station_forecast_realdata.station_code in ({station_codes_str}) AND station_forecast_realdata.timestamp = {timestamp_str} AND
+                               station_forecast_realdata.ty_code = {ty_code})
+                        GROUP BY station_forecast_realdata.station_code
+                        '''
+            cursor = connection.cursor()  # cursor = connections['default'].cursor()
+            cursor.execute(sql_str)
+            surge_max_res = cursor.fetchall()
+            # res = StationForecastRealDataModel.objects.raw(sql_str)
+            # eg: ('BAO', 1.26)  0:station_code , 1:max
+            for temp in surge_max_res:
+                res = {}
+                station_code_temp: str = temp[0]
+                res['station_code'] = station_code_temp
+                res['surge_max'] = temp[1]
+                res_center_path = self.get_station_surge_max_value(station_code_temp, gp_id)
+                station_temp = StationInfoModel.objects.filter(code=station_code_temp).first()
+                res['surge'] = res_center_path['surge__max']
+                res['name'] = station_temp.name
+                res['lat'] = station_temp.lat
+                res['lon'] = station_temp.lon
+                res['ty_code'] = ty_code
+                station_realdata_list.append(res)
+            # 方式2:使用如下方式会造成查询变慢
+            # for station_code_temp in dist_station_codes:
+            #     station_code_str: str = station_code_temp.get('station_code')
+            #     res = self.get_station_all_path_surge_max(station_code_str, timestamp_str, ty_code)
+            #     res_center_path = self.get_station_surge_max_value(station_code_str, gp_id)
+            #     station_temp = StationInfoModel.objects.filter(code=station_code_str).first()
+            #     res['station_code'] = station_code_temp.get('station_code')
+            #     res['surge_max'] = res['surge__max']
+            #     # res['surge_min'] = res['surge__min']
+            #     res['surge'] = res_center_path['surge__max']
+            #     res['name'] = station_temp.name
+            #     res['lat'] = station_temp.lat
+            #     res['lon'] = station_temp.lon
+            #     res['ty_code'] = ty_code
+            #     station_realdata_list.append(res)
+        try:
+
+            self.json_data = StationForecastRealDataMixin(station_realdata_list,
+                                                          many=True).data
+            self._status = 200
+
+        except Exception as ex:
+            self.json = ex.args
+        return Response(data=self.json_data, status=self._status)
+
+
 class StationAreaListView(StationListBaseView):
     """
         根据传入的台风编号获取指定区域的海洋站站位信息
@@ -342,6 +447,8 @@ class StationSurgeRangeValueListView(StationListBaseView):
     def get(self, request: Request) -> Response:
         """
             - 21-05-14 修改传入的参数由 ty_code | timestamp_str => gp_id
+            - 获取该时刻的所有海洋站的当前预报时刻(forecast_dt,ty_code,timestamp_str)
+              的中间路径(前台传入的gp_id)的潮位置及其余路径中的max与min
         @param request:
         @return:
         """
