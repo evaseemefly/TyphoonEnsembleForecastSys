@@ -99,14 +99,14 @@ DATABASES = {
         'PASSWORD': '123456',
         # 'HOST': '127.0.0.1',  # HOST
         # 'HOST': '0.0.0.0',  # HOST
-        'HOST': '128.5.10.21',  # HOST
+        # 'HOST': '128.5.10.21',  # HOST
         # 访问宿主的mysql服务,
         # 'HOST': 'mysql',  # TODO:[-] 21-10-11 注意此处使用 mysql 的容器
         # mac 环境下 (1049, "Unknown database 'typhoon_forecast_db'")
-        # 'HOST': 'host.docker.internal',  # docker访问宿主机的mysql服务
+        'HOST': 'host.docker.internal',  # docker访问宿主机的mysql服务
         # 'HOST': '127.0.0.1',
         # 'PORT': 3306,  # 端口
-        'PORT': 3308,  # TODO:[-] 21-10-11 端口暂时改为 3308
+        # 'PORT': 3308,  # TODO:[-] 21-10-11 端口暂时改为 3308
         'OPTIONS': {
             "init_command": "SET foreign_key_checks = 0;",
         },
