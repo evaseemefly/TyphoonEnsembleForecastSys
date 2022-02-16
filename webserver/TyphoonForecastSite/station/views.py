@@ -357,39 +357,40 @@ class StationAllPathMaxListView(StationListBaseView):
                                station_forecast_realdata.ty_code = {ty_code})
                         GROUP BY station_forecast_realdata.station_code
                         '''
-            cursor = connection.cursor()  # cursor = connections['default'].cursor()
-            cursor.execute(sql_str)
-            surge_max_res = cursor.fetchall()
-            # res = StationForecastRealDataModel.objects.raw(sql_str)
-            # eg: ('BAO', 1.26)  0:station_code , 1:max
-            for temp in surge_max_res:
-                res = {}
-                station_code_temp: str = temp[0]
-                res['station_code'] = station_code_temp
-                res['surge_max'] = temp[1]
-                res_center_path = self.get_station_surge_max_value(station_code_temp, gp_id)
-                station_temp = StationInfoModel.objects.filter(code=station_code_temp).first()
-                res['surge'] = res_center_path['surge__max']
-                res['name'] = station_temp.name
-                res['lat'] = station_temp.lat
-                res['lon'] = station_temp.lon
-                res['ty_code'] = ty_code
-                station_realdata_list.append(res)
-            # 方式2:使用如下方式会造成查询变慢
-            # for station_code_temp in dist_station_codes:
-            #     station_code_str: str = station_code_temp.get('station_code')
-            #     res = self.get_station_all_path_surge_max(station_code_str, timestamp_str, ty_code)
-            #     res_center_path = self.get_station_surge_max_value(station_code_str, gp_id)
-            #     station_temp = StationInfoModel.objects.filter(code=station_code_str).first()
-            #     res['station_code'] = station_code_temp.get('station_code')
-            #     res['surge_max'] = res['surge__max']
-            #     # res['surge_min'] = res['surge__min']
+            # 方式2: 也较为耗时
+            # cursor = connection.cursor()  # cursor = connections['default'].cursor()
+            # cursor.execute(sql_str)
+            # surge_max_res = cursor.fetchall()
+            # # res = StationForecastRealDataModel.objects.raw(sql_str)
+            # # eg: ('BAO', 1.26)  0:station_code , 1:max
+            # for temp in surge_max_res:
+            #     res = {}
+            #     station_code_temp: str = temp[0]
+            #     res['station_code'] = station_code_temp
+            #     res['surge_max'] = temp[1]
+            #     res_center_path = self.get_station_surge_max_value(station_code_temp, gp_id)
+            #     station_temp = StationInfoModel.objects.filter(code=station_code_temp).first()
             #     res['surge'] = res_center_path['surge__max']
             #     res['name'] = station_temp.name
             #     res['lat'] = station_temp.lat
             #     res['lon'] = station_temp.lon
             #     res['ty_code'] = ty_code
             #     station_realdata_list.append(res)
+            # 方式2:使用如下方式会造成查询变慢
+            for station_code_temp in dist_station_codes:
+                station_code_str: str = station_code_temp.get('station_code')
+                res = self.get_station_all_path_surge_max(station_code_str, timestamp_str, ty_code)
+                res_center_path = self.get_station_surge_max_value(station_code_str, gp_id)
+                station_temp = StationInfoModel.objects.filter(code=station_code_str).first()
+                res['station_code'] = station_code_temp.get('station_code')
+                res['surge_max'] = res['surge__max']
+                # res['surge_min'] = res['surge__min']
+                res['surge'] = res_center_path['surge__max']
+                res['name'] = station_temp.name
+                res['lat'] = station_temp.lat
+                res['lon'] = station_temp.lon
+                res['ty_code'] = ty_code
+                station_realdata_list.append(res)
         try:
 
             self.json_data = StationForecastRealDataMixin(station_realdata_list,
