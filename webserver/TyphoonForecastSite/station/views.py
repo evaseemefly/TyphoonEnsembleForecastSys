@@ -134,7 +134,7 @@ class StationListBaseView(TyGroupBaseView):
         query = query.aggregate(Max('surge'), Min('surge'))
         return query
 
-    @get_time
+    # @get_time
     def get_station_all_path_surge_max(self, station_code: str, timestamp_str: str, ty_code: str, **kwargs):
         """
             + 22-02-15
@@ -142,7 +142,7 @@ class StationListBaseView(TyGroupBaseView):
         """
         query = StationForecastRealDataModel.objects.filter(station_code=station_code, timestamp=timestamp_str,
                                                             ty_code=ty_code).values('surge')
-        query = query.aggregate(Max('surge'))
+        query = query.aggregate(Max('surge'), Min('surge'))
         return query
 
     def get_relation_station(self, gp_id: int, forecast_dt_str: str) -> {}:
@@ -384,6 +384,7 @@ class StationAllPathMaxListView(StationListBaseView):
                 station_temp = StationInfoModel.objects.filter(code=station_code_str).first()
                 res['station_code'] = station_code_temp.get('station_code')
                 res['surge_max'] = res['surge__max']
+                res['surge_min']=res['surge__min']
                 # res['surge_min'] = res['surge__min']
                 res['surge'] = res_center_path['surge__max']
                 res['name'] = station_temp.name
