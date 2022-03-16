@@ -1046,13 +1046,15 @@ class FieldSurgeDataInfo:
             ty_coverage_info = CoverageInfoModel(ty_code=self.file.ty_code, timestamp=self.file.ty_timestamp,
                                                  root_path=ROOT_PATH, file_name=self.file.file_name_only,
                                                  relative_path=self.file.ty_timestamp,
-                                                 coverage_type=LayerType.FIELDSURGECOVERAGE.value, file_ext='nc')
+                                                 coverage_type=LayerType.FIELDSURGECOVERAGE.value, file_ext='nc',
+                                                 surge_max=UNLESS_RANGE, surge_min=UNLESS_RANGE)
             # step: 2 保存 coverage_file converted
             ty_coverage_info_converted = CoverageInfoModel(ty_code=self.file.ty_code, timestamp=self.file.ty_timestamp,
                                                            root_path=ROOT_PATH, file_name=converted_full_name,
                                                            relative_path=self.file.ty_timestamp, is_source=False,
                                                            coverage_type=LayerType.FIELDSURGECOVERAGE.value,
-                                                           file_ext='nc')
+                                                           file_ext='nc', surge_max=max(self.extremum),
+                                                           surge_min=min(self.extremum))
             self.session.add(ty_coverage_info)
             self.session.add(ty_coverage_info_converted)
             # step: 3 保存 geo_tif
@@ -1096,6 +1098,22 @@ class FieldSurgeDataInfo:
                 self.dict_data.get('tif_files').append(temp_file_info)
                 # print('-------------')
         pass
+
+    @property
+    def extremum(self) -> List[float]:
+        '''
+            获取极值范围
+        @return:
+        '''
+        extremum_vals: List[float] = [UNLESS_RANGE, UNLESS_RANGE]
+        if self.ds is not None:
+            try:
+                max: float = self.ds.max()['surge'].values.tolist()
+                min: float = self.ds.min()['surge'].values.tolist()
+                extremum_vals = [max, min]
+            except Exception as ex:
+                log_in.error(ex.args)
+        return extremum_vals
 
 
 class ProSurgeDataInfo:
@@ -1232,7 +1250,7 @@ class ProSurgeDataInfo:
                                                  root_path=ROOT_PATH, file_name=self.file.file_name_only,
                                                  relative_path=self.file.ty_timestamp,
                                                  coverage_type=self.file.coverage_type.value,
-                                                 file_ext='nc')
+                                                 file_ext='nc', surge_max=UNLESS_RANGE, surge_min=UNLESS_RANGE)
             # step: 2 保存 coverage_file converted
             # TODO:[*] 21-08-09 注意此处的 converted_full_name 是包含后缀的，需要去掉后缀
             converted_full_name_only = converted_full_name.split('.')[0]
@@ -1240,7 +1258,8 @@ class ProSurgeDataInfo:
                                                            root_path=ROOT_PATH, file_name=converted_full_name_only,
                                                            relative_path=self.file.ty_timestamp, is_source=False,
                                                            coverage_type=self.file.coverage_type.value,
-                                                           file_ext='nc')
+                                                           file_ext='nc', surge_max=UNLESS_RANGE,
+                                                           surge_min=UNLESS_RANGE)
             self.session.add(ty_coverage_info)
             self.session.add(ty_coverage_info_converted)
             # step: 3 保存 geo_tif
@@ -1397,7 +1416,7 @@ class MaxSurgeDataInfo:
                                                  root_path=ROOT_PATH, file_name=self.file.file_name_only,
                                                  relative_path=self.file.ty_timestamp,
                                                  coverage_type=self.file.coverage_type.value,
-                                                 file_ext='nc')
+                                                 file_ext='nc', surge_max=UNLESS_RANGE, surge_min=UNLESS_RANGE)
             # step: 2 保存 coverage_file converted
             # TODO:[*] 21-08-09 注意此处的 converted_full_name 是包含后缀的，需要去掉后缀
             converted_full_name_only = converted_full_name.split('.')[0]
@@ -1405,7 +1424,8 @@ class MaxSurgeDataInfo:
                                                            root_path=ROOT_PATH, file_name=converted_full_name_only,
                                                            relative_path=self.file.ty_timestamp, is_source=False,
                                                            coverage_type=self.file.coverage_type.value,
-                                                           file_ext='nc')
+                                                           file_ext='nc', surge_max=max(self.extremum),
+                                                           surge_min=min(self.extremum))
             self.session.add(ty_coverage_info)
             self.session.add(ty_coverage_info_converted)
             # step: 3 保存 geo_tif
@@ -1425,3 +1445,19 @@ class MaxSurgeDataInfo:
             print(f'{ex.args}')
 
             pass
+
+    @property
+    def extremum(self) -> List[float]:
+        '''
+            获取极值范围
+        @return:
+        '''
+        extremum_vals: List[float] = [UNLESS_RANGE, UNLESS_RANGE]
+        if self.ds is not None:
+            try:
+                max: float = self.ds.max()['max_surge'].values.tolist()
+                min: float = self.ds.min()['max_surge'].values.tolist()
+                extremum_vals = [max, min]
+            except Exception as ex:
+                log_in.error(ex.args)
+        return extremum_vals
