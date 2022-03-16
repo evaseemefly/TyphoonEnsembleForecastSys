@@ -192,34 +192,31 @@ class CoverageInfoModel(IDel, IIdModel, IModel, ITyPathModel, IBpModel, ISpliceM
     surge_max = Column(Float, nullable=False, default=UNLESS_RANGE)
     surge_min = Column(Float, nullable=False, default=UNLESS_RANGE)
 
-    class ForecastTifModel(IDel, IIdModel, IModel, ITyPathModel, IBpModel, ISpliceModel, IFileModel):
-        __tablename__ = 'geo_forecast_tif'
-        coverage_type = Column(Integer, nullable=False, default=0)
-        ty_code = Column(VARCHAR(100), nullable=False)
-        timestamp = Column(VARCHAR(100), nullable=False)
-        forecast_dt = Column(DATETIME(fsp=6), default=datetime.utcnow(), nullable=True)
-
-    class ForecastProTifModel(IDel, IIdModel, IModel, ITyPathModel, ISpliceModel, IFileModel):
-        __tablename__ = 'geo_forecast_pro_tif'
-        coverage_type = Column(Integer, nullable=False, default=0)
-        ty_code = Column(VARCHAR(100), nullable=False)
-        timestamp = Column(VARCHAR(100), nullable=False)
-        pro = Column(Float, nullable=False, default=DEFAULT_PRO)
-
-    class CaseStatus(IDel, IIdModel, IModel):
-        """
-            + 21-09-01 创建 case 的状态表
-        """
-        __tablename__ = 'task_casestatus'
-        celery_id = Column(Integer, nullable=False, default=0)
-        case_state = Column(Integer, nullable=False, default=0)
-        case_rate = Column(Integer, nullable=False, default=0)
-        is_lock = Column(TINYINT(1), nullable=False, default=1)
-
-    class RelaTyTaskModel(IIdModel):
-        """
-            + 21-09-14  typhoon 与 task 的关联表
-        """
-        __tablename__ = 'rela_ty_task'
-        ty_id = Column(Integer, nullable=False, default=NONE_ID)
-        celery_id = Column(Integer, nullable=False, default=NONE_ID)
+class ForecastTifModel(IDel, IIdModel, IModel, ITyPathModel, IBpModel, ISpliceModel, IFileModel):
+    __tablename__ = 'geo_forecast_tif'
+    coverage_type = Column(Integer, nullable=False, default=0)
+    ty_code = Column(VARCHAR(100), nullable=False)
+    timestamp = Column(VARCHAR(100), nullable=False)
+    forecast_dt = Column(DATETIME(fsp=6), default=datetime.utcnow(), nullable=True)
+class ForecastProTifModel(IDel, IIdModel, IModel, ITyPathModel, ISpliceModel, IFileModel):
+    __tablename__ = 'geo_forecast_pro_tif'
+    coverage_type = Column(Integer, nullable=False, default=0)
+    ty_code = Column(VARCHAR(100), nullable=False)
+    timestamp = Column(VARCHAR(100), nullable=False)
+    pro = Column(Float, nullable=False, default=DEFAULT_PRO)
+class CaseStatus(IDel, IIdModel, IModel):
+    """
+        + 21-09-01 创建 case 的状态表
+    """
+    __tablename__ = 'task_casestatus'
+    celery_id = Column(Integer, nullable=False, default=0)
+    case_state = Column(Integer, nullable=False, default=0)
+    case_rate = Column(Integer, nullable=False, default=0)
+    is_lock = Column(TINYINT(1), nullable=False, default=1)
+class RelaTyTaskModel(IIdModel):
+    """
+        + 21-09-14  typhoon 与 task 的关联表
+    """
+    __tablename__ = 'rela_ty_task'
+    ty_id = Column(Integer, nullable=False, default=NONE_ID)
+    celery_id = Column(Integer, nullable=False, default=NONE_ID)
