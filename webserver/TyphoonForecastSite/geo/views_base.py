@@ -168,6 +168,22 @@ class RasterBaseView(BaseView):
         return url_full
 
 
+class RasterMaxBaseView(BaseView):
+    """
+        + 22-03-17
+    """
+    def get_max_surge_coverage(self, ty_code: str, timestamp_str: str) -> CoverageInfoModel:
+        """
+            + 22-03-17 获取 指定 ty_code 与 timestamp_str 对应的最大增水场coverage info
+        """
+        query: QuerySet[CoverageInfoModel] = CoverageInfoModel.objects.filter(ty_code=ty_code,
+                                                                              timestamp=timestamp_str).filter(
+            ty_path_type='c',
+            coverage_type=LayerTypeEnum.SURGE_MAX_COVERAGE.value,
+            is_source=False)
+        return query.first()
+
+
 class GeoCommonView(ICheckExisted):
     def check_existed(self, ty_code: str, timestamp: str, forecast_dt: datetime) -> bool:
         """

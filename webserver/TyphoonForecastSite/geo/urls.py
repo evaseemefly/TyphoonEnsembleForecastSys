@@ -12,7 +12,8 @@ from django.conf.urls import url, include
 from rest_framework import routers
 
 # 本项目
-from .views import GeoTiffView, GeoTiffMaxSurgeView, GeoTiffFieldSurgeView, GeoTiffProSurgeView
+from .views import GeoTiffView, GeoTiffMaxSurgeView, GeoTiffFieldSurgeView, GeoTiffProSurgeView, \
+    GetTiffMaxSurgeRangeView
 
 app_name = '[geo]'
 
@@ -23,5 +24,6 @@ urlpatterns = [
     url(r'^geotiff/surge/max$', GeoTiffMaxSurgeView.as_view()),
     url(r'^geotiff/surge/field$', GeoTiffFieldSurgeView.as_view()),
     url(r'^geotiff/surge/pro$', GeoTiffProSurgeView.as_view()),
+    url(r'^coverage/surge/range$', GetTiffMaxSurgeRangeView.as_view()),
 
 ]
