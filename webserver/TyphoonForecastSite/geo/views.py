@@ -17,7 +17,7 @@ from rest_framework.decorators import (APIView, api_view,
                                        permission_classes)
 import arrow
 
-from .views_base import RasterBaseView
+from .views_base import RasterBaseView, RasterMaxBaseView
 from util.const import DEFAULT_NULL_KEY, UNLESS_INDEX
 from util.enum import LayerTypeEnum
 from util.customer_exception import NoneError
@@ -97,3 +97,26 @@ class GeoTiffProSurgeView(RasterBaseView):
         except  Exception as e:
             self.json_data = e.args
         return Response(self.json_data, status=self._status)
+
+
+class GetTiffMaxSurgeRangeView(RasterMaxBaseView):
+    """
+        + 22-03-17 新加入的获取 geotiff 最大增水场的极值范围
+    """
+
+    def get(self, request: Request) -> Response:
+        """
+            + 22-03-17 获取当前过程的 最大增水场的极值范围
+        """
+        ty_code: str = request.GET.get('ty_code', None)
+        ty_timestamp_str: str = request.GET.get('ty_timestamp', None)
+        try:
+            query = self.get_max_surge_coverage(ty_code, ty_timestamp_str)
+            res = {'max': query.surge_max, 'min': query.surge_min}
+            self.json_data = res
+            self._status = 200
+        except Exception as ex:
+            self.json_data = ex.args
+        return Response(self.json_data, status=self._status)
+
+        pass

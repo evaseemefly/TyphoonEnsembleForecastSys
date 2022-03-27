@@ -23,7 +23,7 @@ from datetime import datetime
 from conf.settings import DATABASES
 from core.db import DbFactory
 
-from common.const import DEFAULT_FK, UNLESS_INDEX, NONE_ID, DEFAULT_CODE, DEFAULT_PATH_TYPE, DEFAULT_PRO
+from common.const import DEFAULT_FK, UNLESS_INDEX, NONE_ID, DEFAULT_CODE, DEFAULT_PATH_TYPE, DEFAULT_PRO, UNLESS_RANGE
 
 engine = DbFactory().engine
 
@@ -93,6 +93,7 @@ class StationForecastRealDataModel(IIdModel, IDel, IModel, ITimeStamp):
     forecast_dt = Column(DATETIME(fsp=2))
     forecast_index = Column(Integer, nullable=False)
     surge = Column(Float, nullable=False)
+
 
 class StationStatisticsModel(IIdModel, IDel, IModel, ITimeStamp):
     """
@@ -188,7 +189,8 @@ class CoverageInfoModel(IDel, IIdModel, IModel, ITyPathModel, IBpModel, ISpliceM
     coverage_type = Column(Integer, nullable=False, default=0)
     ty_code = Column(VARCHAR(100), nullable=False)
     timestamp = Column(VARCHAR(100), nullable=False)
-
+    surge_max = Column(Float, nullable=False, default=UNLESS_RANGE)
+    surge_min = Column(Float, nullable=False, default=UNLESS_RANGE)
 
 class ForecastTifModel(IDel, IIdModel, IModel, ITyPathModel, IBpModel, ISpliceModel, IFileModel):
     __tablename__ = 'geo_forecast_tif'
@@ -196,16 +198,12 @@ class ForecastTifModel(IDel, IIdModel, IModel, ITyPathModel, IBpModel, ISpliceMo
     ty_code = Column(VARCHAR(100), nullable=False)
     timestamp = Column(VARCHAR(100), nullable=False)
     forecast_dt = Column(DATETIME(fsp=6), default=datetime.utcnow(), nullable=True)
-
-
 class ForecastProTifModel(IDel, IIdModel, IModel, ITyPathModel, ISpliceModel, IFileModel):
     __tablename__ = 'geo_forecast_pro_tif'
     coverage_type = Column(Integer, nullable=False, default=0)
     ty_code = Column(VARCHAR(100), nullable=False)
     timestamp = Column(VARCHAR(100), nullable=False)
     pro = Column(Float, nullable=False, default=DEFAULT_PRO)
-
-
 class CaseStatus(IDel, IIdModel, IModel):
     """
         + 21-09-01 创建 case 的状态表
@@ -215,8 +213,6 @@ class CaseStatus(IDel, IIdModel, IModel):
     case_state = Column(Integer, nullable=False, default=0)
     case_rate = Column(Integer, nullable=False, default=0)
     is_lock = Column(TINYINT(1), nullable=False, default=1)
-
-
 class RelaTyTaskModel(IIdModel):
     """
         + 21-09-14  typhoon 与 task 的关联表
