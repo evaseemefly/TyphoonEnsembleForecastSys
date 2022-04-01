@@ -1746,12 +1746,12 @@ class JobTxt2NcPro(IBaseJob):
 
     def cal_pro(self, dznum, levs):
         pp = dznum.copy()
-        pp[pp >= levs] = 1
+        pp[pp >= levs] = levs
         pp[pp < levs] = 0
         tt, mm = np.shape(dznum)
         pps = np.zeros((660, mm))
         for i in range(int(tt / 660)):
-            pps = pps + pp[i * 660:(i + 1) * 660, :]
+            pps = pps + pp[i * 660:(i + 1) * 660, :] / levs
         pps = pps / int(tt / 660) * 100
         return pps
 
