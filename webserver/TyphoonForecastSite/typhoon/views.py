@@ -692,3 +692,129 @@ class TyCMAView(BaseView):
             result.append(speed_all)
             result.append(id)
             return result
+
+    def _parse_info(self, list, time_issu):
+        result = []
+        lon_all = []
+        lat_all = []
+        pre_all = []
+        speed_all = []
+        tcma = []
+        pflag = 0
+        for i in range(len(list)):
+            if list[i][:2] == 'P+':
+                pflag = 1
+                continue
+
+        if list[3] == "SUBJECTIVE FORECAST" and pflag == 1:
+            time_str = list[2].split()[2]
+            year = time_issu.split()[0].split("/")[0]
+            month = time_issu.split()[0].split("/")[1]
+            day = time_issu.split()[0].split("/")[2]
+            if day >= time_str[0:2]:
+                time = year + "/" + month + "/" + time_str[0:2] + " " + time_str[2:4] + ":" + time_str[4:] + ":00"
+            else:
+                if month[0] == 0:
+                    month = "0" + str(int(month[1]) - 1)
+                    if month == "00":
+                        year = str(int(year) - 1)
+                        month = "12"
+                else:
+                    month = str(int(month) - 1)
+                time = year + "/" + month + "/" + time_str[0:2] + " " + time_str[2:4] + ":" + time_str[4:] + ":00"
+
+            if list[4].split()[0] == "TD" and list[4].split()[1].isnumeric():
+                id = list[4].split()[0] + list[4].split()[1]
+                tyname = None
+            else:
+                id = list[4].split()[2]
+                tyname = list[4].split()[1]
+
+            for line in list:
+
+                if line[:4] == "00HR":
+
+                    time1 = datetime.strptime(str(time), '%Y/%m/%d %H:%M:%S') + timedelta(hours=8)
+                    if time1.month < 10:
+                        month_str = "0" + str(time1.month)
+                    else:
+                        month_str = str(time1.month)
+                    if time1.day < 10:
+                        day_str = "0" + str(time1.day)
+                    else:
+                        day_str = str(time1.day)
+                    if time1.hour < 10:
+                        hr_str = "0" + str(time1.hour)
+                    else:
+                        hr_str = str(time1.hour)
+                    time_num_c = month_str + day_str + hr_str
+
+                    if line.split(" ")[1][-1] == "N":
+                        lat = float(line.split(" ")[1][:-1])
+                    else:
+                        lat = float(line.split(" ")[1][:-1]) * -1
+                    if line.split(" ")[2][-1] == "E":
+                        lon = float(line.split(" ")[2][:-1])
+                    else:
+                        lon = float(line.split(" ")[2][:-1]) * -1
+                    pa = line.split(" ")[3].split("H")[0]
+                    v = line.split(" ")[4].split("M")[0]
+                    result.append(" " + time_num_c + " " + str(lon) + " " + str(lat) + " " + pa + " " + v)
+                    tcma.append(str(year) + time_num_c)
+                    lon_all.append(str(lon))
+                    lat_all.append(str(lat))
+                    pre_all.append(pa)
+                    speed_all.append(v)
+
+                if line[:2] == "P+":
+                    hr = line.split(" ")[0][2:5]
+                    if hr[-1] == 'H':
+                        hr = hr[:-1]
+                    if hr[0] == "0":
+                        hr = hr[1]
+                    time1 = datetime.strptime(str(time), '%Y/%m/%d %H:%M:%S') + timedelta(
+                        hours=8) + timedelta(hours=int(hr))
+                    if time1.month < 10:
+                        month_str = "0" + str(time1.month)
+                    else:
+                        month_str = str(time1.month)
+                    if time1.day < 10:
+                        day_str = "0" + str(time1.day)
+                    else:
+                        day_str = str(time1.day)
+                    if time1.hour < 10:
+                        hr_str = "0" + str(time1.hour)
+                    else:
+                        hr_str = str(time1.hour)
+                    time_num_c = month_str + day_str + hr_str
+                    if line.split(" ")[1][-1] == "N":
+                        lat = float(line.split(" ")[1][:-1])
+                    else:
+                        lat = float(line.split(" ")[1][:-1]) * -1
+                    if line.split(" ")[2][-1] == "E":
+                        lon = float(line.split(" ")[2][:-1])
+                    else:
+                        lon = float(line.split(" ")[2][:-1]) * -1
+                    pa = line.split(" ")[3].split("H")[0]
+                    v = line.split(" ")[4].split("M")[0]
+                    result.append(" " + time_num_c + " " + str(lon) + " " + str(lat) + " " + pa + " " + v)
+                    tcma.append(str(year) + time_num_c)
+                    lon_all.append(str(lon))
+                    lat_all.append(str(lat))
+                    pre_all.append(pa)
+                    speed_all.append(v)
+                else:
+                    continue
+            if result == []:
+                return None
+            else:
+                result.append(tyname)
+                result.append(tcma)
+                result.append(lon_all)
+                result.append(lat_all)
+                result.append(pre_all)
+                result.append(speed_all)
+                result.append(id)
+                return result
+        else:
+            return None
