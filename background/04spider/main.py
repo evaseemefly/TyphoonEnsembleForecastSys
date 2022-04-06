@@ -36,7 +36,7 @@ class TyPathMidModel:
         self.ty_code = ty_code
         self.ty_name_en = ty_name_en
         self.ty_name_ch = ty_name_ch
-        self.ty_path_list=ty_path_list
+        self.ty_path_list = ty_path_list
 
         # self.ty_stamp = ty_stamp
 
@@ -73,7 +73,7 @@ def spider_check_ty_exist(ty_code: str) -> TyDetailMidModel:
     # view_xxx 即是台风对应的id
     # http://typhoon.nmc.cn/weatherservice/typhoon/jsons/view_2726099
     baseUrl = 'typhoon.nmc.cn'
-    ty_obj: TyDetailMidModel = {}
+    ty_obj: TyDetailMidModel = None
     # 方式1：
     # ua伪装
     headers = {
@@ -207,8 +207,10 @@ def spider_get_ty_path(ty_id: int, ty_code: str, ty_name_en: str = 'nameless') -
 
 
 def main():
-    ty_obj = spider_check_ty_exist('2121')
+    ty_obj = spider_check_ty_exist('2021')
     print(ty_obj)
+    if ty_obj is None:
+        pass
     ty_group = spider_get_ty_path(ty_obj.id, ty_obj.ty_code, ty_obj.ty_name_en)
 
     pass

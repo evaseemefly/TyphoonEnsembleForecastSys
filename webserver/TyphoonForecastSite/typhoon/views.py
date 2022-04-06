@@ -1,5 +1,6 @@
 from typing import List
 import requests
+import http.client
 from lxml import etree
 # import datetime
 from datetime import timedelta, datetime
@@ -14,13 +15,14 @@ import arrow
 
 # -- 本项目
 from common.view_base import BaseView
-from typhoon.views_base import TyGroupBaseView
+from typhoon.views_base import TyGroupBaseView, TySpiderBaseView
 from .models import TyphoonForecastDetailModel, TyphoonGroupPathModel, TyphoonForecastRealDataModel
 from .mid_models import TyphoonComplexGroupRealDataMidModel, TyphoonGroupDistMidModel, TyphoonContainsCodeAndStMidModel, \
-    TyphoonGroupRealDataDistMidModel, TyphoonComplexGroupDictMidModel
+    TyphoonGroupRealDataDistMidModel, TyphoonComplexGroupDictMidModel, TyDetailMidModel, TyPathMidModel
 from .serializers import TyphoonForecastDetailSerializer, TyphoonGroupPathSerializer, TyphoonForecastRealDataSerializer, \
     TyphoonComplexGroupRealDataModelSerializer, TyphoonDistGroupPathMidSerializer, TyphoonContainsCodeAndStSerializer, \
-    TyphoonComplexGroupRealDataNewModelSerializer, TyphoonComplexGroupDictMidSerializer
+    TyphoonComplexGroupRealDataNewModelSerializer, TyphoonComplexGroupDictMidSerializer, TyRealDataMidSerializer, \
+    TyPathMidSerializer
 from TyphoonForecastSite.settings import MY_PAGINATOR, PROJ_VERSIONS
 from util.const import DEFAULT_NULL_KEY, UNLESS_TY_CODE, DEFAULT_TIMTSTAMP_STR, DEFAULT_CODE
 
@@ -818,3 +820,27 @@ class TyCMAView(BaseView):
                 return result
         else:
             return None
+
+
+class TySpiderCMAView(TySpiderBaseView):
+    """
+        根据传入的台风编号爬取对应的台风并返回
+    """
+
+    def get(self, request: Request) -> Response:
+        ty_code: str = request.GET.get('ty_code', None)
+        ty_detail: TyDetailMidModel = self.spider_check_ty_exist(ty_code)
+        ty_cma_data: TyPathMidModel = None
+        if ty_detail is None:
+            self.json_data = '不存在指定台风'
+            self._status = 200
+        else:
+            try:
+                ty_cma_data = self.spider_get_ty_path(ty_detail.id, ty_detail.ty_code, ty_detail.ty_name_en)
+                if ty_cma_data is not None:
+                    self.json_data = TyPathMidSerializer(ty_cma_data).data
+                    self._status = 200
+            except Exception as ex:
+                self.json_data = f'爬取{ty_detail.ty_code}时出现异常'
+        return Response(self.json_data, status=self._status)
+        pass

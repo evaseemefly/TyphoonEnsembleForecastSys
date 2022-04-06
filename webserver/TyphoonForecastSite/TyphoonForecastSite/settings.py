@@ -28,7 +28,7 @@ SECRET_KEY = '^belj%#qs2a$bo&*xs9p*@rs76qwst@+x4a%a^3nl5%!pyb2xu'
 DEBUG = True
 
 # TODO:[-] 21-10-13 添加实际线上环境
-ALLOWED_HOSTS = ['128.5.10.21', '127.0.0.1']
+ALLOWED_HOSTS = ['128.5.10.21', '127.0.0.1', '0.0.0.0', 'localhost']
 
 # Application definition
 
