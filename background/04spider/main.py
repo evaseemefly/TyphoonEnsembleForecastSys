@@ -46,7 +46,7 @@ class TyPathMidModel:
 
 
 class TyForecastRealDataMidModel:
-    def __init__(self, lat: float, lon: float, bp: float, ts: int, ty_type: str):
+    def __init__(self, lat: float, lon: float, bp: float, ts: int, ty_type: str, forecast_ty_path_list: []):
         """
 
         :param lat:
@@ -60,6 +60,11 @@ class TyForecastRealDataMidModel:
         self.bp = bp
         self.ts = ts
         self.ty_type = ty_type
+        self.forecast_typ_path_list = forecast_ty_path_list
+
+    @property
+    def forecast_dt(self) -> datetime.datetime:
+        return arrow.get(self.ts).datetime
 
 
 def spider_check_ty_exist(ty_code: str) -> TyDetailMidModel:
@@ -184,7 +189,21 @@ def spider_get_ty_path(ty_id: int, ty_code: str, ty_name_en: str = 'nameless') -
                 7    18,
                 8    "WNW",
                 9    15,
-                10    [...]
+                10    [...],
+                11   {
+                        "BABJ": [
+                        [
+                            12,
+                            "202111300000",
+                            137.6,
+                            13.2,
+                            990,
+                            23,
+                            "BABJ",
+                            "TS"
+                        ],...
+                        ]
+                     }
                     ],
                     ...
                 ]
@@ -197,9 +216,43 @@ def spider_get_ty_path(ty_id: int, ty_code: str, ty_name_en: str = 'nameless') -
         ty_group_list: [] = ty_group_detail[8]
         ty_realdata_list: [] = []
         for temp_ty_group in ty_group_list:
+            forecast_ty_path_list: [] = []
+            if 'BABJ' in temp_ty_group[11].keys():
+                '''
+                    "BABJ": [
+                        [
+                          0  12,                hours
+                          1  "202111300000",    timestamp
+                          2  137.6,             lon
+                          3  13.2,              lat
+                          4  990,               bp
+                          5  23,
+                          6  "BABJ",
+                          7  "TS"               ty_type
+                        ],...
+                        ]
+                '''
+                temp_forecast_ty_path_list = temp_ty_group[11]['BABJ']
+                for temp_forecast_ty_path in temp_forecast_ty_path_list:
+                    if len(temp_forecast_ty_path) >= 8:
+                        # TODO:[-] 22-04-06 注意此处的 timestamp 实际是 utc 时间的 yyyymmddHHMM
+                        hours: int = temp_forecast_ty_path[0]
+                        forecast_dt_str_utc: str = temp_forecast_ty_path[1]
+                        forecast_dt: datetime.datetime = arrow.get(forecast_dt_str_utc,
+                                                                   'YYYYMMDDHHmm').datetime + datetime.timedelta(
+                            hours=hours)
+                        forcast_ts = forecast_dt.timestamp()
+
+                        forecast_ty_path_list.append(
+                            TyForecastRealDataMidModel(temp_forecast_ty_path[3], temp_forecast_ty_path[2],
+                                                       temp_forecast_ty_path[4], int(forcast_ts),
+                                                       temp_forecast_ty_path[7], []))
+                        pass
+
+                    pass
             ty_realdata_list.append(
                 TyForecastRealDataMidModel(temp_ty_group[5], temp_ty_group[4], temp_ty_group[6], temp_ty_group[2],
-                                           temp_ty_group[3]))
+                                           temp_ty_group[3], forecast_ty_path_list))
             pass
         tyPathMidModel = TyPathMidModel(ty_group_detail[0], ty_group_detail[3], ty_group_detail[1], ty_group_detail[2],
                                         ty_realdata_list)
@@ -207,7 +260,7 @@ def spider_get_ty_path(ty_id: int, ty_code: str, ty_name_en: str = 'nameless') -
 
 
 def main():
-    ty_obj = spider_check_ty_exist('2021')
+    ty_obj = spider_check_ty_exist('2121')
     print(ty_obj)
     if ty_obj is None:
         pass
