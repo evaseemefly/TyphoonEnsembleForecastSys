@@ -1,6 +1,7 @@
 from typing import List
 from .models import TyphoonForecastRealDataModel
 from datetime import datetime
+import arrow
 
 
 class TyphoonComplexGroupRealDataMidModel:
@@ -106,7 +107,7 @@ class TyPathMidModel:
 
 
 class TyForecastRealDataMidModel:
-    def __init__(self, lat: float, lon: float, bp: float, ts: int, ty_type: str):
+    def __init__(self, lat: float, lon: float, bp: float, ts: int, ty_type: str, forecast_ty_path_list: []):
         """
 
         :param lat:
@@ -120,3 +121,8 @@ class TyForecastRealDataMidModel:
         self.bp = bp
         self.ts = ts
         self.ty_type = ty_type
+        self.forecast_ty_path_list = forecast_ty_path_list
+
+    @property
+    def forecast_dt(self) -> datetime:
+        return arrow.get(self.ts).datetime
