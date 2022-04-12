@@ -137,7 +137,8 @@ class TySpiderBaseView(BaseView):
         # 参考文章: https://blog.csdn.net/xietansheng/article/details/115557974
 
         conn = http.client.HTTPConnection(baseUrl)
-        conn.request('GET', "/weatherservice/typhoon/jsons/list_default")
+        ty_year=self._get_year(ty_code)
+        conn.request('GET', f'/weatherservice/typhoon/jsons/list_{ty_year}')
         res = conn.getresponse()
         content = res.read().decode('utf-8')
         '''
@@ -148,7 +149,7 @@ class TySpiderBaseView(BaseView):
             { "typhoonList":[[2723.....]
                                         }
         '''
-        new_json = '{' + content[29: -3] + '}'
+        new_json = '{' + content[25: -2] + '}'
 
         print(content)
         obj = json.loads(new_json, strict=False)
@@ -172,6 +173,10 @@ class TySpiderBaseView(BaseView):
             pass
 
         return ty_obj
+
+    def _get_year(self, ty_code: str) -> str:
+        year = f'20{ty_code[:2]}'
+        return year
 
     def spider_get_ty_path(self, ty_id: int, ty_code: str, ty_name_en: str = 'nameless') -> TyPathMidModel:
         """
