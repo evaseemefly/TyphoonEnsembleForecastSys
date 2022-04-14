@@ -84,3 +84,6 @@
 ![22-02-18-07](./documents/pic/pic022.png)
 - 集合路径可去掉
 ![22-02-18-07](./documents/pic/pic023.png)
+- 根据台风强度(类型)修改了对应的台风标识
+![22-02-18-07](./documents/pic/pic024.png)
+![22-02-18-07](./documents/pic/pic025.png)
