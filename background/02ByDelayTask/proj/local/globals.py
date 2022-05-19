@@ -55,5 +55,8 @@ class CeleryData:
             self._local_celery.celery_id = value
         elif hasattr(self._local_celery, 'celery_id') is False:
             self._local_celery.celery_id = value
+        # TODO:[-] 22-03-31 当前 self._local_celery 存在 celery_id 也为其赋新值
+        elif hasattr(self._local_celery, 'celery_id') is True:
+            self._local_celery.celery_id = value
 
 # global_celery_id: str = UNLESS_ID_STR

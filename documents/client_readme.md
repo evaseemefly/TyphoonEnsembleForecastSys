@@ -15,6 +15,11 @@
 │ |  |  |  ├── BottomRightMainBar   // 底部右侧图例等组件
 │ |  |  |  | ├── SwitchBaseMap  // 切换底图
 │ |  |  |  | ├── ColorBar       // 动态色标图例
+│ |  |  |  | ├── StationSurgeLevelLegend  // 海洋站潮位图例
+│ |  |  |  | ├── TyphoonLevelLegend       // 台风色标图例
 │ |  |  |  ├── TimeBar     // 交互式时间轴组件
 │ |  |  ├── OceanMainToolsBar   // 图层加载组件
+│ |  |  ├── TabContent   // 详情弹窗栏组件
+│ |  |  |  ├── StationChartsView     // 海洋站charts组件
+│ |  |  ├── OptionsDrawer   // 配置项组件
 ```

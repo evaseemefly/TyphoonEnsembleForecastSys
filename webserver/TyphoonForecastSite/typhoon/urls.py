@@ -12,7 +12,7 @@ from rest_framework import routers
 
 # 本项目
 from .views import TyDetailModelView, TyGroupPathView, TyRealDataView, TyComplexGroupRealDatasetView, TyDataRangeView, \
-    TyGroupDateDistView, TyList, TyCaseList, TyTestView, JsonTestView, TyTargetCase
+    TyGroupDateDistView, TyList, TyCaseList, TyTestView, JsonTestView, TyTargetCase, TyCMAView,TySpiderCMAView
 
 app_name = '[typhoon]'
 
@@ -33,4 +33,6 @@ urlpatterns = [
     url(r'^tyComplex/group/realdata/list$', TyComplexGroupRealDatasetView.as_view()),
     url(r'^tyGroupPath/datarage$', TyDataRangeView.as_view()),
     url(r'^tyGroupPath/dist/date$', TyGroupDateDistView.as_view()),
+    url(r'^ty/cma/list$', TyCMAView.as_view()),
+    url(r'^spider/cma/list$', TySpiderCMAView.as_view()),
 ]
