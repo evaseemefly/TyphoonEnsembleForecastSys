@@ -20,14 +20,15 @@ from rest_framework.decorators import (APIView, api_view,
 # --
 # 本项目的
 from .models import StationForecastRealDataModel, StationInfoModel, StationAstronomicTideRealDataModel, \
-    StationAlertTideModel, StationStatisticsModel
+    StationAlertTideModel, StationStatisticsModel, StationForecastRealDataSharedMdoel
 from typhoon.models import TyphoonGroupPathModel
 from .serializers import StationForecastRealDataSerializer, StationForecastRealDataComplexSerializer, \
     StationForecastRealDataRangeSerializer, StationForecastRealDataMixin, StationForecastRealDataRangeComplexSerializer, \
     StationAstronomicTideRealDataSerializer, StationAlertSerializer, StationStatisticsSerializer
 # 公共的
 from TyphoonForecastSite.settings import MY_PAGINATOR
-from util.const import DEFAULT_NULL_KEY, UNLESS_TY_CODE, DEFAULT_CODE, DEFAULT_TIMTSTAMP_STR
+from util.const import DEFAULT_NULL_KEY, UNLESS_TY_CODE, DEFAULT_CODE, DEFAULT_TIMTSTAMP_STR, \
+    STATION_SURGE_REALDATA_TAB_BASE_NAME
 from common.view_base import BaseView
 from typhoon.views_base import TyGroupBaseView
 # 自定义装饰器
@@ -45,8 +46,9 @@ class StationListBaseView(TyGroupBaseView):
         @param timestamp_str:
         @return:
         """
-        dist_station_code: List[str] = StationForecastRealDataModel.objects.filter(ty_code=ty_code,
-                                                                                   timestamp=timestamp_str).values(
+        stationSurgeRealDataDao = StationForecastRealDataSharedMdoel.get_sharding_model(ty_code=ty_code)
+        dist_station_code: List[str] = stationSurgeRealDataDao.objects.filter(ty_code=ty_code,
+                                                                              timestamp=timestamp_str).values(
             'station_code').distinct()
         return dist_station_code
 
@@ -115,23 +117,47 @@ class StationListBaseView(TyGroupBaseView):
         # where 相当于 sql 中的 WHERE
         # base_filter = StationForecastRealDataModel.objects.filter(station_code=station_code, forecast_dt=forecast_dt,
         #                                                           ty_code=ty_code, timestamp=timestamp_str)
-        query = StationForecastRealDataModel.objects.filter(station_code=station_code, forecast_dt=forecast_dt,
-                                                            ty_code=ty_code, timestamp=timestamp_str).extra(
-            select={'station_code': 'station_forecast_realdata.station_code', 'lat': 'station_info.lat',
-                    'lon': 'station_info.lon', 'name': 'station_info.name', 'surge': 'station_forecast_realdata.surge'},
-            tables=['station_forecast_realdata', 'station_info'],
-            where=['station_forecast_realdata.station_code=station_info.code'])
+        stationSurgeRealDataDao = StationForecastRealDataSharedMdoel.get_sharding_model(ty_code=ty_code)
+        tab_name: str = f'{StationForecastRealDataSharedMdoel.SHARED_TABLE_BASE_NAME}_{ty_code}'
+        query = stationSurgeRealDataDao.objects.filter(station_code=station_code, forecast_dt=forecast_dt,
+                                                       ty_code=ty_code, timestamp=timestamp_str).extra(
+            select={'station_code': f'{tab_name}.station_code', 'lat': 'station_info.lat',
+                    'lon': 'station_info.lon', 'name': 'station_info.name', 'surge': f'{tab_name}.surge'},
+            tables=[f'{tab_name}', 'station_info'],
+            where=[f'{tab_name}.station_code=station_info.code'])
         # AttributeError: 'QuerySet' object has no attribute 'arregate'
         query = query.aggregate(Max('surge'), Min('surge'))
         return query
 
-    def get_station_surge_max_value(self, station_code: str, gp_id: int):
-        query = StationForecastRealDataModel.objects.filter(station_code=station_code, gp_id=gp_id).extra(
-            select={'station_code': 'station_forecast_realdata.station_code', 'lat': 'station_info.lat',
-                    'lon': 'station_info.lon', 'name': 'station_info.name', 'surge': 'station_forecast_realdata.surge'},
-            tables=['station_forecast_realdata', 'station_info'],
-            where=['station_forecast_realdata.station_code=station_info.code'])
+    def get_station_surge_max_value(self, station_code: str, gp_id: int, ty_code: str, dao):
+        # TODO[*] 22-05-24 动态获取表此种方式速度很慢
+        tab_name: str = f'{STATION_SURGE_REALDATA_TAB_BASE_NAME}_{ty_code}'
+
+        query = dao.objects.filter(station_code=station_code, gp_id=gp_id).extra(
+            select={'station_code': f'{tab_name}.station_code', 'lat': 'station_info.lat',
+                    'lon': 'station_info.lon', 'name': 'station_info.name', 'surge': f'{tab_name}.surge'},
+            tables=[f'{tab_name}', 'station_info'],
+            where=[f'{tab_name}.station_code=station_info.code'])
         query = query.aggregate(Max('surge'), Min('surge'))
+        # ---
+        #         query=stationSurgeRealDataDao.objects.raw(f'''SELECT max(surge) as max,min(surge) as min
+        # FROM (SELECT ({tab_name}.station_code) AS `station_code`,
+        #        (station_info.lat) AS `lat`, (station_info.lon) AS `lon`,
+        #        (station_info.name) AS `name`,
+        #        ({tab_name}.surge) AS `surge`,
+        #        `{tab_name}`.`id`,
+        #        `{tab_name}`.`is_del`,
+        #        `{tab_name}`.`gmt_created`,
+        #        `{tab_name}`.`gmt_modified`,
+        #        `{tab_name}`.`ty_code`,
+        #        `{tab_name}`.`gp_id`,
+        #        `{tab_name}`.`forecast_dt`,
+        #        `{tab_name}`.`forecast_index`,
+        #        `{tab_name}`.`timestamp`
+        # FROM `{tab_name}` , `station_info`
+        # WHERE (`{tab_name}`.`gp_id` = {gp_id} AND `{tab_name}`.station_code = '{station_code}'
+        #            AND ({tab_name}.station_code=station_info.code)) ) as res''')
+
         return query
 
     # @get_time
@@ -140,8 +166,9 @@ class StationListBaseView(TyGroupBaseView):
             + 22-02-15
             获取指定 ty_code 与 timestamp_str 对应的 潮位站 的全路径中的极值(max,min)
         """
-        query = StationForecastRealDataModel.objects.filter(station_code=station_code, timestamp=timestamp_str,
-                                                            ty_code=ty_code).values('surge')
+        stationSurgeRealDataDao = StationForecastRealDataSharedMdoel.get_sharding_model(ty_code=ty_code)
+        query = stationSurgeRealDataDao.objects.filter(station_code=station_code, timestamp=timestamp_str,
+                                                       ty_code=ty_code).values('surge')
         query = query.aggregate(Max('surge'), Min('surge'))
         return query
 
@@ -186,10 +213,11 @@ class StationListBaseView(TyGroupBaseView):
         if (len(qs_group_path)) > 0:
             gp_center = qs_group_path.first()
             # 查询 tb:station_forecast_realdata 的条件有 : station_code | ty_code | timestamp | 中间路径 gp_id
-            qs_real_data = StationForecastRealDataModel.objects.filter(station_code=station_code, ty_code=ty_code,
-                                                                       timestamp=timestamp,
-                                                                       gp_id=gp_center.id).values('forecast_dt',
-                                                                                                  'surge').order_by(
+            dao = StationForecastRealDataSharedMdoel.get_sharding_model(ty_code=ty_code)
+            qs_real_data = dao.objects.filter(station_code=station_code, ty_code=ty_code,
+                                              timestamp=timestamp,
+                                              gp_id=gp_center.id).values('forecast_dt',
+                                                                         'surge').order_by(
                 'forecast_dt')
         return qs_real_data
         pass
@@ -210,15 +238,17 @@ class StationListBaseView(TyGroupBaseView):
         """
         # TODO:[-] 21-05-26 Unable to get repr for <class 'method'>
         # 获取指定条件的全部 forecast_dt 的 dist list
-        qs_dist_forecast_dt: QuerySet = StationForecastRealDataModel.objects.filter(station_code=station_code,
-                                                                                    ty_code=ty_code,
-                                                                                    timestamp=timestamp).values(
+        dao = StationForecastRealDataSharedMdoel.get_sharding_model(ty_code=ty_code)
+        qs_dist_forecast_dt: QuerySet = dao.objects.filter(station_code=station_code,
+                                                           ty_code=ty_code,
+                                                           timestamp=timestamp).values(
             'forecast_dt').distinct()
         list_dist_forecast_dt = [temp.get('forecast_dt') for temp in qs_dist_forecast_dt]
 
         # 根据 forecast_dt dist list -> tb:station_forecast_realdata
-        res: QuerySet = StationForecastRealDataModel.objects.filter(station_code=station_code, ty_code=ty_code,
-                                                                    timestamp=timestamp).extra(
+        dao = StationForecastRealDataSharedMdoel.get_sharding_model(ty_code=ty_code)
+        res: QuerySet = dao.objects.filter(station_code=station_code, ty_code=ty_code,
+                                           timestamp=timestamp).extra(
             where=['forecast_dt in %s'], params=[list_dist_forecast_dt])
         # eg:
         # <class 'dict'>: {'forecast_dt': datetime.datetime(2020, 9, 15, 17, 0, tzinfo=<UTC>), 'surge_max': 0.0}
@@ -284,8 +314,9 @@ class StationCenterMaxListView(StationListBaseView):
                                                                                       ty_path_type='c', bp=0).first()
             gp_id = center_path.id
             dist_station_codes: List[dict] = self.get_dist_station_code(ty_code, timestamp_str)
+            dao = StationForecastRealDataSharedMdoel.get_sharding_model(ty_code=ty_code)
             for station_code_temp in dist_station_codes:
-                res = self.get_station_surge_max_value(station_code_temp.get('station_code'), gp_id)
+                res = self.get_station_surge_max_value(station_code_temp.get('station_code'), gp_id, ty_code, dao)
                 station_temp = StationInfoModel.objects.filter(code=station_code_temp.get('station_code')).first()
                 res['station_code'] = station_code_temp.get('station_code')
                 res['surge_max'] = res['surge__max']
@@ -331,7 +362,7 @@ class StationAllPathMaxListView(StationListBaseView):
         timestamp_str: str = request.GET.get('timestamp', DEFAULT_TIMTSTAMP_STR)
         station_realdata_list: List[{}] = []
         if ty_code != DEFAULT_CODE and timestamp_str != DEFAULT_TIMTSTAMP_STR:
-            dist_station_codes: List[dict] = self.get_dist_station_code(ty_code, timestamp_str)
+            dist_station_codes: List[dict] = list(self.get_dist_station_code(ty_code, timestamp_str))
             center_path: TyphoonGroupPathModel = TyphoonGroupPathModel.objects.filter(ty_code=ty_code,
                                                                                       timestamp=timestamp_str,
                                                                                       ty_path_type='c', bp=0).first()
@@ -377,14 +408,20 @@ class StationAllPathMaxListView(StationListBaseView):
             #     res['ty_code'] = ty_code
             #     station_realdata_list.append(res)
             # 方式2:使用如下方式会造成查询变慢
+
+            stationSurgeRealDataDao = StationForecastRealDataSharedMdoel.get_sharding_model(ty_code=ty_code)
             for station_code_temp in dist_station_codes:
                 station_code_str: str = station_code_temp.get('station_code')
-                res = self.get_station_all_path_surge_max(station_code_str, timestamp_str, ty_code)
-                res_center_path = self.get_station_surge_max_value(station_code_str, gp_id)
+                res = {}
+                # res = self.get_station_all_path_surge_max(station_code_str, timestamp_str, ty_code)
+                res_center_path = self.get_station_surge_max_value(station_code_str, gp_id, ty_code,
+                                                                   stationSurgeRealDataDao)
                 station_temp = StationInfoModel.objects.filter(code=station_code_str).first()
                 res['station_code'] = station_code_temp.get('station_code')
-                res['surge_max'] = res['surge__max']
-                res['surge_min']=res['surge__min']
+                # res['surge_max'] = res['surge__max']
+                # res['surge_min'] = res['surge__min']
+                res['surge_max'] = -1
+                res['surge_min'] = -1
                 # res['surge_min'] = res['surge__min']
                 res['surge'] = res_center_path['surge__max']
                 res['name'] = station_temp.name
@@ -415,8 +452,9 @@ class StationAreaListView(StationListBaseView):
         list_station_real: List[StationForecastRealDataModel] = []
         if ty_code != UNLESS_TY_CODE:
             # 1- 获取指定台风的所有海洋站 code
-            dist_station_code: List[str] = StationForecastRealDataModel.objects.filter(ty_code=ty_code,
-                                                                                       timestamp=timestamp_str).values(
+            dao = StationForecastRealDataSharedMdoel.get_sharding_model(ty_code=ty_code)
+            dist_station_code: List[str] = dao.objects.filter(ty_code=ty_code,
+                                                              timestamp=timestamp_str).values(
                 'station_code').distinct()
             if len(dist_station_code) > 0:
                 for station_code_dict_temp in dist_station_code:
@@ -613,3 +651,11 @@ class StationAlertView(StationListBaseView):
         self.json_data = StationAlertSerializer(query, many=True).data
         self._status = 200
         return Response(self.json_data, status=self._status)
+
+
+class StationSurgeSplitTab(BaseView):
+    def get(self, request: Request):
+        ty_code: str = '2017'
+        dao = StationForecastRealDataSharedMdoel.get_sharding_model(ty_code=ty_code)
+        query = dao.objects.filter(id=1)
+        return Response('', status=200)

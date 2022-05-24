@@ -21,6 +21,39 @@ class StationInfoModel(IModel, IDelModel, IIdModel):
         db_table = 'station_info'
 
 
+class StationForecastRealDataSharedMdoel(IIdModel, IDelModel, IModel, ITimeStamp):
+    SHARED_TABLE_BASE_NAME = 'station_forecast_realdata'
+    """
+        + 22-05-24 尝试加入分表功能
+                   大体逻辑:
+                            根据 ty_code 进行分表
+                            表名: station_forecast_realdata_2017
+                                 station_forecast_realdata_{ty_code}
+    """
+    ty_code = models.CharField(max_length=200)
+    gp_id = models.IntegerField(default=DEFAULT_FK)
+    station_code = models.CharField(max_length=10, default=DEFAULT_CODE)
+    forecast_dt = models.DateTimeField(default=now)
+    forecast_index = models.IntegerField(default=UNLESS_INDEX)
+    surge = models.FloatField()
+    timestamp = models.CharField(max_length=100, default='2021010416')  # + 21-05-11 新加入的时间戳字段
+
+    @classmethod
+    def get_sharding_model(cls, ty_code=None):
+        class Meta:
+            db_table = f'{cls.SHARED_TABLE_BASE_NAME}_{ty_code}'
+
+        attrs = {
+            '__module__': cls.__module__,
+            '__doc__': f'station_code:{ty_code}',
+            'Meta': Meta
+        }
+        return type(str('StationForecastRealDataModel'), (cls,), attrs)
+
+    class Meta:
+        abstract = True
+
+
 class StationForecastRealDataModel(IIdModel, IDelModel, IModel, ITimeStamp):
     # ty_id = models.IntegerField(default=DEFAULT_FK)
     ty_code = models.CharField(max_length=200)
@@ -78,8 +111,8 @@ class StationStatisticsModel(IIdModel, IDelModel, IModel):
     quarter_val = models.FloatField()  # 1/4 分位数
     three_quarters_val = models.FloatField()  # 3/4 分位数
     median_val = models.FloatField()  # 中位数
-    max_val = models.FloatField() # 最大值
-    min_val = models.FloatField() # 最小值
+    max_val = models.FloatField()  # 最大值
+    min_val = models.FloatField()  # 最小值
     ty_code = models.CharField(max_length=200)
     station_code = models.CharField(max_length=10, default=DEFAULT_CODE)
     forecast_dt = models.DateTimeField(default=now)

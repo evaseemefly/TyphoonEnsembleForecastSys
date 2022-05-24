@@ -576,8 +576,8 @@ def main():
     # TODO:[-] 22-05-23 测试分表查询 | 判断指定 tab 是否存在 | 分表写入
     # case_db_splittable()
     # case_db_check_tab_exist('station_info')
-    # case_db_create_split_tab('2017')
-    case_db_insert_split_tab('2017')
+    case_db_create_split_tab('2107')
+    # case_db_insert_split_tab('2017')
     # 测试查询 gp
     # case_get_gp()
     # test_get_gp_model()

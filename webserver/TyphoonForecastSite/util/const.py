@@ -16,3 +16,5 @@ DEFAULT_TIMTSTAMP_STR = '000000'
 
 # 默认的概率
 DEFAULT_PRO = 0.5
+
+STATION_SURGE_REALDATA_TAB_BASE_NAME: str = 'station_forecast_realdata'
