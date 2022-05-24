@@ -8,6 +8,7 @@ import arrow
 from django.shortcuts import render
 from django.core.serializers import serialize
 from django.db import connections, connection
+from django.db import connection
 from django.db.models import Max, Min
 from django.db.models import QuerySet
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
@@ -133,14 +134,15 @@ class StationListBaseView(TyGroupBaseView):
         # TODO[*] 22-05-24 动态获取表此种方式速度很慢
         tab_name: str = f'{STATION_SURGE_REALDATA_TAB_BASE_NAME}_{ty_code}'
 
-        query = dao.objects.filter(station_code=station_code, gp_id=gp_id).extra(
-            select={'station_code': f'{tab_name}.station_code', 'lat': 'station_info.lat',
-                    'lon': 'station_info.lon', 'name': 'station_info.name', 'surge': f'{tab_name}.surge'},
-            tables=[f'{tab_name}', 'station_info'],
-            where=[f'{tab_name}.station_code=station_info.code'])
-        query = query.aggregate(Max('surge'), Min('surge'))
+        # query = dao.objects.filter(station_code=station_code, gp_id=gp_id).extra(
+        #     select={'station_code': f'{tab_name}.station_code', 'lat': 'station_info.lat',
+        #             'lon': 'station_info.lon', 'name': 'station_info.name', 'surge': f'{tab_name}.surge'},
+        #     tables=[f'{tab_name}', 'station_info'],
+        #     where=[f'{tab_name}.station_code=station_info.code'])
+        # query = query.aggregate(Max('surge'), Min('surge'))
         # ---
-        #         query=stationSurgeRealDataDao.objects.raw(f'''SELECT max(surge) as max,min(surge) as min
+        # 方式2 : 不成功
+        # query = dao.objects.raw(f"""SELECT max(surge) as max,min(surge) as min
         # FROM (SELECT ({tab_name}.station_code) AS `station_code`,
         #        (station_info.lat) AS `lat`, (station_info.lon) AS `lon`,
         #        (station_info.name) AS `name`,
@@ -156,9 +158,31 @@ class StationListBaseView(TyGroupBaseView):
         #        `{tab_name}`.`timestamp`
         # FROM `{tab_name}` , `station_info`
         # WHERE (`{tab_name}`.`gp_id` = {gp_id} AND `{tab_name}`.station_code = '{station_code}'
-        #            AND ({tab_name}.station_code=station_info.code)) ) as res''')
+        #            AND ({tab_name}.station_code=station_info.code)) ) as res""",
+        #                         translations={'max': 'max', 'min': 'min'})
 
-        return query
+        # 方式3:
+        sql_str: str = f"""SELECT max(surge) as max,min(surge) as min
+        FROM (SELECT ({tab_name}.station_code) AS `station_code`,
+               (station_info.lat) AS `lat`, (station_info.lon) AS `lon`,
+               (station_info.name) AS `name`,
+               ({tab_name}.surge) AS `surge`,
+               `{tab_name}`.`id`,
+               `{tab_name}`.`is_del`,
+               `{tab_name}`.`gmt_created`,
+               `{tab_name}`.`gmt_modified`,
+               `{tab_name}`.`ty_code`,
+               `{tab_name}`.`gp_id`,
+               `{tab_name}`.`forecast_dt`,
+               `{tab_name}`.`forecast_index`,
+               `{tab_name}`.`timestamp`
+        FROM `{tab_name}` , `station_info`
+        WHERE (`{tab_name}`.`gp_id` = {gp_id} AND `{tab_name}`.station_code = '{station_code}'
+                   AND ({tab_name}.station_code=station_info.code)) ) as res"""
+        with connection.cursor() as c:
+            c.execute(sql_str)
+            res = c.fetchall()
+        return res
 
     # @get_time
     def get_station_all_path_surge_max(self, station_code: str, timestamp_str: str, ty_code: str, **kwargs):
@@ -420,10 +444,10 @@ class StationAllPathMaxListView(StationListBaseView):
                 res['station_code'] = station_code_temp.get('station_code')
                 # res['surge_max'] = res['surge__max']
                 # res['surge_min'] = res['surge__min']
-                res['surge_max'] = -1
-                res['surge_min'] = -1
+                res['surge_max'] = res_center_path[0][0]
+                res['surge_min'] = res_center_path[0][1]
                 # res['surge_min'] = res['surge__min']
-                res['surge'] = res_center_path['surge__max']
+                # res['surge'] = res_center_path['surge__max']
                 res['name'] = station_temp.name
                 res['lat'] = station_temp.lat
                 res['lon'] = station_temp.lon
