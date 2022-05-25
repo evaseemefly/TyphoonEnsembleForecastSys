@@ -104,6 +104,7 @@ class StationListBaseView(TyGroupBaseView):
                                        timestamp_str: str) -> {}:
         """
             由 station_code,forecast_dt_str,ty_code,timestamp_str 获取 station surge 范围数据数组
+            - 22-05-25 修改此处不使用 orm 的聚合函数实现，由于外侧需要循环，且为动态生产dao层，直接写入sql实现
         @param station_code:
         @param forecast_dt_str:
         @param ty_code:
@@ -129,6 +130,41 @@ class StationListBaseView(TyGroupBaseView):
         # AttributeError: 'QuerySet' object has no attribute 'arregate'
         query = query.aggregate(Max('surge'), Min('surge'))
         return query
+
+    def get_surge_range_bygroup(self, forecast_dt_str: str, ty_code: str,
+                                timestamp_str: str) -> tuple:
+        """
+            获取对应案例，指定预报时刻的不同潮位站的潮位范围
+        @param forecast_dt_str:
+        @param ty_code:
+        @param timestamp_str:
+        @return:{max,min,station_code}
+        """
+        forecast_dt: datetime = arrow.get(forecast_dt_str).datetime
+        tab_name: str = f'{STATION_SURGE_REALDATA_TAB_BASE_NAME}_{ty_code}'
+        forecast_dt_str: str = arrow.get()
+        sql_str: str = f"""SELECT max(surge) as max,min(surge) as min,station_code as station_code,name,lat,lon,ty_code,forecast_dt,timestamp,forecast_index
+                FROM (SELECT ({tab_name}.station_code) AS `station_code`,
+                       (station_info.lat) AS `lat`, (station_info.lon) AS `lon`,
+                       (station_info.name) AS `name`,
+                       ({tab_name}.surge) AS `surge`,
+                       `{tab_name}`.`id`,
+                       `{tab_name}`.`is_del`,
+                       `{tab_name}`.`gmt_created`,
+                       `{tab_name}`.`gmt_modified`,
+                       `{tab_name}`.`ty_code`,
+                       `{tab_name}`.`gp_id`,
+                       `{tab_name}`.`forecast_dt`,
+                       `{tab_name}`.`forecast_index`,
+                       `{tab_name}`.`timestamp`
+                FROM `{tab_name}` , `station_info`
+                WHERE (`{tab_name}`.`forecast_dt` = '{forecast_dt}' 
+                AND `{tab_name}`.`ty_code` = {ty_code} AND `{tab_name}`.`timestamp` = '{timestamp_str}' AND (`{tab_name}`.`station_code`=station_info.code)) ) as res
+        group by res.station_code"""
+        with connection.cursor() as c:
+            c.execute(sql_str)
+            res = c.fetchall()
+        return res
 
     def get_station_surge_max_value(self, station_code: str, gp_id: int, ty_code: str, dao):
         # TODO[*] 22-05-24 动态获取表此种方式速度很慢
@@ -179,6 +215,71 @@ class StationListBaseView(TyGroupBaseView):
         FROM `{tab_name}` , `station_info`
         WHERE (`{tab_name}`.`gp_id` = {gp_id} AND `{tab_name}`.station_code = '{station_code}'
                    AND ({tab_name}.station_code=station_info.code)) ) as res"""
+        with connection.cursor() as c:
+            c.execute(sql_str)
+            res = c.fetchall()
+        return res
+
+    def get_center_path_dist_station_surge_max_min_bygroup(self, gp_id: int, ty_code: str, dao) -> tuple:
+        """
+            - 22-05-25 获取中心路径对应的不同站点的极值(通过 group by 的方式聚合)——全过程
+        @param gp_id:
+        @param ty_code:
+        @param dao:
+        @return:(max,min,station_code)
+        """
+
+        tab_name: str = f'{STATION_SURGE_REALDATA_TAB_BASE_NAME}_{ty_code}'
+        sql_str: str = f"""SELECT max(surge) as max,min(surge) as min,station_code as station_code
+        FROM (SELECT ({tab_name}.station_code) AS `station_code`,
+               (station_info.lat) AS `lat`, (station_info.lon) AS `lon`,
+               (station_info.name) AS `name`,
+               ({tab_name}.surge) AS `surge`,
+               `{tab_name}`.`id`,
+               `{tab_name}`.`is_del`,
+               `{tab_name}`.`gmt_created`,
+               `{tab_name}`.`gmt_modified`,
+               `{tab_name}`.`ty_code`,
+               `{tab_name}`.`gp_id`,
+               `{tab_name}`.`forecast_dt`,
+               `{tab_name}`.`forecast_index`,
+               `{tab_name}`.`timestamp`
+        FROM `{tab_name}` , `station_info`
+        WHERE (`{tab_name}`.`gp_id` = {gp_id}
+                   AND ({tab_name}.station_code=station_info.code)) ) as res
+group by res.station_code"""
+        with connection.cursor() as c:
+            c.execute(sql_str)
+            res = c.fetchall()
+        return res
+
+    def get_all_path_dist_station_surge_max_min_bygroup(self, timestamp: str, ty_code: str, dao) -> tuple:
+        """
+            - 22-05-25 获取该过程(timestamp——该时间戳只为创建case时生成的时间戳与预报时间无关)全路径的不同站点的极值(通过 group by 的方式聚合)
+            此计算较为耗时(8-9s)
+        @param timestamp: 创建case的时间戳(用来区分不同的案例)
+        @param ty_code: 台风编号
+        @param dao:
+        @return:(max,min,station_code)
+        """
+        tab_name: str = f'{STATION_SURGE_REALDATA_TAB_BASE_NAME}_{ty_code}'
+        sql_str: str = f"""SELECT max(surge) as max,min(surge) as min,station_code as station_code
+                FROM (SELECT ({tab_name}.station_code) AS `station_code`,
+                       (station_info.lat) AS `lat`, (station_info.lon) AS `lon`,
+                       (station_info.name) AS `name`,
+                       ({tab_name}.surge) AS `surge`,
+                       `{tab_name}`.`id`,
+                       `{tab_name}`.`is_del`,
+                       `{tab_name}`.`gmt_created`,
+                       `{tab_name}`.`gmt_modified`,
+                       `{tab_name}`.`ty_code`,
+                       `{tab_name}`.`gp_id`,
+                       `{tab_name}`.`forecast_dt`,
+                       `{tab_name}`.`forecast_index`,
+                       `{tab_name}`.`timestamp`
+                FROM `{tab_name}` , `station_info`
+                 WHERE ( {tab_name}.timestamp= {timestamp}  AND ({tab_name}.station_code=station_info.code)) ) as res
+        group by res.station_code"""
         with connection.cursor() as c:
             c.execute(sql_str)
             res = c.fetchall()
@@ -326,6 +427,7 @@ class StationListView(StationListBaseView):
 class StationCenterMaxListView(StationListBaseView):
     """
         + 22-02-11 获取台风中心路径 c bp=0 的所有潮位站的极值(max)
+        TODO:[-] 22-05-24 此方法暂时不会被调用
     """
 
     def get(self, request: Request) -> Response:
@@ -365,14 +467,16 @@ class StationCenterMaxListView(StationListBaseView):
 class StationAllPathMaxListView(StationListBaseView):
     """
         + 22-02-14 海洋站极值风暴增水显示视图
+        - 22-05-24 此处尝试将 surge_max 与 surge_min 修改为全部路径，但较为耗时(8-9s)固只采用中间路径的极值范围(全过程)
         response :{
                     "ty_code": "2042",
                     "station_code": "BAO",
-                    "surge": 0.0,           - 中心路径的极值
+                    "surge": 0.0,           - 中间路径的最大值
                     "name": "博鳌",
                     "lat": 19.2,
                     "lon": 110.6,
-                    "surge_max": 1.26       - 所有路径的极值
+                    "surge_max": 1.26       - 中间路径的极大值(全过程)
+                    "surge_min"             - 中间路径的极小值(全过程)
                 },
     """
 
@@ -380,23 +484,29 @@ class StationAllPathMaxListView(StationListBaseView):
     def get(self, request: Request) -> Response:
         """
             step:
-                1-
+                1- 找到中间路径 gp_id
+                2- 使用聚合函数获取中间路径的该案例的全过程 的极值范围
         """
         ty_code: str = request.GET.get('ty_code', DEFAULT_CODE)
         timestamp_str: str = request.GET.get('timestamp', DEFAULT_TIMTSTAMP_STR)
         station_realdata_list: List[{}] = []
+
+        def filter_station(station_temp: {}, station_code: str) -> {}:
+            if station_temp.station_code == station_code:
+                return station_temp
+
         if ty_code != DEFAULT_CODE and timestamp_str != DEFAULT_TIMTSTAMP_STR:
-            dist_station_codes: List[dict] = list(self.get_dist_station_code(ty_code, timestamp_str))
+            # dist_station_codes: List[dict] = list(self.get_dist_station_code(ty_code, timestamp_str))
             center_path: TyphoonGroupPathModel = TyphoonGroupPathModel.objects.filter(ty_code=ty_code,
                                                                                       timestamp=timestamp_str,
                                                                                       ty_path_type='c', bp=0).first()
             gp_id = center_path.id
-            station_codes: List[str] = [station_code_temp.get('station_code') for station_code_temp in
-                                        dist_station_codes]
-            station_codes_str: str = ''
-            for station_code in station_codes:
-                station_codes_str = station_codes_str + f'\'{station_code}\','
-            station_codes_str = station_codes_str[:-1]
+            # station_codes: List[str] = [station_code_temp.get('station_code') for station_code_temp in
+            #                             dist_station_codes]
+            # station_codes_str: str = ''
+            # for station_code in station_codes:
+            #     station_codes_str = station_codes_str + f'\'{station_code}\','
+            # station_codes_str = station_codes_str[:-1]
             # 获取指定 station_code 的对应的所有路径的极值
             """
                 SELECT station_code,MAX(surge)
@@ -405,13 +515,7 @@ class StationAllPathMaxListView(StationListBaseView):
                        station_forecast_realdata.ty_code = 2042)
                 GROUP BY station_forecast_realdata.station_code
             """
-            sql_str: str = f'''
-                        SELECT station_code,MAX(surge)
-                        FROM station_forecast_realdata
-                        WHERE (station_forecast_realdata.station_code in ({station_codes_str}) AND station_forecast_realdata.timestamp = {timestamp_str} AND
-                               station_forecast_realdata.ty_code = {ty_code})
-                        GROUP BY station_forecast_realdata.station_code
-                        '''
+
             # 方式2: 也较为耗时
             # cursor = connection.cursor()  # cursor = connections['default'].cursor()
             # cursor.execute(sql_str)
@@ -434,20 +538,18 @@ class StationAllPathMaxListView(StationListBaseView):
             # 方式2:使用如下方式会造成查询变慢
 
             stationSurgeRealDataDao = StationForecastRealDataSharedMdoel.get_sharding_model(ty_code=ty_code)
-            for station_code_temp in dist_station_codes:
-                station_code_str: str = station_code_temp.get('station_code')
+            # [-] 22-05-25 不再使用之前根据不同的 station_code 进行循环的方式，直接修改为聚合的方式求max与min
+            res_tuple = self.get_center_path_dist_station_surge_max_min_bygroup(gp_id, ty_code, stationSurgeRealDataDao)
+            for temp in res_tuple:
+                station_code = temp[2]
+                surge_max = temp[0]
+                surge_min = temp[1]
+                station_temp = StationInfoModel.objects.filter(code=station_code).first()
                 res = {}
-                # res = self.get_station_all_path_surge_max(station_code_str, timestamp_str, ty_code)
-                res_center_path = self.get_station_surge_max_value(station_code_str, gp_id, ty_code,
-                                                                   stationSurgeRealDataDao)
-                station_temp = StationInfoModel.objects.filter(code=station_code_str).first()
-                res['station_code'] = station_code_temp.get('station_code')
-                # res['surge_max'] = res['surge__max']
-                # res['surge_min'] = res['surge__min']
-                res['surge_max'] = res_center_path[0][0]
-                res['surge_min'] = res_center_path[0][1]
-                # res['surge_min'] = res['surge__min']
-                # res['surge'] = res_center_path['surge__max']
+                res['station_code'] = station_code
+                res['surge_max'] = surge_max
+                res['surge_min'] = surge_min
+                res['surge'] = surge_max
                 res['name'] = station_temp.name
                 res['lat'] = station_temp.lat
                 res['lon'] = station_temp.lon
@@ -530,11 +632,36 @@ class StationSurgeRangeValueListView(StationListBaseView):
         station_finial_list: List[{}] = []
         # 方式2: 使用extra 的方式使用伪sql 代码实现 跨表拼接查询
         # TODO:[*] 22-01-26 注意此处的查询较为耗时
-        for temp_code in stations_codes:
-            res = self.get_relation_surge_range_value(station_code=temp_code, forecast_dt_str=forecast_dt_str,
-                                                      ty_code=ty_code, timestamp_str=timestamp_str)
-            res['station_code'] = temp_code
-            station_realdata_list.append(res)
+        # TODO:[-] 22-05-25 由于使用了分表，此处的dao层是动态生成的，循环起来效率较低，改为直接使用聚合sql执行并返回
+        # 之前的方式: 修改为分表动态生成dao后循环查询效率下降较明显
+        # for temp_code in stations_codes:
+        #     res = self.get_relation_surge_range_value(station_code=temp_code, forecast_dt_str=forecast_dt_str,
+        #                                               ty_code=ty_code, timestamp_str=timestamp_str)
+        #     res['station_code'] = temp_code
+        #     station_realdata_list.append(res)
+        # 方式2:
+        """
+            eg: (0.0, 0.0, 'PTN', '平潭', 25.4667, 119.8333, '2107', datetime.datetime(2021, 7, 19, 6, 0), '1650352587')
+                 max ,min, staiton_code,name,lat,lon,ty_code,forecast_dt,timestamp
+                 0   , 1  , 2   ,   3,    4     ,     5    ,    6   ,   7                               ,       8
+        """
+        res_tuple: tuple = self.get_surge_range_bygroup(forecast_dt_str=forecast_dt_str,
+                                                        ty_code=ty_code, timestamp_str=timestamp_str)
+        for temp in res_tuple:
+            temp_station = {}
+            temp_station['station_code'] = temp[2]
+            temp_station['ty_code'] = temp[6]
+            temp_station['gp_id'] = gp_id
+            temp_station['forecast_index'] = temp[9]
+            temp_station['forecast_dt'] = temp[7]
+            temp_station['surge'] = temp[0]
+            temp_station['name'] = temp[3]
+            temp_station['lat'] = temp[4]
+            temp_station['lon'] = temp[5]
+            temp_station['surge_max'] = temp[0]
+            temp_station['surge_min'] = temp[1]
+            station_finial_list.append(temp_station)
+        # ---
         # -----耗时查询结束-----
         # 测试一下关联查询
         # res = query.union(stations)
@@ -542,14 +669,14 @@ class StationSurgeRangeValueListView(StationListBaseView):
         #     paginator = Paginator(query, page_count)
         #     contacts = paginator.get_page(page_index)
         # TODO:[-] 21-05-14 此处还需要调用一下 self.get_relation_station
-        res_station: List[StationForecastRealDataModel] = self.get_relation_station(gp_id=gp_id,
-                                                                                    forecast_dt_str=forecast_dt_str)
-        for temp_station in res_station:
-            for temp_station_range in station_realdata_list:
-                if temp_station.station_code == temp_station_range.get('station_code'):
-                    temp_station.surge_max = temp_station_range.get('surge__max')
-                    temp_station.surge_min = temp_station_range.get('surge__min')
-                    station_finial_list.append(temp_station)
+        # res_station: List[StationForecastRealDataModel] = self.get_relation_station(gp_id=gp_id,
+        #                                                                             forecast_dt_str=forecast_dt_str)
+        # for temp_station in res_station:
+        #     for temp_station_range in station_realdata_list:
+        #         if temp_station.station_code == temp_station_range.get('station_code'):
+        #             temp_station.surge_max = temp_station_range.get('surge__max')
+        #             temp_station.surge_min = temp_station_range.get('surge__min')
+        #             station_finial_list.append(temp_station)
 
         try:
 
