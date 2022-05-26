@@ -131,10 +131,10 @@ class StationListBaseView(TyGroupBaseView):
         query = query.aggregate(Max('surge'), Min('surge'))
         return query
 
-    def get_surge_range_bygroup(self, forecast_dt_str: str, ty_code: str,
-                                timestamp_str: str) -> tuple:
+    def get_all_path_surge_realdata_range_bygroup(self, forecast_dt_str: str, ty_code: str,
+                                                  timestamp_str: str) -> tuple:
         """
-            获取对应案例，指定预报时刻的不同潮位站的潮位范围
+            - 22-05-26 获取对应案例指定预报时刻的全路径不同潮位站的潮位范围
         @param forecast_dt_str:
         @param ty_code:
         @param timestamp_str:
@@ -161,6 +161,42 @@ class StationListBaseView(TyGroupBaseView):
                 WHERE (`{tab_name}`.`forecast_dt` = '{forecast_dt}' 
                 AND `{tab_name}`.`ty_code` = {ty_code} AND `{tab_name}`.`timestamp` = '{timestamp_str}' AND (`{tab_name}`.`station_code`=station_info.code)) ) as res
         group by res.station_code"""
+        with connection.cursor() as c:
+            c.execute(sql_str)
+            res = c.fetchall()
+        return res
+
+    def get_center_path_surge_realdata_range_bygroup(self, forecast_dt_str: str, ty_code: str,
+                                                     timestamp_str: str, gp_id: int) -> tuple:
+        """
+            + 22-05-26 获取对应案例指定预报时刻的中间路径(gp_id)不同潮位站的潮位范围
+        @param forecast_dt_str: 指定预报时刻(str)
+        @param ty_code: 对应台风编号
+        @param timestamp_str: 案例时间戳
+        @param gp_id: 中间路径的 group path id
+        @return:
+        """
+        forecast_dt: datetime = arrow.get(forecast_dt_str).datetime
+        tab_name: str = f'{STATION_SURGE_REALDATA_TAB_BASE_NAME}_{ty_code}'
+        forecast_dt_str: str = arrow.get()
+        sql_str: str = f"""SELECT max(surge) as max,min(surge) as min,station_code as station_code,name,lat,lon,ty_code,forecast_dt,timestamp,forecast_index
+                       FROM (SELECT ({tab_name}.station_code) AS `station_code`,
+                              (station_info.lat) AS `lat`, (station_info.lon) AS `lon`,
+                              (station_info.name) AS `name`,
+                              ({tab_name}.surge) AS `surge`,
+                              `{tab_name}`.`id`,
+                              `{tab_name}`.`is_del`,
+                              `{tab_name}`.`gmt_created`,
+                              `{tab_name}`.`gmt_modified`,
+                              `{tab_name}`.`ty_code`,
+                              `{tab_name}`.`gp_id`,
+                              `{tab_name}`.`forecast_dt`,
+                              `{tab_name}`.`forecast_index`,
+                              `{tab_name}`.`timestamp`
+                       FROM `{tab_name}` , `station_info`
+                       WHERE (`{tab_name}`.`forecast_dt` = '{forecast_dt}' 
+                       AND `{tab_name}`.`ty_code` = {ty_code} AND `{tab_name}`.`timestamp` = '{timestamp_str}'  AND `{tab_name}`.`gp_id` = '{gp_id}' AND (`{tab_name}`.`station_code`=station_info.code)) ) as res
+               group by res.station_code"""
         with connection.cursor() as c:
             c.execute(sql_str)
             res = c.fetchall()
@@ -608,6 +644,7 @@ class StationSurgeRangeValueListView(StationListBaseView):
         根据 forecast 与 ts 获取
         tb:station_forecast_realdata 与 tb:station_info
         获取预报范围值 和 当前中心路径的实际值
+        - 22-05-26 注意现在反悔的是全部路径中的极值，非中间路径
     """
 
     def get(self, request: Request) -> Response:
@@ -645,8 +682,9 @@ class StationSurgeRangeValueListView(StationListBaseView):
                  max ,min, staiton_code,name,lat,lon,ty_code,forecast_dt,timestamp
                  0   , 1  , 2   ,   3,    4     ,     5    ,    6   ,   7                               ,       8
         """
-        res_tuple: tuple = self.get_surge_range_bygroup(forecast_dt_str=forecast_dt_str,
-                                                        ty_code=ty_code, timestamp_str=timestamp_str)
+        res_tuple: tuple = self.get_center_path_surge_realdata_range_bygroup(forecast_dt_str=forecast_dt_str,
+                                                                             ty_code=ty_code,
+                                                                             timestamp_str=timestamp_str, gp_id=gp_id)
         for temp in res_tuple:
             temp_station = {}
             temp_station['station_code'] = temp[2]
