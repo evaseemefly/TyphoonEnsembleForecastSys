@@ -1,0 +1,17 @@
+version: '2.0' #版本号
+services: 
+  nginx:
+    restart: always 
+    image: daocloud.io/library/nginx:1.19.2 #镜像地址
+    container_name: nginx #容器名
+    ports:
+      - 82:82 #启动端口
+    volumes:  #数据卷映射地址
+      # 7920 环境
+      - /Users/evaseemefly/03data/05docker/01shared_data/nginx/conf:/etc/nginx/conf.d
+      # - E:/05DATA/89remote_shared_data/nginx/conf:/etc/nginx/conf.d
+      - /Users/evaseemefly/03data/01nginx_data:/home
+      
+      # 线上环境
+      # - /public/home/surge/TYPHOON_PROJ/docker_share/nginx/conf:/etc/nginx/conf.d
+      # - /public/home/surge/szsurge:/home
