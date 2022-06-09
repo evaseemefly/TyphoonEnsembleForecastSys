@@ -1066,6 +1066,9 @@ class JobGeneratePathFile(IBaseJob):
             fx = interpolate.interp1d(horg, lonorg)  # "quadratic","cubic"
             fy = interpolate.interp1d(horg, latorg)
             fp = interpolate.interp1d(horg, porg)
+
+        #     raise ValueError("A value in x_new is above the interpolation "
+        # ValueError: A value in x_new is above the interpolation range.
         lon1org = fx(h1org)
         lat1org = fy(h1org)
         p1org = np.round(fp(h1org))
