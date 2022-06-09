@@ -17,6 +17,7 @@ from common.enum import ForecastOrganizationEnum, TyphoonForecastSourceEnum
 from common.const import UNLESS_INDEX, UNLESS_ID_STR, NONE_ID
 from task.jobs import JobGetTyDetail, JobGetCustomerTyDetail, JobGeneratePathFile, JobTxt2Nc, JobTxt2NcPro, JobTaskBatch
 from conf.settings import TEST_ENV_SETTINGS
+from conf.settings import DATABASES
 from local.globals import get_celery
 from task.celery import app
 from util.customer_decorators import store_job_rate
@@ -126,7 +127,7 @@ def case_station(start: datetime, end: datetime, ty_code: str, ty_timestamp_str:
     gmt_start = start
     gmt_end = end  # 目前使用的结束时间为从台风网上爬取的时间的结束时间(预报)
     ty_stamp: str = f'TY{ty_code}_{ty_timestamp_str}'  # TY2046_1642658538
-    ty_detail: TyphoonForecastDetailModel = TyphoonForecastDetailModel(code=TY_CODE,
+    ty_detail: TyphoonForecastDetailModel = TyphoonForecastDetailModel(code=ty_code,
                                                                        organ_code=ForecastOrganizationEnum.NMEFC.value,
                                                                        gmt_start=gmt_start,
                                                                        gmt_end=gmt_end,
@@ -275,12 +276,13 @@ def case_db_create_split_tab(ty_code: str):
     @param item:
     @return:
     """
-    db_name: str = 'typhoon_forecast_db_new'
+    db_name: str == DATABASES.get('default').get('NAME')
+    # db_name: str = 'typhoon_forecast_db_new'
     tab_name: str = f'station_forecast_realdata_{ty_code}'
     # 注意此处需要先判断是否已经存在指定的 tb
     # 方式1: 执行sql语句创建 tb —— 不使用此种方式
     sql_str: str = f""""
-    create table {db_name}.{tab_name}
+    create table {tab_name}
     (
         id           int auto_increment
             primary key,
@@ -576,8 +578,8 @@ def main():
     # TODO:[-] 22-05-23 测试分表查询 | 判断指定 tab 是否存在 | 分表写入
     # case_db_splittable()
     # case_db_check_tab_exist('station_info')
-    case_db_create_split_tab('2107')
-    # case_db_insert_split_tab('2017')
+    # case_db_create_split_tab('2107')
+    case_db_insert_split_tab('2017')
     # 测试查询 gp
     # case_get_gp()
     # test_get_gp_model()

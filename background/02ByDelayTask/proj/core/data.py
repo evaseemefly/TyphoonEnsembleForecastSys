@@ -33,7 +33,7 @@ from util.customer_decorators import log_count_time, store_job_rate
 from util.log import Loggings, log_in
 from common.enum import JobInstanceEnum, TaskStateEnum
 
-from conf.settings import TEST_ENV_SETTINGS
+from conf.settings import TEST_ENV_SETTINGS, DATABASES
 from core.db import DbFactory, check_exist_table, create_station_surge_realdata_split_tab, get_station_surge_dao
 
 from core.file import StationSurgeRealDataFile, FieldSurgeCoverageFile, ProSurgeCoverageFile, MaxSurgeCoverageFile
@@ -208,12 +208,14 @@ def to_station_realdata(list_files: List[str], ty_detail: TyphoonForecastDetailM
     ty_id: int = kwargs.get('ty_id')
     forecast_area = kwargs.get('forecast_area', None)
     log_in.info(f'准备读取海洋站realdata,共有{len(list_files)}个')
+    log_in.info(f'准备写入的ty_code:{ty_detail.code}')
     # TODO:[*] 22-05-24 此处加入动态分表的流程
     # step: 动态分表 -1 判断指定表是否存在
     tab_base_name: str = 'station_forecast_realdata'
     # 动态分表的表名
     tab_name_surge_realdata_split: str = f'{tab_base_name}_{ty_detail.code}'
     is_exist = check_exist_table(tab_name_surge_realdata_split)
+    db_name: str = DATABASES.get('default').get('NAME')
     # step: 动态分表 -2 若不存在则动态创建该表
     if is_exist is False:
         tab_base_name = create_station_surge_realdata_split_tab(ty_detail.code)

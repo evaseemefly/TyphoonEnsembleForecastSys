@@ -199,7 +199,7 @@ class TaskCreateView(BaseView):
                       'members_num': members_num,
                       'deviation_radius_list': deviation_radius_list, 'is_customer_ty': is_customer_ty,
                       'ty_customer_cma': list_customer_cma,
-                      'forecast_area': area.value}
+                      'forecast_area': area}
         log_in.info(f'接收到:ty_code:{ty_code}提交至celery')
         res = self.celery.send_task(self.CELERY_TASK_NAME, args=[params_obj, '123', 19], kwargs=params_obj)
         log_in.info(f'ty_code:{ty_code}提交至celery成功!')
