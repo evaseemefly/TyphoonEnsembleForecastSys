@@ -1034,6 +1034,8 @@ class JobGeneratePathFile(IBaseJob):
         # r04 = 150
         # r05 = 180
         pNum = kwargs.get('members_num')
+        #     raise ValueError("A value in x_new is above the interpolation "
+        # ValueError: A value in x_new is above the interpolation range.
         hrs1, tlon1, tlat1, pres1 = self.interp6h(self.list_timeDiff, self.list_lons, self.list_lats, self.list_bp)
         # ['TYTD03_2020042710_c0_p00', 'TYTD03_2020042710_c0_p05', 'TYTD03_2020042710_c0_p10',...]
         # TODO:[*] 21-10-22 注意此处的时间由 local -> utc
@@ -1059,14 +1061,14 @@ class JobGeneratePathFile(IBaseJob):
         h1org = np.arange(0, horg[-1] + 6, 6)
         if len(horg) >= 4:
             # TODO:[*] ValueError: x and y arrays must be equal in length along interpolation axis.
-            fx = interpolate.interp1d(horg, lonorg, kind="cubic")  # "quadratic","cubic"
-            fy = interpolate.interp1d(horg, latorg, kind="cubic")
-            fp = interpolate.interp1d(horg, porg, kind="cubic")
+            # TODO:[-] 22-04-12 样条差值 kind="cubic"
+            fx = interpolate.interp1d(horg, lonorg)  # "quadratic","cubic"
+            fy = interpolate.interp1d(horg, latorg)
+            fp = interpolate.interp1d(horg, porg)
         else:
             fx = interpolate.interp1d(horg, lonorg)  # "quadratic","cubic"
             fy = interpolate.interp1d(horg, latorg)
             fp = interpolate.interp1d(horg, porg)
-
         #     raise ValueError("A value in x_new is above the interpolation "
         # ValueError: A value in x_new is above the interpolation range.
         lon1org = fx(h1org)

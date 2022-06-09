@@ -89,7 +89,8 @@ WSGI_APPLICATION = 'TyphoonForecastSite.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',  # 数据库引擎
-        'NAME': 'typhoon_forecast_db',  # 数据库名
+        # 'NAME': 'typhoon_forecast_db',  # 数据库名
+        'NAME': 'typhoon_forecast_db_new',  # 数据库名 home 中的db修改为 new
         # by casablanca
         # mac
         'USER': 'root',  # 账号
@@ -156,8 +157,8 @@ MY_PAGINATOR = {
 
 # TODO:[-] 20-11-03 加入的测试时使用的读取存储文件的网络存储的相关信息
 STORE_OPTIONS = {
-    'URL': '128.5.10.21',
-    # 'URL': 'localhost',
+    # 'URL': '128.5.10.21',
+    'URL': 'localhost',
     'HOST': 82,  # TODO:[-] 21-01-03 暂时将 nginx 的端口改为了 82 ，注意！
     'STORE_COMMON_BASE': 'images',  # 对应 nginx 的映射的根目录
     'HEAD': 'nmefc_download',  # nginx 实际存储的 起始路径
