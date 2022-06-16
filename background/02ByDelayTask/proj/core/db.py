@@ -62,7 +62,8 @@ def check_exist_table(tab_name: str) -> (bool, str):
     return is_exist
 
 
-def create_station_surge_realdata_split_tab(ty_code: str, tab_base_name: str = 'station_forecast_realdata') -> str:
+def create_station_surge_realdata_split_tab(ty_code: str,
+                                            tab_base_name: str = 'station_forecast_realdata') -> str:
     """
         创建 海洋站潮位数据的分表
         eg:
@@ -75,7 +76,7 @@ def create_station_surge_realdata_split_tab(ty_code: str, tab_base_name: str = '
     # 注意此处需要先判断是否已经存在指定的 tb
     # 方式1: 执行sql语句创建 tb —— 不使用此种方式
     sql_str: str = f""""
-    create table {tab_base_name}.{tab_name}
+    create table {tab_name}
     (
         id           int auto_increment
             primary key,
@@ -133,6 +134,7 @@ def get_station_surge_dao(ty_code: str, tab_base_name: str = 'station_forecast_r
     auto_base.prepare(engine, reflect=True)
     StationSurgeDao = getattr(auto_base.classes, tab_name)
     return StationSurgeDao
+
 
 def insert_station_surge_realdata_split_tab(ty_code: str, tab_base_name: str = 'station_forecast_realdata') -> str:
     tab_name: str = f'{tab_base_name}_{ty_code}'
