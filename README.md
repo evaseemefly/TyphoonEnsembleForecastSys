@@ -66,7 +66,6 @@
   * 极值潮位站显示
 ![22-02-18-04](./documents/pic/pic018.png)
 ![22-02-18-05](./documents/pic/pic019.png)
----
 + 22-04-14
 + 重新修改了左侧加载图层
 + 将左侧加载图层的加载逻辑修改为级联操作(个人不喜欢这种操作)
@@ -96,3 +95,14 @@
 最终实现效果如下:
 ![max等值线加载](./documents/pic/pic027.png)
 ![field等值线加载](./documents/pic/pic028.png)
+---
++ 22-06-16
++ 加入了 `raster` 与 `isosurface` 动态切换的功能,修复了之前同时加载两份色标的bug;
++ 动态切换时会根据加载的不同layer加载不同形式的`colorbar`;
++ 将之前顺序await修改为链式表达式;
++ 将部分`raster` 与 `isosurface`逻辑进行了重新封装;
+![max等值线加载](./documents/pic/pic029.png)
+![max等值线加载](./documents/pic/pic030.png)
+* 目前上存在 逐时增水场 色标为当前过程中 [min,max] 范围 与 等值面色标的 当前时刻的 [min,max]不一致的问题;
++ 获取台风路径 | 加载layer时加入了loading。
+![max等值线加载](./documents/pic/pic031.png)
