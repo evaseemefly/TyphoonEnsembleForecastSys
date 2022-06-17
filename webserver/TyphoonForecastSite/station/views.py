@@ -179,24 +179,11 @@ class StationListBaseView(TyGroupBaseView):
         forecast_dt: datetime = arrow.get(forecast_dt_str).datetime
         tab_name: str = f'{STATION_SURGE_REALDATA_TAB_BASE_NAME}_{ty_code}'
         forecast_dt_str: str = arrow.get()
-        sql_str: str = f"""SELECT max(surge) as max,min(surge) as min,station_code as station_code,name,lat,lon,ty_code,forecast_dt,timestamp,forecast_index
-                       FROM (SELECT ({tab_name}.station_code) AS `station_code`,
-                              (station_info.lat) AS `lat`, (station_info.lon) AS `lon`,
-                              (station_info.name) AS `name`,
-                              ({tab_name}.surge) AS `surge`,
-                              `{tab_name}`.`id`,
-                              `{tab_name}`.`is_del`,
-                              `{tab_name}`.`gmt_created`,
-                              `{tab_name}`.`gmt_modified`,
-                              `{tab_name}`.`ty_code`,
-                              `{tab_name}`.`gp_id`,
-                              `{tab_name}`.`forecast_dt`,
-                              `{tab_name}`.`forecast_index`,
-                              `{tab_name}`.`timestamp`
-                       FROM `{tab_name}` , `station_info`
+        sql_str: str = f"""SELECT 
+         ({tab_name}.surge) AS `surge`,
+         ({tab_name}.station_code) AS `station_code`,(station_info.name) AS `name`,(station_info.lat) AS `lat`, (station_info.lon) AS `lon`,`{tab_name}`.`ty_code`,`{tab_name}`.`forecast_dt`,`{tab_name}`.`timestamp`  FROM `{tab_name}` , `station_info`
                        WHERE (`{tab_name}`.`forecast_dt` = '{forecast_dt}' 
-                       AND `{tab_name}`.`ty_code` = {ty_code} AND `{tab_name}`.`timestamp` = '{timestamp_str}'  AND `{tab_name}`.`gp_id` = '{gp_id}' AND (`{tab_name}`.`station_code`=station_info.code)) ) as res
-               group by res.station_code"""
+                       AND `{tab_name}`.`ty_code` = {ty_code} AND `{tab_name}`.`timestamp` = '{timestamp_str}'  AND `{tab_name}`.`gp_id` = '{gp_id}' AND (`{tab_name}`.`station_code`=station_info.code)) """
         with connection.cursor() as c:
 
             c.execute(sql_str)
@@ -682,23 +669,43 @@ class StationSurgeRangeValueListView(StationListBaseView):
             eg: (0.0, 0.0, 'PTN', '平潭', 25.4667, 119.8333, '2107', datetime.datetime(2021, 7, 19, 6, 0), '1650352587')
                  max ,min, staiton_code,name,lat,lon,ty_code,forecast_dt,timestamp
                  0   , 1  , 2   ,   3,    4     ,     5    ,    6   ,   7                               ,       8
+            ---
+            22-06-09 
+            取消了聚合，因为查询条件为中间路径(指定了gp_id)，只有一条结果
+            ('PTN', 25.4667, 119.8333, '平潭', 2.71, 118868, '2107', 12774, datetime.datetime(2021, 7, 20, 7, 0), 19, '1654763175')
+            ---
+            {tab_name}.station_code) AS `station_code`,
+                              (station_info.lat) AS `lat`, (station_info.lon) AS `lon`,
+                              (station_info.name) AS `name`,
+                              ({tab_name}.surge) AS `surge`,
+                              `{tab_name}`.`id`,
+                              `{tab_name}`.`ty_code`,
+                              `{tab_name}`.`gp_id`,
+                              `{tab_name}`.`forecast_dt`,
+                              `{tab_name}`.`forecast_index`,
+                              `{tab_name}`.`timestamp`
+            ---
+            最新的返回结果
+            (0.13, 'PTN', '平潭', 25.4667, 119.8333, '2107', datetime.datetime(2021, 7, 20, 5, 0), '1654763175')
+     max ,min, staiton_code,name,lat,   lon,        ty_code,forecast_dt,                    timestamp
+     0   , 1  , 2   ,       3,    4     ,5    ,      6   ,                                  7     
         """
         res_tuple: tuple = self.get_center_path_surge_realdata_range_bygroup(forecast_dt_str=forecast_dt_str,
                                                                              ty_code=ty_code,
                                                                              timestamp_str=timestamp_str, gp_id=gp_id)
         for temp in res_tuple:
             temp_station = {}
-            temp_station['station_code'] = temp[2]
-            temp_station['ty_code'] = temp[6]
+            temp_station['station_code'] = temp[1]
+            temp_station['ty_code'] = temp[5]
             temp_station['gp_id'] = gp_id
-            temp_station['forecast_index'] = temp[9]
-            temp_station['forecast_dt'] = temp[7]
+            temp_station['forecast_index'] = temp[7]
+            temp_station['forecast_dt'] = temp[6]
             temp_station['surge'] = temp[0]
-            temp_station['name'] = temp[3]
-            temp_station['lat'] = temp[4]
-            temp_station['lon'] = temp[5]
+            temp_station['name'] = temp[2]
+            temp_station['lat'] = temp[3]
+            temp_station['lon'] = temp[4]
             temp_station['surge_max'] = temp[0]
-            temp_station['surge_min'] = temp[1]
+            temp_station['surge_min'] = temp[0]
             station_finial_list.append(temp_station)
         # ---
         # -----耗时查询结束-----
