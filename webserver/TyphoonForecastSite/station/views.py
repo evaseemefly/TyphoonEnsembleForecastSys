@@ -198,6 +198,7 @@ class StationListBaseView(TyGroupBaseView):
                        AND `{tab_name}`.`ty_code` = {ty_code} AND `{tab_name}`.`timestamp` = '{timestamp_str}'  AND `{tab_name}`.`gp_id` = '{gp_id}' AND (`{tab_name}`.`station_code`=station_info.code)) ) as res
                group by res.station_code"""
         with connection.cursor() as c:
+
             c.execute(sql_str)
             res = c.fetchall()
         return res
