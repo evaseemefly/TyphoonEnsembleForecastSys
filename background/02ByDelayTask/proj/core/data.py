@@ -875,6 +875,8 @@ class StationRealDataFile(ITyphoonPath):
         full_path: str = str(pathlib.Path(self.save_dir_path) / file_name)
         forecast_area: ForecastAreaEnum = kwargs.get('forecast_area') if kwargs.get('forecast_area',
                                                                                     None) is not None else ForecastAreaEnum.SCS
+        log_in.info(
+            f'- 获取提交的区域为:{forecast_area.value}')
         df_temp: pd.DataFrame = self.init_forecast_data(group_path_file=full_path)
         list_station_realdata: List[StationForecastRealDataModel] = []
         # TODO:[*] 22-05-24 修改为动态库表改为手动获取动态库表的 dao映射实体
@@ -886,6 +888,9 @@ class StationRealDataFile(ITyphoonPath):
             num_rows = df_temp.shape[1]  # 列数
             # TODO:[-] 22-01-18 加入了根据传入的参数获取对应海区的步骤
             current_dict: dict = get_area_dict_station(forecast_area)
+            if len(current_dict) != num_rows:
+                ex = Exception(f'当前区域:{forecast_area.value},字典长度:{len(current_dict)},实际读取文件行数:{num_rows}不一致!')
+                raise ex
             # 列与 common/common_dict -> DICT_STATION 的 key 对应
             for index_column in range(num_rows):
                 # TODO:[-] 22-01-18: 注意此处修改为动态字典

@@ -1471,6 +1471,7 @@ class JobTxt2Nc(IBaseJob):
     def txt2nc(self, wdir0, caseno, stm):
         # TODO:[-] 21-09-10 新增部分——解决陆地部分未掩码的bug
         top_dir_path: str = self.path_data_full
+        # TODO:[*] 22-06-20 注意此处的地形文件加载时写死的!需要修改
         top_full_name: str = str(pathlib.Path(top_dir_path) / 'topo3sz.dp')
         with open(top_full_name, 'r+') as fi:
             dz0 = fi.readlines()
