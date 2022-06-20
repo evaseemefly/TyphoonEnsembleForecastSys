@@ -1551,7 +1551,8 @@ class JobTxt2Nc(IBaseJob):
                 # print(type(dnum),dnum,timenum)
                 timestr.append(str(st2))
                 hours.append(i + 1)
-
+            # TODO:[*] 22-06-20 ERROR:
+            # ValueError: cannot reshape array of size 9849600 into shape (13,660,1080)
             ascii_fl2 = np.reshape(ascii_fl, (len(timestr), len(yy), len(xx)))
             # TODO:[-] 21-09-10 新增部分——解决陆地部分未掩码的bug
             for i in range(len(timestr)):
