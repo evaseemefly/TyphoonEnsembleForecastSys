@@ -519,7 +519,7 @@ def to_do(*args, **kwargs):
             # # TODO:[-] + 21-09-02 txt -> nc 目前没问题，需要注意一下当前传入的 时间戳是 yyyymmddHH 的格式，与上面的不同
             # TODO:[*] 21-09-08 注意此处暂时将 时间戳设置为一个固定值！！注意！！
             job_txt2nc = JobTxt2Nc(ty_code, timestamp_str)
-            job_txt2nc.to_do(forecast_start_dt=dt_forecast_start)
+            job_txt2nc.to_do(forecast_start_dt=dt_forecast_start, forecast_area=forecast_area)
             # TODO:[-] 21-11-16 加入了处理最大增水场的步骤！
             case_max_surge(ty_code, ty_stamp, dt_forecast_start, dt_forecast_end)
             log_in.info(f'ty_code:{ty_code}|timestamp:{job_ty.timestamp_str},完成surge_max的.dat->.nc的转换')
@@ -530,7 +530,7 @@ def to_do(*args, **kwargs):
             # # step 3-2:
             # #
             job_txt2ncpro = JobTxt2NcPro(ty_code, timestamp_str)
-            job_txt2ncpro.to_do(forecast_start_dt=dt_forecast_start)
+            job_txt2ncpro.to_do(forecast_start_dt=dt_forecast_start, forecast_area=forecast_area)
             log_in.info(f'ty_code:{ty_code}|timestamp:{job_ty.timestamp_str},完成surge_pro的.dat->.nc的转换')
             case_pro_surge(ty_code, ty_stamp, dt_forecast_start, dt_forecast_end)
             log_in.info(f'ty_code:{ty_code}|timestamp:{job_ty.timestamp_str},完成surge_pro的.nc->.tiff的转换')

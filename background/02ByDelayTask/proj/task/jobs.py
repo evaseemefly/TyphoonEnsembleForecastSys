@@ -1477,7 +1477,8 @@ class JobTxt2Nc(IBaseJob):
         # TODO:[*] 22-06-20 注意此处的地形文件加载时写死的!需要修改
         topo_file_name: str = get_area_dp_file(area)
         top_full_name: str = str(pathlib.Path(top_dir_path) / topo_file_name)
-        # top_full_name: str = str(pathlib.Path(top_dir_path) / 'topo3sz.dp')
+        log_in.info(f'/task/jobs.py->JobTxt2Nc->def txt2nc()|读取地形文件:{top_full_name}')
+        # top_full_name: str = str(pathlib.Path(top_dir_path) / '.dp')
         with open(top_full_name, 'r+') as fi:
             dz0 = fi.readlines()
             tpnum = []
@@ -1529,6 +1530,8 @@ class JobTxt2Nc(IBaseJob):
                         dznum2.append(list(map(float, dz3)))
                     max_surge = np.array(dznum2)
                     # TODO:[-] 21-09-10 新增部分——解决陆地部分未掩码的bug
+                    # TODO:[*] 22-06-20 此处存在一个bug
+                    # ValueError: operands could not be broadcast together with shapes (720,1140) (660,1080)
                     max_surge = max_surge * topo
         #
         yy = np.arange(15 + 1 / 120, 26 + 1 / 120, 1 / 60)
@@ -1645,11 +1648,19 @@ class JobTxt2NcPro(IBaseJob):
 
     @except_log()
     def to_do(self, **kwargs):
+        """
+
+        :param kwargs:  forecast_start_dt
+                        forecast_area 预报区域 (22-06-20 新增)
+        :return:
+        """
         forecast_start_dt: datetime = kwargs.get('forecast_start_dt')
+        forecast_area: ForecastAreaEnum = kwargs.get('forecast_area')
         # timestamp_str: str = '2021080415'
         # ts_dt: datetime = arrow.get(timestamp_str, 'YYYYMMDDhh').datetime
         dznum = self.get_maxsurgedata(SHARED_PATH, self.ty_stamp, forecast_start_dt)
-        self.gen_prosurge_nc(SHARED_PATH, self.ty_stamp, forecast_start_dt, dznum, self._levs, self._levs2)
+        self.gen_prosurge_nc(SHARED_PATH, self.ty_stamp, forecast_start_dt, dznum, self._levs, self._levs2,
+                             forecast_area)
         pass
 
     def get_maxsurgedata(self, wdir0, caseno, st):
@@ -1684,12 +1695,13 @@ class JobTxt2NcPro(IBaseJob):
             return dznum
 
     @store_job_rate(job_instance=JobInstanceEnum.TXT_2_NC_PRO, job_rate=90)
-    def gen_prosurge_nc(self, wdir0, caseno, st, dznum, levs, levs2):
+    def gen_prosurge_nc(self, wdir0, caseno, st, dznum, levs, levs2, area: ForecastAreaEnum):
 
         # tdir = wdir0 + 'data/'
         tdir = str(pathlib.Path(wdir0) / 'data')
-
-        toponame = str(pathlib.Path(tdir) / 'topo3sz.dp')
+        # TODO:[*] 22-06-20 新加入了动态获取地形文件
+        topo_file_name: str = get_area_dp_file(area)
+        toponame = str(pathlib.Path(tdir) / topo_file_name)
         with open(toponame, 'r+') as fi:
             dz0 = fi.readlines()
             tpnum = []
