@@ -137,7 +137,7 @@ class TySpiderBaseView(BaseView):
         # 参考文章: https://blog.csdn.net/xietansheng/article/details/115557974
 
         conn = http.client.HTTPConnection(baseUrl)
-        ty_year=self._get_year(ty_code)
+        ty_year = self._get_year(ty_code)
         conn.request('GET', f'/weatherservice/typhoon/jsons/list_{ty_year}')
         res = conn.getresponse()
         content = res.read().decode('utf-8')
@@ -249,7 +249,10 @@ class TySpiderBaseView(BaseView):
             ty_realdata_list: [] = []
             for temp_ty_group in ty_group_list:
                 forecast_ty_path_list: [] = []
-                if 'BABJ' in temp_ty_group[11].keys():
+                # TODO:[*] 22-06-20 查询2106号台风时出现了错误
+                # ERROR: 'NoneType' object has no attribute 'keys'
+                # 此处需要加入判断 temp_ty_group[11] 是否包含 keys
+                if hasattr(temp_ty_group[11], 'keys') and 'BABJ' in temp_ty_group[11].keys():
                     '''
                         "BABJ": [
                             [
