@@ -21,7 +21,7 @@ from typing import List
 from model.models import CaseStatus
 from util.customer_decorators import log_count_time, store_job_rate
 from util.log import Loggings, log_in
-from common.enum import JobInstanceEnum, TaskStateEnum, ForecastAreaEnum
+from common.enum import JobInstanceEnum, TaskStateEnum, ForecastAreaEnum, get_area_dp_file
 from util.customer_excption import CalculateTimeOutError
 from util.customer_decorators import except_log
 from conf.settings import TEST_ENV_SETTINGS, JOB_SETTINGS, MODIFY_CHMOD_PATH, MODIFY_CHMOD_FILENAME, TIME_ZONE
@@ -1456,23 +1456,28 @@ class JobTxt2Nc(IBaseJob):
         """
 
         @param kwargs: forecast_start_dt_str: 预报的起始时间 (local) eg: YYYYMMDDhh
+                       forecast_start_dt
+                       forecast_area: 预报区域枚举
 
         @return:
         """
         forecast_dt: datetime = kwargs.get('forecast_dt')
         forecast_start_dt: datetime = kwargs.get('forecast_start_dt')
         forecast_start_dt_str: str = kwargs.get('forecast_start_dt_str')
+        area: ForecastAreaEnum = kwargs.get('forecast_area')
         # timestamp_str: str = '2021080415'
         # ts_dt: datetime = arrow.get(forecast_start_dt_str, 'YYYYMMDDhh').datetime
-        self.txt2nc(SHARED_PATH, self.ty_stamp, forecast_start_dt)
+        self.txt2nc(SHARED_PATH, self.ty_stamp, forecast_start_dt, area)
         pass
 
     @store_job_rate(job_instance=JobInstanceEnum.TXT_2_NC, job_rate=90)
-    def txt2nc(self, wdir0, caseno, stm):
+    def txt2nc(self, wdir0, caseno, stm, area: ForecastAreaEnum):
         # TODO:[-] 21-09-10 新增部分——解决陆地部分未掩码的bug
         top_dir_path: str = self.path_data_full
         # TODO:[*] 22-06-20 注意此处的地形文件加载时写死的!需要修改
-        top_full_name: str = str(pathlib.Path(top_dir_path) / 'topo3sz.dp')
+        topo_file_name: str = get_area_dp_file(area)
+        top_full_name: str = str(pathlib.Path(top_dir_path) / topo_file_name)
+        # top_full_name: str = str(pathlib.Path(top_dir_path) / 'topo3sz.dp')
         with open(top_full_name, 'r+') as fi:
             dz0 = fi.readlines()
             tpnum = []

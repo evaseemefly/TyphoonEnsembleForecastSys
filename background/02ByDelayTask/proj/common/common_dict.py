@@ -14,6 +14,9 @@ def get_area_dict_station(area: enum.ForecastAreaEnum) -> dict:
     return current_dict
 
 
+
+
+
 DICT_STATION = {
     0: 'SHW',
     1: 'HZO',
