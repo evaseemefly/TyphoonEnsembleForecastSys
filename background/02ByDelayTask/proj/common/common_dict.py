@@ -14,9 +14,6 @@ def get_area_dict_station(area: enum.ForecastAreaEnum) -> dict:
     return current_dict
 
 
-
-
-
 DICT_STATION = {
     0: 'SHW',
     1: 'HZO',
@@ -205,3 +202,33 @@ DICT_STATION_3 = {
     47: 'YGH',
 
 }
+
+
+class ForecastArea:
+    """
+        预报区域model
+    """
+
+    def __init__(self, lat_min: float, lat_max: float, lon_min: float, lon_max: float, step: float):
+        self.lat_min = lat_min
+        self.lat_max = lat_max
+        self.lon_min = lon_min
+        self.lon_max = lon_max
+        self.step = step
+
+
+# 预报范围字典
+DICT_FORECAST_AREA = {
+    # enum.ForecastAreaEnum.BHI:ForecastArea()
+    enum.ForecastAreaEnum.ECS: ForecastArea(19, 31, 110, 129, 1 / 60),
+    enum.ForecastAreaEnum.SCS: ForecastArea(15, 26, 105, 123, 1 / 60)
+}
+
+
+def get_forecast_area_range(area: enum.ForecastAreaEnum) -> ForecastArea:
+    """
+        + 22-06-21 根据区域获取预报的范围
+    @param area:
+    @return:
+    """
+    return DICT_FORECAST_AREA.get(area)

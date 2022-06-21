@@ -25,6 +25,7 @@ from common.enum import JobInstanceEnum, TaskStateEnum, ForecastAreaEnum, get_ar
 from util.customer_excption import CalculateTimeOutError
 from util.customer_decorators import except_log
 from conf.settings import TEST_ENV_SETTINGS, JOB_SETTINGS, MODIFY_CHMOD_PATH, MODIFY_CHMOD_FILENAME, TIME_ZONE
+from common.common_dict import get_forecast_area_range
 
 SHARED_PATH = TEST_ENV_SETTINGS.get('TY_GROUP_PATH_ROOT_DIR')
 MAX_TIME_INTERVAL: int = JOB_SETTINGS.get('MAX_TIME_INTERVAL')
@@ -1533,9 +1534,14 @@ class JobTxt2Nc(IBaseJob):
                     # TODO:[*] 22-06-20 此处存在一个bug
                     # ValueError: operands could not be broadcast together with shapes (720,1140) (660,1080)
                     max_surge = max_surge * topo
-        #
-        yy = np.arange(15 + 1 / 120, 26 + 1 / 120, 1 / 60)
-        xx = np.arange(105 + 1 / 120, 123 + 1 / 120, 1 / 60)
+        # + 22-06-21 动态获取不同预报区域的范围
+        forecast_area_range = get_forecast_area_range(area)
+        # yy = np.arange(15 + 1 / 120, 26 + 1 / 120, 1 / 60)
+        # xx = np.arange(105 + 1 / 120, 123 + 1 / 120, 1 / 60)
+        yy = np.arange(forecast_area_range.lat_min + forecast_area_range.step / 2,
+                       forecast_area_range.lat_max + forecast_area_range.step / 2, forecast_area_range.step)
+        xx = np.arange(forecast_area_range.lon_min + forecast_area_range.step / 2,
+                       forecast_area_range.lon_max + forecast_area_range.step / 2, forecast_area_range.step)
         if fl_name != None:
             print(type(ascii_fl), np.shape(ascii_fl))
             tt, mm = np.shape(ascii_fl)
@@ -1545,7 +1551,9 @@ class JobTxt2Nc(IBaseJob):
             timenum = []
             dnum = stm.toordinal()
             HH = str(stm.strftime('%H'))
-            for i in range(int(tt / 660)):
+            # + 22-06-21 此处修改为动态获取纬度差/step
+            lat_nums = (forecast_area_range.lat_max - forecast_area_range.lat_min) / forecast_area_range.step
+            for i in range(int(tt / lat_nums)):
                 st2 = stm + timedelta(hours=i + 1)
                 timenum.append(dnum + (float(HH) + i + 1) / 24)
                 # print(type(dnum),dnum,timenum)
@@ -1699,6 +1707,9 @@ class JobTxt2NcPro(IBaseJob):
     def gen_prosurge_nc(self, wdir0, caseno, st, dznum, levs, levs2, area: ForecastAreaEnum):
 
         # tdir = wdir0 + 'data/'
+        # + 22-06-21 动态获取不同预报区域的范围
+        forecast_area_range = get_forecast_area_range(area)
+        lat_nums = int((forecast_area_range.lat_max - forecast_area_range.lat_min) / forecast_area_range.step)
         tdir = str(pathlib.Path(wdir0) / 'data')
         # TODO:[*] 22-06-20 新加入了动态获取地形文件
         topo_file_name: str = get_area_dp_file(area)
@@ -1720,7 +1731,7 @@ class JobTxt2NcPro(IBaseJob):
             return
         else:
             tt, mm = np.shape(dznum)
-            sur = dznum[0:660, :]
+            sur = dznum[0:lat_nums, :]
             sur = np.array(sur)
             sur = np.flipud(sur)
             dznum[dznum > 900] = 0
@@ -1734,7 +1745,7 @@ class JobTxt2NcPro(IBaseJob):
             syear = str(st)[0:4]
             #
             for i in range(len(levs)):
-                pps = self.cal_pro(dznum, levs[i])
+                pps = self.cal_pro(dznum, levs[i], area)
                 pps = np.flipud(pps)
                 pps[sur > 900] = nan
                 ##==============saveas netcdf===================#
@@ -1768,15 +1779,18 @@ class JobTxt2NcPro(IBaseJob):
                 prosurge[::] = pps
                 nc_data.close()
 
-    def cal_pro(self, dznum, levs):
+    def cal_pro(self, dznum, levs, area: ForecastAreaEnum):
+        # + 22-06-21 动态获取不同预报区域的范围
+        forecast_area_range = get_forecast_area_range(area)
+        lat_nums = int((forecast_area_range.lat_max - forecast_area_range.lat_min) / forecast_area_range.step)
         pp = dznum.copy()
         pp[pp >= levs] = levs
         pp[pp < levs] = 0
         tt, mm = np.shape(dznum)
-        pps = np.zeros((660, mm))
-        for i in range(int(tt / 660)):
-            pps = pps + pp[i * 660:(i + 1) * 660, :] / levs
-        pps = pps / int(tt / 660) * 100
+        pps = np.zeros((lat_nums, mm))
+        for i in range(int(tt / lat_nums)):
+            pps = pps + pp[i * lat_nums:(i + 1) * lat_nums, :] / levs
+        pps = pps / int(tt / lat_nums) * 100
         return pps
 
         # return picname
