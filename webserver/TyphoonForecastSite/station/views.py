@@ -181,11 +181,10 @@ class StationListBaseView(TyGroupBaseView):
         forecast_dt_str: str = arrow.get()
         sql_str: str = f"""SELECT 
          ({tab_name}.surge) AS `surge`,
-         ({tab_name}.station_code) AS `station_code`,(station_info.name) AS `name`,(station_info.lat) AS `lat`, (station_info.lon) AS `lon`,`{tab_name}`.`ty_code`,`{tab_name}`.`forecast_dt`,`{tab_name}`.`timestamp`  FROM `{tab_name}` , `station_info`
+         ({tab_name}.station_code) AS `station_code`,(station_info.name) AS `name`,(station_info.lat) AS `lat`, (station_info.lon) AS `lon`,`{tab_name}`.`ty_code`,`{tab_name}`.`forecast_dt`,`{tab_name}`.`timestamp`,(station_info.base_level_diff) AS 'base_level_diff'  FROM `{tab_name}` , `station_info`
                        WHERE (`{tab_name}`.`forecast_dt` = '{forecast_dt}' 
                        AND `{tab_name}`.`ty_code` = {ty_code} AND `{tab_name}`.`timestamp` = '{timestamp_str}'  AND `{tab_name}`.`gp_id` = '{gp_id}' AND (`{tab_name}`.`station_code`=station_info.code)) """
         with connection.cursor() as c:
-
             c.execute(sql_str)
             res = c.fetchall()
         return res
@@ -706,6 +705,7 @@ class StationSurgeRangeValueListView(StationListBaseView):
             temp_station['lon'] = temp[4]
             temp_station['surge_max'] = temp[0]
             temp_station['surge_min'] = temp[0]
+            temp_station['base_level_diff'] = temp[8]
             station_finial_list.append(temp_station)
         # ---
         # -----耗时查询结束-----

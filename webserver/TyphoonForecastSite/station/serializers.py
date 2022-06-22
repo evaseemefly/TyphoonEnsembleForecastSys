@@ -31,6 +31,7 @@ class StationForecastRealDataComplexSerializer(serializers.Serializer):
 class StationForecastRealDataRangeSerializer(serializers.Serializer):
     surge_max = serializers.FloatField()
     surge_min = serializers.FloatField(required=False)
+    base_level_diff = serializers.FloatField(required=False)
     station_code = serializers.CharField()
 
 
