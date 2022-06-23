@@ -404,6 +404,18 @@ class StationAstronomicTideRealDataModel(IIdModel, IDel, IModel):
     surge = Column(Float, nullable=False)
 
 
+class StationInfoModel(IIdModel, IDel, IModel):
+    __tablename__ = 'station_info'
+    name = Column(VARCHAR(200), nullable=False)
+    code = Column(VARCHAR(200), nullable=False)
+    lat = Column(Float, nullable=False)
+    lon = Column(Float, nullable=False)
+    desc = Column(VARCHAR(200), nullable=False)
+    pid = Column(Integer)  # 添加的所属父级id
+    is_abs = Column(TINYINT(1), nullable=False, server_default=text("'0'"), default=0)  # 是否为抽象对象(抽象对象不显示)
+    base_level_diff = Column(Float, nullable=True)
+
+
 def dict_not_inner(dict1: dict, dict2: dict) -> dict:
     """
         从 dict1 中找到所有不存在于 dict2 中的元素并以字典的形式返回
@@ -482,6 +494,25 @@ def station_2_db(read_dir_path: str, session, dict_station: dict, start_dt: date
             print(f'当前文件:{read_file_full_path},不存在!')
 
 
+def update_station_d85(dict_station: dict, df: pd.DataFrame, session):
+    """
+        根据传入的海洋站字典获取对应的从 df 中找到对应的 station_code 获取对向db中更新 d85 field
+    :param dict_station:  {'文件名前缀':'station_code'}
+    :param df:
+    :return:
+    """
+    station_names = [station_temp[0] for station_temp in dict_station.items()]
+    for index in range(df.shape[0]):
+        station_temp = df.iloc[index]
+        if station_temp['code'] in station_names:
+            target_station = dict_station.get(station_temp['code'])
+            # 先根据 code 查一下，然后再 update
+            query = session.query(StationInfoModel).filter(StationInfoModel.code == target_station[1])
+            res = query.all()
+            pass
+    pass
+
+
 def main():
     start_dt: datetime.datetime = datetime.datetime(2021, 1, 1)
     end_dt: datetime.datetime = datetime.datetime(2021, 12, 31)
@@ -517,7 +548,13 @@ def main():
     # dict_area2_diff = {'QINGYU': 'QGY', 'QINYU': 'QYU', 'RUIAN': 'RAS', 'WENZHOU2': 'WZS'}
     # dict_area2_diff = {'QINGYU': 'QGY',  'RUIAN': 'RAS'}
     # step3: 从指定路径:read_dir_path ,根据 dict_area2_diff 字典中获取存在的文件，并以 start_dt 为起始时间，写入db
-    station_2_db(read_dir_path, session, dict_area2_diff, start_dt, end_dt)
+    #
+    # station_2_db(read_dir_path, session, dict_area2_diff, start_dt, end_dt)
+    # + 22-06-23 批量更新 station_info 中的 d85 filed
+    read_file_path: str = r'D:\01Proj\TyphoonEnsembleForecastSys\background\01ByJupyter\ignore_data\sites_wl4_四色警戒潮位_含85基面.csv'
+    df: pd.DataFrame = pd.read_csv(read_file_path,
+                                   names=['name', 'code', 'wl1', 'wl2', 'wl3', 'wl4', 'd85', 'MSL', 'lon', 'lat'])
+    update_station_d85(dict_area2_diff, df, session)
     pass
 
 
