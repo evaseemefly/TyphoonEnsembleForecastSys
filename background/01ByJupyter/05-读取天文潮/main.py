@@ -17,7 +17,8 @@ from sqlalchemy.orm import sessionmaker
 DATABASES = {
     'default': {
         'ENGINE': 'mysqldb',  # 数据库引擎
-        'NAME': 'typhoon_forecast_db',  # 数据库名
+        # 'NAME': 'typhoon_forecast_db',  # 数据库名
+        'NAME': 'typhoon_forecast_db_new',  # 数据库名
         # by casablanca
         # mac
         'USER': 'root',  # 账号
@@ -28,11 +29,12 @@ DATABASES = {
         # by cwb
         # 'USER': 'root',  # 账号
         # 'PASSWORD': '123456',
-        # 'HOST': 'localhost',  # HOST
+        'HOST': 'localhost',  # HOST
         # 'HOST': '127.0.0.1',  # HOST
-        'HOST': '128.5.10.21',  # HOST
-        # 'POST': 3306,  # 端口
-        'POST': 3308,  # TODO:[-] 21-10-11 端口暂时改为 3308
+        # 'HOST': '128.5.10.21',  # HOST
+        # 'HOST': 'host.docker.internal',  # docker访问宿主机的mysql服务
+        'POST': 3306,  # 端口
+        # 'POST': 3308,  # TODO:[-] 21-10-11 端口暂时改为 3308
         'OPTIONS': {
             "init_command": "SET foreign_key_checks = 0;",
         },
@@ -414,6 +416,7 @@ class StationInfoModel(IIdModel, IDel, IModel):
     pid = Column(Integer)  # 添加的所属父级id
     is_abs = Column(TINYINT(1), nullable=False, server_default=text("'0'"), default=0)  # 是否为抽象对象(抽象对象不显示)
     base_level_diff = Column(Float, nullable=True)
+    d85 = Column(Float, nullable=True)
 
 
 def dict_not_inner(dict1: dict, dict2: dict) -> dict:
@@ -504,18 +507,20 @@ def update_station_d85(dict_station: dict, df: pd.DataFrame, session):
     station_names = [station_temp[0] for station_temp in dict_station.items()]
     for index in range(df.shape[0]):
         station_temp = df.iloc[index]
+        d85_val: float = station_temp['d85']
         if station_temp['code'] in station_names:
-            target_station = dict_station.get(station_temp['code'])
+            target_station: str = dict_station.get(station_temp['code'])
             # 先根据 code 查一下，然后再 update
-            query = session.query(StationInfoModel).filter(StationInfoModel.code == target_station[1])
-            res = query.all()
-            pass
+            query = session.query(StationInfoModel).filter(StationInfoModel.code == target_station).update(
+                {"d85": d85_val})
+    session.commit()
     pass
 
 
 def main():
     start_dt: datetime.datetime = datetime.datetime(2021, 1, 1)
     end_dt: datetime.datetime = datetime.datetime(2021, 12, 31)
+    read_dir_path: str = r'/opt/data/ignore_data'
     read_dir_path: str = r'C:\Users\evase\OneDrive\同步文件夹\02项目及本子\10-台风集合预报路径系统\数据\2201_天文潮'
     session = DbFactory().Session
     # step2: 由于 东海和南海存在部分重叠的台站，需要先录入南海，然后去掉东海中南海已录入的部分，录入两次
@@ -551,10 +556,11 @@ def main():
     #
     # station_2_db(read_dir_path, session, dict_area2_diff, start_dt, end_dt)
     # + 22-06-23 批量更新 station_info 中的 d85 filed
-    read_file_path: str = r'D:\01Proj\TyphoonEnsembleForecastSys\background\01ByJupyter\ignore_data\sites_wl4_四色警戒潮位_含85基面.csv'
+    read_file_path: str = r'D:\01Proj\TyphoonEnsembleForecastSys\background\01ByJupyter\05-读取天文潮\ignore_data\sites_wl4_四色警戒潮位_含85基面.csv'
     df: pd.DataFrame = pd.read_csv(read_file_path,
                                    names=['name', 'code', 'wl1', 'wl2', 'wl3', 'wl4', 'd85', 'MSL', 'lon', 'lat'])
     update_station_d85(dict_area2_diff, df, session)
+    session.close()
     pass
 
 
