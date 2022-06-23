@@ -155,7 +155,7 @@ DICT_STATION = {
     # 黄埔   491 216
     'HUANGPU': 'HPU',  # 存在两个黄埔，黄埔与黄埔G
     # 珠海   523 216
-    'ZHUHAI': 'ZHI',
+    'ZHUHAI': 'ZHU',
     # 灯笼山 534 208
     'DENGLONG': 'DLS',
     # 三灶   539 205

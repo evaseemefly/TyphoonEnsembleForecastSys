@@ -16,6 +16,7 @@ class StationInfoModel(IModel, IDelModel, IIdModel):
     desc = models.CharField(max_length=500, null=True)
     pid = models.IntegerField(default=ABS_KEY)  # 添加的所属父级id
     is_abs = models.BooleanField(default=False)  # 是否为抽象对象(抽象对象不显示)
+    base_level_diff = models.FloatField(null=True)
 
     class Meta:
         db_table = 'station_info'
