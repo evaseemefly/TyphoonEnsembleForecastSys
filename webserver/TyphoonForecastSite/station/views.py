@@ -851,6 +851,20 @@ class StationBaseLevelDiffView(BaseView):
         return Response(self.json_data, status=self._status)
 
 
+class StationD85DiffView(BaseView):
+    def get(self, request: Request):
+        station_code: str = request.GET.get('station_code', DEFAULT_CODE)
+        diffObj: {} = {}
+        diffObj['station_code'] = station_code
+        if station_code != DEFAULT_CODE:
+            station_res = StationInfoModel.objects.filter(code=station_code)
+            if len(station_res) == 1:
+                diffObj['d85_diff'] = station_res.first().d85
+                self._status = 200
+        self.json_data = diffObj
+        return Response(self.json_data, status=self._status)
+
+
 class StationAlertView(StationListBaseView):
     def get(self, request: Request):
         """

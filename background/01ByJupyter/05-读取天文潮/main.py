@@ -17,8 +17,8 @@ from sqlalchemy.orm import sessionmaker
 DATABASES = {
     'default': {
         'ENGINE': 'mysqldb',  # 数据库引擎
-        # 'NAME': 'typhoon_forecast_db',  # 数据库名
-        'NAME': 'typhoon_forecast_db_new',  # 数据库名
+        'NAME': 'typhoon_forecast_db',  # 数据库名
+        # 'NAME': 'typhoon_forecast_db_new',  # 数据库名
         # by casablanca
         # mac
         'USER': 'root',  # 账号
@@ -29,12 +29,12 @@ DATABASES = {
         # by cwb
         # 'USER': 'root',  # 账号
         # 'PASSWORD': '123456',
-        'HOST': 'localhost',  # HOST
+        # 'HOST': 'localhost',  # HOST
         # 'HOST': '127.0.0.1',  # HOST
-        # 'HOST': '128.5.10.21',  # HOST
+        'HOST': '128.5.10.21',  # HOST
         # 'HOST': 'host.docker.internal',  # docker访问宿主机的mysql服务
-        'POST': 3306,  # 端口
-        # 'POST': 3308,  # TODO:[-] 21-10-11 端口暂时改为 3308
+        # 'POST': 3306,  # 端口
+        'POST': 3308,  # TODO:[-] 21-10-11 端口暂时改为 3308
         'OPTIONS': {
             "init_command": "SET foreign_key_checks = 0;",
         },
@@ -406,6 +406,13 @@ class StationAstronomicTideRealDataModel(IIdModel, IDel, IModel):
     surge = Column(Float, nullable=False)
 
 
+class StationAlertTideDataModel(IIdModel, IDel, IModel):
+    __tablename__ = 'station_stationalerttidemodel'
+    station_code = Column(VARCHAR(200), nullable=False)
+    alert = Column(Integer, nullable=False)
+    tide = Column(Float, nullable=True)
+
+
 class StationInfoModel(IIdModel, IDel, IModel):
     __tablename__ = 'station_info'
     name = Column(VARCHAR(200), nullable=False)
@@ -517,6 +524,42 @@ def update_station_d85(dict_station: dict, df: pd.DataFrame, session):
     pass
 
 
+def update_station_alert_level(dict_station: dict, df: pd.DataFrame, session):
+    """
+        根据传入的海洋站字典从df中找到对应的 station_code ，提取 wl1-wl4 四色警戒潮位值，并减去 d85，写入db
+    :param dict_station:
+    :param df:
+    :param session:
+    :return:
+    """
+    station_names = [station_temp[0] for station_temp in dict_station.items()]
+    for index in range(df.shape[0]):
+        station_temp = df.iloc[index]
+        d85_val: float = station_temp['d85']
+        wl1_val: int = station_temp['wl1'] if not pd.isnull(station_temp['wl1']) else None
+        wl2_val: int = station_temp['wl2'] if not pd.isnull(station_temp['wl2']) else None
+        wl3_val: int = station_temp['wl3'] if not pd.isnull(station_temp['wl3']) else None
+        wl4_val: int = station_temp['wl4'] if not pd.isnull(station_temp['wl4']) else None
+        if station_temp['code'] in station_names:
+            # 注意此处需要从 dict_station 中找到 station_code
+            station_code = dict_station.get(station_temp['code'])
+            target_station: str = dict_station.get(station_temp['code'])
+            # 先根据 code 查一下，然后再 update
+            # query = session.query(StationAlertTideDataModel).filter(StationInfoModel.code == target_station).update(
+            #     {"d85": d85_val})
+            wl1_model = StationAlertTideDataModel(station_code=station_code, tide=wl1_val, alert=5001)
+            wl2_model = StationAlertTideDataModel(station_code=station_code, tide=wl2_val, alert=5002)
+            wl3_model = StationAlertTideDataModel(station_code=station_code, tide=wl3_val, alert=5003)
+            wl4_model = StationAlertTideDataModel(station_code=station_code, tide=wl4_val, alert=5004)
+            session.add(wl1_model)
+            session.add(wl2_model)
+            session.add(wl3_model)
+            session.add(wl4_model)
+
+    session.commit()
+    pass
+
+
 def main():
     start_dt: datetime.datetime = datetime.datetime(2021, 1, 1)
     end_dt: datetime.datetime = datetime.datetime(2021, 12, 31)
@@ -556,10 +599,11 @@ def main():
     #
     # station_2_db(read_dir_path, session, dict_area2_diff, start_dt, end_dt)
     # + 22-06-23 批量更新 station_info 中的 d85 filed
-    read_file_path: str = r'D:\01Proj\TyphoonEnsembleForecastSys\background\01ByJupyter\05-读取天文潮\ignore_data\sites_wl4_四色警戒潮位_含85基面.csv'
+    read_file_path: str = r'./ignore_data/sites_wl4_四色警戒潮位_含85基面.csv'
     df: pd.DataFrame = pd.read_csv(read_file_path,
                                    names=['name', 'code', 'wl1', 'wl2', 'wl3', 'wl4', 'd85', 'MSL', 'lon', 'lat'])
-    update_station_d85(dict_area2_diff, df, session)
+    # update_station_d85(dict_area2_diff, df, session)
+    update_station_alert_level(dict_area2_diff, df, session)
     session.close()
     pass
 
