@@ -454,9 +454,12 @@ def commit_tide(read_data: pd.DataFrame, station_code: str, session, start_dt: d
                 end_dt: datetime.datetime):
     """
         将 dataFrame -> 写入 db
+        * 注意在本方法内部会将 start_dt(local) 转换为 utc 时间写入db(db中最终存储的为utc时间)
     :param read_data:
     :param station_code:
     :param session:
+    :param start_dt: 该年度的起始时间(local)
+    :param end_dt:
     :return:
     """
     index_days = 0
@@ -477,19 +480,22 @@ def commit_tide(read_data: pd.DataFrame, station_code: str, session, start_dt: d
 
 
 def station_2_db(read_dir_path: str, session, dict_station: dict, start_dt: datetime.datetime,
-                 end_dt: datetime.datetime):
+                 end_dt: datetime.datetime, year_str: str):
     """
         将天文潮位文件写入数据库
     :param read_dir_path: 读取路径
     :param session: 数据库 db session
     :param dict_station: 海洋站字典 :{'文件名前缀':'station_code'}
+    :param start_dt: 预报起始时间(该年度的起始时间——local时间)
+    :param end_dt: 暂时不需要
+    :param year_str: 获取  read_dir_path 目录下的文件后缀 一般为 2021|2022 等
     :return:
     """
     # TODO:[-] 22-04-20 新加入的自动遍历站点字典，自动 to db
     # file name eg: SHENGSHAN2022
     for key, val in dict_station.items():
         # 根据 dict_station 获取对应的file_name:
-        read_file_full_path: str = pathlib.Path(read_dir_path) / f'{key}2021'
+        read_file_full_path: str = pathlib.Path(read_dir_path) / f'{key}{year_str}'
         # C:\Users\evase\OneDrive\同步文件夹\02项目及本子\10-台风集合预报路径系统\数据\2022_天文潮\format_tide_2022\BEIHAI2022
         print(str(read_file_full_path))
         print(key)
@@ -561,10 +567,11 @@ def update_station_alert_level(dict_station: dict, df: pd.DataFrame, session):
 
 
 def main():
-    start_dt: datetime.datetime = datetime.datetime(2021, 1, 1)
-    end_dt: datetime.datetime = datetime.datetime(2021, 12, 31)
+    start_dt: datetime.datetime = datetime.datetime(2022, 1, 1)
+    end_dt: datetime.datetime = datetime.datetime(2022, 12, 31)
+    year_str: str = '2022'
     read_dir_path: str = r'/opt/data/ignore_data'
-    read_dir_path: str = r'C:\Users\evase\OneDrive\同步文件夹\02项目及本子\10-台风集合预报路径系统\数据\2201_天文潮'
+    read_dir_path: str = r'C:\Users\evase\OneDrive\同步文件夹\02项目及本子\10-台风集合预报路径系统\数据\2022_天文潮\format_tide_2022'
     session = DbFactory().Session
     # step2: 由于 东海和南海存在部分重叠的台站，需要先录入南海，然后去掉东海中南海已录入的部分，录入两次
     # demo: {0: 'LCG', 1: 'DJS', 2: 'JSZ'}
@@ -590,7 +597,7 @@ def main():
     # RAS
     # QYU 多次录入 注意将 qingyu code -> QGY
     # QGY
-    # station_2_db(read_dir_path, session, dict_area2_diff)
+    station_2_db(read_dir_path, session, dict_area2_diff, start_dt, end_dt, year_str)
 
     # 补录几个单站
     # dict_area2_diff = {'QINGYU': 'QGY', 'QINYU': 'QYU', 'RUIAN': 'RAS', 'WENZHOU2': 'WZS'}
