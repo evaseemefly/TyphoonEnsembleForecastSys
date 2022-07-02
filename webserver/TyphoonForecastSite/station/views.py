@@ -182,7 +182,7 @@ class StationListBaseView(TyGroupBaseView):
         sql_str: str = f"""SELECT 
          ({tab_name}.surge) AS `surge`,
          ({tab_name}.station_code) AS `station_code`,(station_info.name) AS `name`,(station_info.lat) AS `lat`, (station_info.lon) AS `lon`,`{tab_name}`.`ty_code`,`{tab_name}`.`forecast_dt`,`{tab_name}`.`timestamp`,(station_info.base_level_diff) AS 'base_level_diff'  FROM `{tab_name}` , `station_info`
-                       WHERE (`{tab_name}`.`forecast_dt` = '{forecast_dt}' 
+                       WHERE (`{tab_name}`.`forecast_dt` = '{forecast_dt}' AND `station_info`.`is_in_use`=TRUE
                        AND `{tab_name}`.`ty_code` = {ty_code} AND `{tab_name}`.`timestamp` = '{timestamp_str}'  AND `{tab_name}`.`gp_id` = '{gp_id}' AND (`{tab_name}`.`station_code`=station_info.code)) """
         with connection.cursor() as c:
             c.execute(sql_str)
@@ -268,7 +268,7 @@ class StationListBaseView(TyGroupBaseView):
                `{tab_name}`.`forecast_index`,
                `{tab_name}`.`timestamp`
         FROM `{tab_name}` , `station_info`
-        WHERE (`{tab_name}`.`gp_id` = {gp_id}
+        WHERE (`{tab_name}`.`gp_id` = {gp_id} AND `station_info`.`is_in_use`=TRUE
                    AND ({tab_name}.station_code=station_info.code)) ) as res
 group by res.station_code"""
         with connection.cursor() as c:
@@ -608,12 +608,14 @@ class StationAreaListView(StationListBaseView):
             if len(dist_station_code) > 0:
                 for station_code_dict_temp in dist_station_code:
                     station_temp: StationInfoModel = StationInfoModel.objects.filter(
-                        code=station_code_dict_temp.get('station_code')).first()
-                    list_station_info.append(station_temp)
-                    list_station_real.append(
-                        {'ty_code': ty_code, 'station_code': station_temp.code, 'surge': 0, 'name': station_temp.name,
-                         'lat': station_temp.lat, 'lon': station_temp.lon, 'gp_id': 0, 'forecast_dt': None,
-                         'forecast_index': 0, 'timestamp': None, 'surge_max': 0, 'surge_min': 0})
+                        code=station_code_dict_temp.get('station_code'), is_in_use=True).first()
+                    if station_temp is not None:
+                        list_station_info.append(station_temp)
+                        list_station_real.append(
+                            {'ty_code': ty_code, 'station_code': station_temp.code, 'surge': 0,
+                             'name': station_temp.name,
+                             'lat': station_temp.lat, 'lon': station_temp.lon, 'gp_id': 0, 'forecast_dt': None,
+                             'forecast_index': 0, 'timestamp': None, 'surge_max': 0, 'surge_min': 0})
             try:
 
                 self.json_data = StationForecastRealDataMixin(list_station_real,

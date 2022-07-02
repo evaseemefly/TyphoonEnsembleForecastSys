@@ -18,6 +18,7 @@ class StationInfoModel(IModel, IDelModel, IIdModel):
     is_abs = models.BooleanField(default=False)  # 是否为抽象对象(抽象对象不显示)
     base_level_diff = models.FloatField(null=True)
     d85 = models.IntegerField()
+    is_in_use = models.BooleanField(default=True)  # 是否为使用中的站点(部分海洋站没有四色警戒潮位，不作为使用站点)
 
     class Meta:
         db_table = 'station_info'

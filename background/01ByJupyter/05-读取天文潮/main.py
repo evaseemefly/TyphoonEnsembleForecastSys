@@ -46,6 +46,8 @@ DATABASES = {
 # {'BSH', 'WZS', 'QYU', 'CAO', 'DCH', 'SCS', 'DHI', 'SJM', 'GNS', 'SHA', 'SHS', 'BLN', 'MHA', 'BJA', 'JAT', 'KMN', 'AJS', 'BYT', 'RAS', 'SPU', 'ZPU', 'WSH', 'CHH', 'GTO'}
 # 区域2 的字典
 DICT_STATION = {
+    # ----
+    # 区域2
     # 芦潮港  10 711
     # 'LUCHAOG': 'LCG',
     # 大戢山  11 730
@@ -162,6 +164,59 @@ DICT_STATION = {
     'DENGLONG': 'DLS',
     # 三灶   539 205
     'SANZAO': 'SZA',
+    # ----
+    # ----
+    # 区域3
+    'PINGTAN': 'PTN',
+    # --- 以下重复的去掉
+    # 'FUQINGHD': 'FQH',
+    # 'SHICHENG': 'SHC',
+    # 'FENGWEI': 'FHW',
+    # 'CHONGWUH': 'CHW',
+    # 'JINJIANG': 'JJH',
+    # 'SHIJING': 'SJH',
+    # 'XIAMEN': 'XMN',
+    # 'JIUZHEN': 'JZH',
+    # 'GULEI': 'GUL',
+    # 'DONGSHAN': 'DSH',
+    # 'CHISHIWAN': 'CSW',
+    # 'YUNAO': 'YAO',
+    # 'SHANTOU': 'STO',
+    # 'HAIMENG2': 'HMN',
+    # 'HUILAI': 'HLA',
+    # 'LUFENG': 'LFG',
+    # 'ZHELANG': 'ZHL',
+    # 'SHANWEI': 'SHW',
+    # 'HUIZHOU': 'HZO',
+    # 'YANTIAN': 'YTA',
+    # 'CHIWANH': 'CWH',
+    # 'NANSHA': 'NSA',
+    # 'HUANGPU': 'HPU',
+    # 'ZHENHAIH': 'ZHI',
+    # 25: 'DLS',
+    # 26: 'SZA',
+    # 27: 'BJI',
+    'ZHAPO': 'ZHP',
+    'SHUIDONG': 'SHD',
+    'ZHANJS': 'ZJS',
+    # 31: 'ZJS', # TODO:[-] 22-06-30 注意有两个ZJS
+    'NAOZHOU': 'NAZ',
+    'NANDU': 'NAD',
+    'HAIAN': 'HAN',
+    'XIUYING': 'XYG',
+    'QINGLANH': 'QLN',
+    'BOAO': 'BAO',
+    'GANGBEI': 'GBE',
+    'SANYA': 'SYA',
+    'DONGFANG': 'DFG',
+    'SHITOUPU': 'STP',
+    'WEIZHOU': 'WZH',
+    'BEIHAI': 'BHI',
+    'QINZHOU': 'QZH',
+    'FANGCG': 'FCG',
+    'WUCHANG': 'WCH',
+    'YINGGEH': 'YGH',
+    # ----
 }
 
 DICT_STATION_2 = {
@@ -334,6 +389,16 @@ DICT_STATION_3 = {
     46: 'WCH',
     47: 'YGH',
 
+}
+
+# 临时录入的海洋站字典
+DICT_TEMP = {
+    'JINSHAN': 'JSZ',
+    'LUCHAOG': 'LCG',
+    'DAJIESAN': 'DJS',
+    'TANHUDAO': 'TXU',
+    'ZHENHAIH': 'ZHI',
+    'HAIMENZ': 'HMZ',
 }
 
 
@@ -567,15 +632,15 @@ def update_station_alert_level(dict_station: dict, df: pd.DataFrame, session):
 
 
 def main():
-    start_dt: datetime.datetime = datetime.datetime(2022, 1, 1)
-    end_dt: datetime.datetime = datetime.datetime(2022, 12, 31)
-    year_str: str = '2022'
-    read_dir_path: str = r'/opt/data/ignore_data'
-    read_dir_path: str = r'C:\Users\evase\OneDrive\同步文件夹\02项目及本子\10-台风集合预报路径系统\数据\2022_天文潮\format_tide_2022'
+    start_dt: datetime.datetime = datetime.datetime(2021, 1, 1)
+    end_dt: datetime.datetime = datetime.datetime(2021, 12, 31)
+    year_str: str = '2021'
+    read_dir_path: str = r'C:\Users\evase\OneDrive\同步文件夹\02项目及本子\10-台风集合预报路径系统\数据\2201_天文潮'
+    # read_dir_path: str = r'C:\Users\evase\OneDrive\同步文件夹\02项目及本子\10-台风集合预报路径系统\数据\2022_天文潮\format_tide_2022'
     session = DbFactory().Session
     # step2: 由于 东海和南海存在部分重叠的台站，需要先录入南海，然后去掉东海中南海已录入的部分，录入两次
     # demo: {0: 'LCG', 1: 'DJS', 2: 'JSZ'}
-    dict_diff = dict_not_inner(DICT_STATION_2, DICT_STATION_3)
+    dict_diff = dict_not_inner(DICT_STATION_3, DICT_STATION_2)
     # 从DICT_STATION 中过滤对应的 dict
     # {'文件名前缀':'station_code'}
     dict_area2_diff = {}
@@ -597,7 +662,7 @@ def main():
     # RAS
     # QYU 多次录入 注意将 qingyu code -> QGY
     # QGY
-    station_2_db(read_dir_path, session, dict_area2_diff, start_dt, end_dt, year_str)
+    # station_2_db(read_dir_path, session, DICT_TEMP, start_dt, end_dt, year_str)
 
     # 补录几个单站
     # dict_area2_diff = {'QINGYU': 'QGY', 'QINYU': 'QYU', 'RUIAN': 'RAS', 'WENZHOU2': 'WZS'}
@@ -609,8 +674,8 @@ def main():
     read_file_path: str = r'./ignore_data/sites_wl4_四色警戒潮位_含85基面.csv'
     df: pd.DataFrame = pd.read_csv(read_file_path,
                                    names=['name', 'code', 'wl1', 'wl2', 'wl3', 'wl4', 'd85', 'MSL', 'lon', 'lat'])
-    # update_station_d85(dict_area2_diff, df, session)
-    update_station_alert_level(dict_area2_diff, df, session)
+    update_station_d85(DICT_STATION, df, session)
+    # update_station_alert_level(DICT_TEMP, df, session)
     session.close()
     pass
 
