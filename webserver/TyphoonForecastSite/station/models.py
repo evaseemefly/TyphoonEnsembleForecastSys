@@ -16,6 +16,9 @@ class StationInfoModel(IModel, IDelModel, IIdModel):
     desc = models.CharField(max_length=500, null=True)
     pid = models.IntegerField(default=ABS_KEY)  # 添加的所属父级id
     is_abs = models.BooleanField(default=False)  # 是否为抽象对象(抽象对象不显示)
+    base_level_diff = models.FloatField(null=True)
+    d85 = models.IntegerField()
+    is_in_use = models.BooleanField(default=True)  # 是否为使用中的站点(部分海洋站没有四色警戒潮位，不作为使用站点)
 
     class Meta:
         db_table = 'station_info'
@@ -37,6 +40,11 @@ class StationForecastRealDataSharedMdoel(IIdModel, IDelModel, IModel, ITimeStamp
     forecast_index = models.IntegerField(default=UNLESS_INDEX)
     surge = models.FloatField()
     timestamp = models.CharField(max_length=100, default='2021010416')  # + 21-05-11 新加入的时间戳字段
+
+    @classmethod
+    def get_sharding_tb_name(cls, ty_code=None):
+        db_table = f'{cls.SHARED_TABLE_BASE_NAME}_{ty_code}'
+        return db_table
 
     @classmethod
     def get_sharding_model(cls, ty_code=None):

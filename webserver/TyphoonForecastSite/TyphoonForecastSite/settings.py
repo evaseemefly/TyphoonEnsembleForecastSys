@@ -93,21 +93,22 @@ DATABASES = {
         # 'NAME': 'typhoon_forecast_db_new',  # 数据库名 home 中的db修改为 new
         # by casablanca
         # mac
-        # 'USER': 'root',  # 账号
+        'USER': 'root',  # 账号
         # 7530,mac
         # 'PASSWORD': '12345678',
         # 5820,p52s,p500,razer
         'PASSWORD': '123456',
         # 'HOST': '127.0.0.1',  # HOST
         # 'HOST': '0.0.0.0',  # HOST
-        'HOST': '128.5.10.21',  # HOST
+        # 'HOST': '128.5.10.21',  # HOST
         # 访问宿主的mysql服务,
         # 'HOST': 'mysql',  # TODO:[-] 21-10-11 注意此处使用 mysql 的容器
         # mac 环境下 (1049, "Unknown database 'typhoon_forecast_db'")
-        # 'HOST': 'host.docker.internal',  # docker访问宿主机的mysql服务
+        'HOST': 'host.docker.internal',  # docker访问宿主机的mysql服务
         # 'HOST': '127.0.0.1',
-        # 'PORT': 3306,  # 端口
-        'PORT': 3308,  # TODO:[-] 21-10-11 端口暂时改为 3308
+        'PORT': 3306,  # 端口
+
+        # 'PORT': 3308,  # TODO:[-] 21-10-11 端口暂时改为 3308
         'OPTIONS': {
             "init_command": "SET foreign_key_checks = 0;",
         },
@@ -157,8 +158,8 @@ MY_PAGINATOR = {
 
 # TODO:[-] 20-11-03 加入的测试时使用的读取存储文件的网络存储的相关信息
 STORE_OPTIONS = {
-    # 'URL': '128.5.10.21',
-    'URL': '192.168.50.86',
+    'URL': '128.5.10.21',
+    # 'URL': '192.168.50.86',
     # 'URL': 'localhost',
     'HOST': 82,  # TODO:[-] 21-01-03 暂时将 nginx 的端口改为了 82 ，注意！
     'STORE_COMMON_BASE': 'images',  # 对应 nginx 的映射的根目录

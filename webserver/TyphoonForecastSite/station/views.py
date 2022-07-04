@@ -25,7 +25,8 @@ from .models import StationForecastRealDataModel, StationInfoModel, StationAstro
 from typhoon.models import TyphoonGroupPathModel
 from .serializers import StationForecastRealDataSerializer, StationForecastRealDataComplexSerializer, \
     StationForecastRealDataRangeSerializer, StationForecastRealDataMixin, StationForecastRealDataRangeComplexSerializer, \
-    StationAstronomicTideRealDataSerializer, StationAlertSerializer, StationStatisticsSerializer
+    StationAstronomicTideRealDataSerializer, StationAlertSerializer, StationStatisticsSerializer, \
+    StationForecastRealDataByGroupSerializer
 # 公共的
 from TyphoonForecastSite.settings import MY_PAGINATOR
 from util.const import DEFAULT_NULL_KEY, UNLESS_TY_CODE, DEFAULT_CODE, DEFAULT_TIMTSTAMP_STR, \
@@ -181,11 +182,10 @@ class StationListBaseView(TyGroupBaseView):
         forecast_dt_str: str = arrow.get()
         sql_str: str = f"""SELECT 
          ({tab_name}.surge) AS `surge`,
-         ({tab_name}.station_code) AS `station_code`,(station_info.name) AS `name`,(station_info.lat) AS `lat`, (station_info.lon) AS `lon`,`{tab_name}`.`ty_code`,`{tab_name}`.`forecast_dt`,`{tab_name}`.`timestamp`  FROM `{tab_name}` , `station_info`
-                       WHERE (`{tab_name}`.`forecast_dt` = '{forecast_dt}' 
+         ({tab_name}.station_code) AS `station_code`,(station_info.name) AS `name`,(station_info.lat) AS `lat`, (station_info.lon) AS `lon`,`{tab_name}`.`ty_code`,`{tab_name}`.`forecast_dt`,`{tab_name}`.`timestamp`,(station_info.base_level_diff) AS 'base_level_diff'  FROM `{tab_name}` , `station_info`
+                       WHERE (`{tab_name}`.`forecast_dt` = '{forecast_dt}' AND `station_info`.`is_in_use`=TRUE
                        AND `{tab_name}`.`ty_code` = {ty_code} AND `{tab_name}`.`timestamp` = '{timestamp_str}'  AND `{tab_name}`.`gp_id` = '{gp_id}' AND (`{tab_name}`.`station_code`=station_info.code)) """
         with connection.cursor() as c:
-
             c.execute(sql_str)
             res = c.fetchall()
         return res
@@ -269,7 +269,7 @@ class StationListBaseView(TyGroupBaseView):
                `{tab_name}`.`forecast_index`,
                `{tab_name}`.`timestamp`
         FROM `{tab_name}` , `station_info`
-        WHERE (`{tab_name}`.`gp_id` = {gp_id}
+        WHERE (`{tab_name}`.`gp_id` = {gp_id} AND `station_info`.`is_in_use`=TRUE
                    AND ({tab_name}.station_code=station_info.code)) ) as res
 group by res.station_code"""
         with connection.cursor() as c:
@@ -609,12 +609,14 @@ class StationAreaListView(StationListBaseView):
             if len(dist_station_code) > 0:
                 for station_code_dict_temp in dist_station_code:
                     station_temp: StationInfoModel = StationInfoModel.objects.filter(
-                        code=station_code_dict_temp.get('station_code')).first()
-                    list_station_info.append(station_temp)
-                    list_station_real.append(
-                        {'ty_code': ty_code, 'station_code': station_temp.code, 'surge': 0, 'name': station_temp.name,
-                         'lat': station_temp.lat, 'lon': station_temp.lon, 'gp_id': 0, 'forecast_dt': None,
-                         'forecast_index': 0, 'timestamp': None, 'surge_max': 0, 'surge_min': 0})
+                        code=station_code_dict_temp.get('station_code'), is_in_use=True).first()
+                    if station_temp is not None:
+                        list_station_info.append(station_temp)
+                        list_station_real.append(
+                            {'ty_code': ty_code, 'station_code': station_temp.code, 'surge': 0,
+                             'name': station_temp.name,
+                             'lat': station_temp.lat, 'lon': station_temp.lon, 'gp_id': 0, 'forecast_dt': None,
+                             'forecast_index': 0, 'timestamp': None, 'surge_max': 0, 'surge_min': 0})
             try:
 
                 self.json_data = StationForecastRealDataMixin(list_station_real,
@@ -706,6 +708,7 @@ class StationSurgeRangeValueListView(StationListBaseView):
             temp_station['lon'] = temp[4]
             temp_station['surge_max'] = temp[0]
             temp_station['surge_min'] = temp[0]
+            temp_station['base_level_diff'] = temp[8]
             station_finial_list.append(temp_station)
         # ---
         # -----耗时查询结束-----
@@ -779,6 +782,84 @@ class StationSurgeRealListRangeValueView(StationListBaseView):
     pass
 
 
+class StationSurgeGroupRealListView(StationListBaseView):
+    """
+        + 22-07-04 加载潮位站 全部集合路径的 历史曲线及范围曲线
+    """
+
+    def get(self, request: Request) -> Response:
+        ty_code: str = request.GET.get('ty_code', None)
+        timestamp_str: str = request.GET.get('timestamp', None)
+        # 获取指定case 的集合
+        dict_group_models = {}
+
+        query = self.get_surge_list_groupby_gp(ty_code=ty_code, timestamp_str=timestamp_str,
+                                               station_code='QZH')
+
+        list_temp = []
+        for temp in query:
+            temp_surge = {}
+            if temp.gp_id not in dict_group_models:
+                dict_group_models[temp.gp_id] = {}
+                dict_group_models[temp.gp_id]['list_realdata'] = []
+                dict_group_models[temp.gp_id]['list_realdata'].append(temp)
+            elif temp.gp_id in dict_group_models:
+                dict_group_models[temp.gp_id]['list_realdata'].append(temp)
+            # print(temp)
+        # self.json_data = list_ids
+        # {'gp_id': 14361,
+        # 'list_realdata': [
+        # <StationForecastRealDataModel: StationForecastRealDataModel object (1856853)>
+        list_group_models = []
+        for key, val in dict_group_models.items():
+            list_group_models.append({'gp_id': key,
+                                      'list_realdata': val['list_realdata']})
+        # ERROR: The serializer field might be named incorrectly and not match any attribute or key on the `list` instance.
+        # Original exception text was: 'list' object has no attribute 'ty_code'.
+        res = StationForecastRealDataByGroupSerializer(list_group_models, many=True).data
+        self._status = 200
+        self.json_data = res
+        return Response(self.json_data, status=self._status)
+
+    def get_dist_group_ids(self, ty_code: str, timestamp_str: str) -> List[int]:
+        """
+            + 22-07-04 指定case 的不同 group_id 集合
+        @param timestamp_str:
+        @return:
+        """
+        list_ids: List[int] = []
+        dao = StationForecastRealDataSharedMdoel.get_sharding_model(ty_code=ty_code)
+        # 获取集合路径 id 集合
+        list_ids = [temp.get('gp_id') for temp in
+                    dao.objects.filter(ty_code=ty_code, timestamp=timestamp_str).values('gp_id').distinct()]
+        return list_ids
+
+    def get_surge_list_groupby_gp(self, ty_code: str, timestamp_str: str, station_code: str):
+        """
+            + 22-07-04 根据 gp_id 进行聚合 查找对应 case 的海洋站潮位数据
+        @param ty_code:
+        @param timestamp_str:
+        @param station_code:
+        @return:
+        """
+        dao = StationForecastRealDataSharedMdoel.get_sharding_model(ty_code=ty_code)
+        db_table_name: str = StationForecastRealDataSharedMdoel.get_sharding_tb_name(ty_code=ty_code)
+        query_sql: str = f"""
+                        select *
+                        from {db_table_name}
+                        where ty_code='{ty_code}' and station_code='{station_code}' and timestamp='{timestamp_str}'
+                        group by gp_id
+        """
+        # cursor = connection.cursor()
+        # cursor.execute(query_sql)
+        # ret = cursor.fetchall()
+        query = dao.objects.raw(query_sql, translations={'ty_code': 'ty_code',
+                                                         'forecast_dt': 'forecast_dt',
+                                                         'forecast_index': 'forecast_index',
+                                                         'surge': 'surge', 'gp_id': 'gp_id'})
+        return query
+
+
 class StationSurgeRealDataQuarterListView(StationListBaseView):
     """
         + 21-10-29 加入 对于 中位数 ,1/4,3/4 百分位数的统计
@@ -835,6 +916,34 @@ class StationAstronomicTideRealDataListView(StationListBaseView):
             query: QuerySet = StationAstronomicTideRealDataModel.objects.filter(station_code=station_code).filter(
                 forecast_dt__lte=dt_range[1], forecast_dt__gte=dt_range[0])
         return query[:]
+
+
+class StationBaseLevelDiffView(BaseView):
+    def get(self, request: Request):
+        station_code: str = request.GET.get('station_code', DEFAULT_CODE)
+        diffObj: {} = {}
+        diffObj['station_code'] = station_code
+        if station_code != DEFAULT_CODE:
+            station_res = StationInfoModel.objects.filter(code=station_code)
+            if len(station_res) == 1:
+                diffObj['surge_diff'] = station_res.first().base_level_diff
+                self._status = 200
+        self.json_data = diffObj
+        return Response(self.json_data, status=self._status)
+
+
+class StationD85DiffView(BaseView):
+    def get(self, request: Request):
+        station_code: str = request.GET.get('station_code', DEFAULT_CODE)
+        diffObj: {} = {}
+        diffObj['station_code'] = station_code
+        if station_code != DEFAULT_CODE:
+            station_res = StationInfoModel.objects.filter(code=station_code)
+            if len(station_res) == 1:
+                diffObj['d85_diff'] = station_res.first().d85
+                self._status = 200
+        self.json_data = diffObj
+        return Response(self.json_data, status=self._status)
 
 
 class StationAlertView(StationListBaseView):

@@ -31,6 +31,7 @@ class StationForecastRealDataComplexSerializer(serializers.Serializer):
 class StationForecastRealDataRangeSerializer(serializers.Serializer):
     surge_max = serializers.FloatField()
     surge_min = serializers.FloatField(required=False)
+    base_level_diff = serializers.FloatField(required=False)
     station_code = serializers.CharField()
 
 
@@ -51,6 +52,11 @@ class StationAlertSerializer(serializers.Serializer):
     station_code = serializers.CharField()
     tide = serializers.FloatField()
     alert = serializers.IntegerField()
+
+
+class StationForecastRealDataByGroupSerializer(serializers.Serializer):
+    gp_id = serializers.IntegerField()
+    list_realdata = StationForecastRealDataSerializer(many=True)
 
 
 class StationForecastRealDataMixin(StationForecastRealDataComplexSerializer, StationForecastRealDataRangeSerializer):
