@@ -41,6 +41,11 @@ class StationForecastRealDataSharedMdoel(IIdModel, IDelModel, IModel, ITimeStamp
     timestamp = models.CharField(max_length=100, default='2021010416')  # + 21-05-11 新加入的时间戳字段
 
     @classmethod
+    def get_sharding_tb_name(cls, ty_code=None):
+        db_table = f'{cls.SHARED_TABLE_BASE_NAME}_{ty_code}'
+        return db_table
+
+    @classmethod
     def get_sharding_model(cls, ty_code=None):
         class Meta:
             db_table = f'{cls.SHARED_TABLE_BASE_NAME}_{ty_code}'

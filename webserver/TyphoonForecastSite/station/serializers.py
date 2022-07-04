@@ -54,6 +54,11 @@ class StationAlertSerializer(serializers.Serializer):
     alert = serializers.IntegerField()
 
 
+class StationForecastRealDataByGroupSerializer(serializers.Serializer):
+    gp_id = serializers.IntegerField()
+    list_realdata = StationForecastRealDataSerializer(many=True)
+
+
 class StationForecastRealDataMixin(StationForecastRealDataComplexSerializer, StationForecastRealDataRangeSerializer):
     pass
 

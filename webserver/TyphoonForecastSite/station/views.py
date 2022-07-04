@@ -25,7 +25,8 @@ from .models import StationForecastRealDataModel, StationInfoModel, StationAstro
 from typhoon.models import TyphoonGroupPathModel
 from .serializers import StationForecastRealDataSerializer, StationForecastRealDataComplexSerializer, \
     StationForecastRealDataRangeSerializer, StationForecastRealDataMixin, StationForecastRealDataRangeComplexSerializer, \
-    StationAstronomicTideRealDataSerializer, StationAlertSerializer, StationStatisticsSerializer
+    StationAstronomicTideRealDataSerializer, StationAlertSerializer, StationStatisticsSerializer, \
+    StationForecastRealDataByGroupSerializer
 # 公共的
 from TyphoonForecastSite.settings import MY_PAGINATOR
 from util.const import DEFAULT_NULL_KEY, UNLESS_TY_CODE, DEFAULT_CODE, DEFAULT_TIMTSTAMP_STR, \
@@ -777,6 +778,84 @@ class StationSurgeRealListRangeValueView(StationListBaseView):
         return Response(self.json_data, status=self._status)
 
     pass
+
+
+class StationSurgeGroupRealListView(StationListBaseView):
+    """
+        + 22-07-04 加载潮位站 全部集合路径的 历史曲线及范围曲线
+    """
+
+    def get(self, request: Request) -> Response:
+        ty_code: str = request.GET.get('ty_code', None)
+        timestamp_str: str = request.GET.get('timestamp', None)
+        # 获取指定case 的集合
+        dict_group_models = {}
+
+        query = self.get_surge_list_groupby_gp(ty_code=ty_code, timestamp_str=timestamp_str,
+                                               station_code='QZH')
+
+        list_temp = []
+        for temp in query:
+            temp_surge = {}
+            if temp.gp_id not in dict_group_models:
+                dict_group_models[temp.gp_id] = {}
+                dict_group_models[temp.gp_id]['list_realdata'] = []
+                dict_group_models[temp.gp_id]['list_realdata'].append(temp)
+            elif temp.gp_id in dict_group_models:
+                dict_group_models[temp.gp_id]['list_realdata'].append(temp)
+            # print(temp)
+        # self.json_data = list_ids
+        # {'gp_id': 14361,
+        # 'list_realdata': [
+        # <StationForecastRealDataModel: StationForecastRealDataModel object (1856853)>
+        list_group_models = []
+        for key, val in dict_group_models.items():
+            list_group_models.append({'gp_id': key,
+                                      'list_realdata': val['list_realdata']})
+        # ERROR: The serializer field might be named incorrectly and not match any attribute or key on the `list` instance.
+        # Original exception text was: 'list' object has no attribute 'ty_code'.
+        res = StationForecastRealDataByGroupSerializer(list_group_models, many=True).data
+        self._status = 200
+        self.json_data = res
+        return Response(self.json_data, status=self._status)
+
+    def get_dist_group_ids(self, ty_code: str, timestamp_str: str) -> List[int]:
+        """
+            + 22-07-04 指定case 的不同 group_id 集合
+        @param timestamp_str:
+        @return:
+        """
+        list_ids: List[int] = []
+        dao = StationForecastRealDataSharedMdoel.get_sharding_model(ty_code=ty_code)
+        # 获取集合路径 id 集合
+        list_ids = [temp.get('gp_id') for temp in
+                    dao.objects.filter(ty_code=ty_code, timestamp=timestamp_str).values('gp_id').distinct()]
+        return list_ids
+
+    def get_surge_list_groupby_gp(self, ty_code: str, timestamp_str: str, station_code: str):
+        """
+            + 22-07-04 根据 gp_id 进行聚合 查找对应 case 的海洋站潮位数据
+        @param ty_code:
+        @param timestamp_str:
+        @param station_code:
+        @return:
+        """
+        dao = StationForecastRealDataSharedMdoel.get_sharding_model(ty_code=ty_code)
+        db_table_name: str = StationForecastRealDataSharedMdoel.get_sharding_tb_name(ty_code=ty_code)
+        query_sql: str = f"""
+                        select *
+                        from {db_table_name}
+                        where ty_code='{ty_code}' and station_code='{station_code}' and timestamp='{timestamp_str}'
+                        group by gp_id
+        """
+        # cursor = connection.cursor()
+        # cursor.execute(query_sql)
+        # ret = cursor.fetchall()
+        query = dao.objects.raw(query_sql, translations={'ty_code': 'ty_code',
+                                                         'forecast_dt': 'forecast_dt',
+                                                         'forecast_index': 'forecast_index',
+                                                         'surge': 'surge', 'gp_id': 'gp_id'})
+        return query
 
 
 class StationSurgeRealDataQuarterListView(StationListBaseView):

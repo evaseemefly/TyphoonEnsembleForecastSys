@@ -13,7 +13,8 @@ from rest_framework import routers
 # 本项目
 from .views import StationListView, StationSurgeRangeValueListView, StationSurgeRealListRangeValueView, \
     StationAstronomicTideRealDataListView, StationAlertView, StationSurgeRealDataQuarterListView, StationAreaListView, \
-    StationCenterMaxListView, StationAllPathMaxListView, StationSurgeSplitTab, StationBaseLevelDiffView,StationD85DiffView
+    StationCenterMaxListView, StationAllPathMaxListView, StationSurgeSplitTab, StationBaseLevelDiffView, \
+    StationD85DiffView, StationSurgeGroupRealListView
 
 app_name = '[station]'
 
@@ -25,6 +26,8 @@ urlpatterns = [
     url(r'^station/list/area$', StationAreaListView.as_view()),
     url(r'^station/realdata/range/list$', StationSurgeRangeValueListView.as_view()),
     url(r'^station/reallist/list$', StationSurgeRealListRangeValueView.as_view()),
+    # - 22-07-04 加载潮位站 全部集合路径的 历史曲线及范围曲线
+    url(r'^station/group/reallist/list$', StationSurgeGroupRealListView.as_view()),
     url(r'^station/astronomictide/range/list$', StationAstronomicTideRealDataListView.as_view()),
     url(r'^station/alert$', StationAlertView.as_view()),
     url(r'^station/baseLevelDiff$', StationBaseLevelDiffView.as_view()),
