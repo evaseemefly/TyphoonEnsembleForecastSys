@@ -158,8 +158,8 @@ MY_PAGINATOR = {
 
 # TODO:[-] 20-11-03 加入的测试时使用的读取存储文件的网络存储的相关信息
 STORE_OPTIONS = {
-    # 'URL': '128.5.10.21',
-    'URL': '192.168.50.86',
+    'URL': '128.5.10.21',
+    # 'URL': '192.168.50.86',
     # 'URL': 'localhost',
     'HOST': 82,  # TODO:[-] 21-01-03 暂时将 nginx 的端口改为了 82 ，注意！
     'STORE_COMMON_BASE': 'images',  # 对应 nginx 的映射的根目录
