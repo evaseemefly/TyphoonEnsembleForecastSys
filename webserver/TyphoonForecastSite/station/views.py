@@ -790,21 +790,23 @@ class StationSurgeGroupRealListView(StationListBaseView):
     def get(self, request: Request) -> Response:
         ty_code: str = request.GET.get('ty_code', None)
         timestamp_str: str = request.GET.get('timestamp', None)
+        station_code: str = request.GET.get('station_code', None)
         # 获取指定case 的集合
         dict_group_models = {}
 
         query = self.get_surge_list_groupby_gp(ty_code=ty_code, timestamp_str=timestamp_str,
-                                               station_code='QZH')
+                                               station_code=station_code)
 
         list_temp = []
         for temp in query:
             temp_surge = {}
+            temp_dict = {'forecast_index': temp.forecast_index, 'surge': temp.surge}
             if temp.gp_id not in dict_group_models:
                 dict_group_models[temp.gp_id] = {}
                 dict_group_models[temp.gp_id]['list_realdata'] = []
-                dict_group_models[temp.gp_id]['list_realdata'].append(temp)
+                dict_group_models[temp.gp_id]['list_realdata'].append(temp_dict)
             elif temp.gp_id in dict_group_models:
-                dict_group_models[temp.gp_id]['list_realdata'].append(temp)
+                dict_group_models[temp.gp_id]['list_realdata'].append(temp_dict)
             # print(temp)
         # self.json_data = list_ids
         # {'gp_id': 14361,
@@ -844,17 +846,22 @@ class StationSurgeGroupRealListView(StationListBaseView):
         """
         dao = StationForecastRealDataSharedMdoel.get_sharding_model(ty_code=ty_code)
         db_table_name: str = StationForecastRealDataSharedMdoel.get_sharding_tb_name(ty_code=ty_code)
+        # query_sql: str = f"""
+        #                 select *
+        #                 from {db_table_name}
+        #                 where ty_code='{ty_code}' and station_code='{station_code}' and timestamp='{timestamp_str}'
+        #                 group by gp_id
+        # """
         query_sql: str = f"""
-                        select *
-                        from {db_table_name}
-                        where ty_code='{ty_code}' and station_code='{station_code}' and timestamp='{timestamp_str}'
-                        group by gp_id
-        """
+                                select gp_id,forecast_index,ANY_VALUE(surge) as surge,ANY_VALUE(ty_code) as ty_code,ANY_VALUE(id) as id
+                                from {db_table_name}
+                                where ty_code='{ty_code}' and station_code='{station_code}' and timestamp='{timestamp_str}'
+                                group by gp_id,forecast_index
+                """
         # cursor = connection.cursor()
         # cursor.execute(query_sql)
         # ret = cursor.fetchall()
         query = dao.objects.raw(query_sql, translations={'ty_code': 'ty_code',
-                                                         'forecast_dt': 'forecast_dt',
                                                          'forecast_index': 'forecast_index',
                                                          'surge': 'surge', 'gp_id': 'gp_id'})
         return query

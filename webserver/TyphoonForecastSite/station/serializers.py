@@ -6,9 +6,13 @@ class StationForecastRealDataSerializer(serializers.Serializer):
     gp_id = serializers.IntegerField()
     station_code = serializers.CharField()
     forecast_index = serializers.IntegerField()
-    forecast_dt = serializers.DateTimeField()
-    surge = serializers.FloatField()
+    forecast_dt = serializers.DateTimeField(required=False)
+    # surge = serializers.FloatField()
+    surge = serializers.DecimalField(max_digits=None,decimal_places=2)
 
+class StationForecastRealDataMiniSerializer(serializers.Serializer):
+    forecast_index = serializers.IntegerField()
+    surge = serializers.DecimalField(max_digits=None, decimal_places=2)
 
 class StationAstronomicTideRealDataSerializer(serializers.Serializer):
     station_code = serializers.CharField()
@@ -56,8 +60,8 @@ class StationAlertSerializer(serializers.Serializer):
 
 class StationForecastRealDataByGroupSerializer(serializers.Serializer):
     gp_id = serializers.IntegerField()
-    list_realdata = StationForecastRealDataSerializer(many=True)
-
+    list_realdata = StationForecastRealDataMiniSerializer(many=True)
+    # list_realdata=serializers.ListSerializer
 
 class StationForecastRealDataMixin(StationForecastRealDataComplexSerializer, StationForecastRealDataRangeSerializer):
     pass
