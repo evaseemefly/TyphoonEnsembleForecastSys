@@ -17,6 +17,7 @@ import arrow
 from common.view_base import BaseView
 from typhoon.views_base import TyGroupBaseView, TySpiderBaseView
 from .models import TyphoonForecastDetailModel, TyphoonGroupPathModel, TyphoonForecastRealDataModel
+from task.models import CaseInstanceModel
 from .mid_models import TyphoonComplexGroupRealDataMidModel, TyphoonGroupDistMidModel, TyphoonContainsCodeAndStMidModel, \
     TyphoonGroupRealDataDistMidModel, TyphoonComplexGroupDictMidModel, TyDetailMidModel, TyPathMidModel
 from .serializers import TyphoonForecastDetailSerializer, TyphoonGroupPathSerializer, TyphoonForecastRealDataSerializer, \
@@ -368,6 +369,9 @@ class TyCaseList(BaseView):
                 for temp in ty_dist_ty_timestamp:
                     temp_ts = temp.get('timestamp')
                     # step-1: 根据 ty_code 与 ts 查找 group 的基础信息
+                    temp_case_model: CaseInstanceModel = CaseInstanceModel.objects.filter(ty_code=ty_code,
+                                                                                          timestamp=temp_ts).order_by(
+                        'gmt_created').first()
                     temp_gp_model: TyphoonGroupPathModel = TyphoonGroupPathModel.objects.filter(ty_code=ty_code,
                                                                                                 timestamp=temp_ts).order_by(
                         'gmt_created').first()
@@ -381,7 +385,7 @@ class TyCaseList(BaseView):
                                                             timestamp=temp_gp_model.timestamp,
                                                             gmt_created=temp_gp_model.gmt_created,
                                                             start=start.get('start'),
-                                                            end=end.get('end'))
+                                                            end=end.get('end'), area=temp_case_model.area)
                         ty_group_dist_list.append(temp_mid)
         if len(ty_group_dist_list) > 0:
             json_data = TyphoonDistGroupPathMidSerializer(ty_group_dist_list, many=True)

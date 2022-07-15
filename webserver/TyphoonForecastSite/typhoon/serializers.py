@@ -39,6 +39,7 @@ class TyphoonDistGroupPathMidSerializer(serializers.Serializer):
     gmt_created = serializers.DateTimeField()
     forecast_start = serializers.DateTimeField()
     forecast_end = serializers.DateTimeField()
+    area = serializers.IntegerField()
 
 
 class TyphoonForecastRealDataSerializer(serializers.Serializer):

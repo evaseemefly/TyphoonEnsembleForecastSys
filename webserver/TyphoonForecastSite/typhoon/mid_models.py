@@ -25,13 +25,15 @@ class TyphoonGroupDistMidModel:
                 主要用来存储 台风编号信息及时间戳及创建时间等信息，供检索使用
     """
 
-    def __init__(self, ty_id: int, ty_code: str, timestamp: str, gmt_created: datetime, start: datetime, end: datetime):
+    def __init__(self, ty_id: int, ty_code: str, timestamp: str, gmt_created: datetime, start: datetime, end: datetime,
+                 area: int):
         self.ty_id = ty_id
         self.ty_code = ty_code
         self.timestamp = timestamp
         self.gmt_created = gmt_created
         self.forecast_start = start
         self.forecast_end = end
+        self.area = area
 
 
 class TyphoonContainsCodeAndStMidModel:
@@ -70,6 +72,7 @@ class TyphoonComplexGroupDictMidModel:
         self.is_bp_increase = is_bp_increase
         # self.is_bp_increase = is_bp_increase
         self.list_realdata = list_realdata
+
 
 class TyDetailMidModel:
     def __init__(self, ty_code: str, id: int, ty_name_en: str = None, ty_name_ch: str = None):

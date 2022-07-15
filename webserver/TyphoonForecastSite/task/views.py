@@ -186,7 +186,8 @@ class TaskCreateView(BaseView):
                                                                            gmt_commit=datetime.datetime.utcnow(),
                                                                            member_num=members_num,
                                                                            max_wind_radius_dif=max_wind_radius_diff,
-                                                                           json_field=deviation_radius_list)
+                                                                           json_field=deviation_radius_list,
+                                                                           area=area)
         # 21-09-20 customer_ty_cma_list -> forecastDt 需要转换为 2021071905 (local time)
         # 'customer_ty_cma_list': [
         #     {'forecastDt': '2021-09-04T06:00:00.000Z',

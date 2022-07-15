@@ -30,7 +30,8 @@ class CaseInstanceModel(IModel, IDelModel, IIdModel):
     member_num = models.IntegerField(default=-1)  # 成员数
     max_wind_radius_dif = models.IntegerField(default=-9999)  # 大风半径增减值(可能出现负数)
     json_field = models.JSONField(default={})
-    timestamp = models.CharField(default=DEFAULT_TIMTSTAMP_STR, max_length=100) # TODO:[-] 21-12-02 加入了时间戳
+    timestamp = models.CharField(default=DEFAULT_TIMTSTAMP_STR, max_length=100)  # TODO:[-] 21-12-02 加入了时间戳
+    area = models.IntegerField(default=510)
 
     # hours = models.IntegerField(default=-1)
     # radius = models.IntegerField(default=-9999)
