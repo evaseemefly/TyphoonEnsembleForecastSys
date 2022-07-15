@@ -98,7 +98,7 @@ def get_area_dp_file(area: ForecastAreaEnum) -> str:
     default_area_dp_file_name = 'topo3sz.dp'
     dp_file_name: str = default_area_dp_file_name
     if area == ForecastAreaEnum.BHI:
-        dp_file_name = ''
+        dp_file_name = 'topo1.dp'
     elif area == ForecastAreaEnum.ECS:
         dp_file_name = 'topo2.dp'
     elif area == ForecastAreaEnum.SCS:

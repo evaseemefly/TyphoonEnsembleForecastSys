@@ -44,180 +44,256 @@ DATABASES = {
 # TODO:[-] 22-06-22 注意 区域2 与 区域3 会有交集，若录入了区域3，需要剔除区域3中和区域2重合的station，否则会出现同一个station录入多次的错误
 # 区域2中独有的 station
 # {'BSH', 'WZS', 'QYU', 'CAO', 'DCH', 'SCS', 'DHI', 'SJM', 'GNS', 'SHA', 'SHS', 'BLN', 'MHA', 'BJA', 'JAT', 'KMN', 'AJS', 'BYT', 'RAS', 'SPU', 'ZPU', 'WSH', 'CHH', 'GTO'}
-# 区域2 的字典
+# 区域1 的字典
 DICT_STATION = {
-    # ----
-    # 区域2
-    # 芦潮港  10 711
-    # 'LUCHAOG': 'LCG',
-    # 大戢山  11 730
-    # 'DAISHAN': 'DJS', # 没有大吉山
-    # # 金山嘴  17 684
-    # 'JINSHAN': 'JSZ',
-    # # 滩浒    23 697
-    # 3: 'TXU',       # TODO:[*] 22-06-21 没有滩浒的天文潮文件(2021)
-    # 乍浦    26 667
-    'ZHAPU': 'ZPU',
-    # 澉浦    39 655
-    # 5: 'GPU',   # TODO:[*] 22-06-21 没有澉浦的天文潮文件(2021) 注意 db 更新澉浦 GPU
-    # 嵊山    17 768
-    'SHENGSHAN': 'SHS',
-    # 岱山    46 731
-    'DAISHAN': 'DSH',
-    # 定海    61 724
-    'DINGHAI': 'DHI',
-    # 镇海    61 704
-    'ZHENHAIH': 'ZHI',
-    # 沈家门  64 737
-    'SHENJIAMEN': 'SJM',
-    # 北仑    65 727
-    'BEILUN': 'BLN',
-    # 乌沙山  90 699
-    'WUSS': 'WSH',
-    # 石浦   106 719
-    'SHIPU': 'SPU',
-    # 健跳   117 699
-    'JIANTIAO': 'JAT',
-    # 海门Z  139 687
-    'HAIMENZ': 'HMZ',  # TODO:[*] 22-06-21 天文潮位有两个，需对应
-    # 大陈   153 714
-    'DACHEN': 'DCH',
-    # 坎门   175 679
-    'KANMEN': 'KMN',
-    # 温州S  181 645
-    'WENZHOU2': 'WZS',
-    # 瑞安S  197 641
-    'RUIAN': 'RAS',
-    # 鳌江S  206 638
-    'AOJIANG': 'AJS',  # 没有鳌江S
-    # 沙埕S  230 625
-    'SHACHENG': 'SCS',  # 还有SHACHENGH
-    # 秦屿   238 617
-    'QINYU': 'QYU',
-    # 三沙   246 614
-    'SANSHA': 'SHA',
-    # 北礵   258 621
-    'BEISHUANG': 'BSH',
-    # 城澳   263 584
-    'CHENGAO': 'CAO',
-    # 青屿   279 582
-    'QINGYU': 'QGY',
-    # 北茭   278 596
-    'BJIAO': 'BJA',
-    # 琯头   293 575
-    'GUANTOU': 'GTO',
-    # 梅花   299 581
-    'MEIHUA': 'MHA',
-    # 白岩潭 297 572
-    'BAIYANT': 'BYT',
-    # 平潭   332 590
-    'PINGTANf': 'PTN',
-    # 福清核 334 566
-    'FUQINGHD': 'FQH',
-    # 石城   344 562
-    'SHICHENG': 'SHC',
-    # 峰尾   353 538
-    'FENGWEI': 'FHW',
-    # 崇武H  368 536
-    'CHONGWUH': 'CHW',
-    # 晋江   382 520
-    'JINJIANG': 'JJH',
-    # 石井   381 507
-    'SHIJING': 'SJH',
-    # 厦门   393 484
-    'XIAMEN': 'XMN',
-    # 旧镇   421 463
-    'JIUZHENG': 'JZH',
-    # 古雷   432 459
-    'GULEI': 'GUL',
-    # 东山   436 452
-    'DONGSHAN': 'DSH',
-    # 赤石湾 442 434
-    'CHISHIWAN': 'CSW',
-    # 云澳   457 427
-    'YUNAO': 'YAO',
-    # 汕头S  460 405
-    'SHANTOU': 'STO',
-    # 海门G  470 397
-    'HAIMENZ': 'HMN',  # 存在两个海门
-    # 惠来   482 392
-    'HUILAI': 'HLA',
-    # 陆丰   491 366
-    'LUFENG': 'LFG',
-    # 遮浪   501 334
-    'ZHELANG': 'ZHL',
-    # 汕尾   495 321
-    'SHANWEI': 'SHW',
-    # 惠州   497 275
-    'HUIZHOU': 'HZO',
-    # 盐田   506 257
-    'YANTIAN': 'YTA',
-    # 赤湾H  513 233
-    'CHIWANH': 'CHH',
-    # 南沙   496 215
-    'NANSHA': 'GNS',  # 注意存在两个南沙
-    # 黄埔   491 216
-    'HUANGPU': 'HPU',  # 存在两个黄埔，黄埔与黄埔G
-    # 珠海   523 216
-    'ZHUHAI': 'ZHU',
-    # 灯笼山 534 208
-    'DENGLONG': 'DLS',
-    # 三灶   539 205
-    'SANZAO': 'SZA',
-    # ----
-    # ----
-    # 区域3
-    'PINGTAN': 'PTN',
-    # --- 以下重复的去掉
-    # 'FUQINGHD': 'FQH',
-    # 'SHICHENG': 'SHC',
-    # 'FENGWEI': 'FHW',
-    # 'CHONGWUH': 'CHW',
-    # 'JINJIANG': 'JJH',
-    # 'SHIJING': 'SJH',
-    # 'XIAMEN': 'XMN',
-    # 'JIUZHEN': 'JZH',
-    # 'GULEI': 'GUL',
-    # 'DONGSHAN': 'DSH',
-    # 'CHISHIWAN': 'CSW',
-    # 'YUNAO': 'YAO',
-    # 'SHANTOU': 'STO',
-    # 'HAIMENG2': 'HMN',
-    # 'HUILAI': 'HLA',
-    # 'LUFENG': 'LFG',
-    # 'ZHELANG': 'ZHL',
-    # 'SHANWEI': 'SHW',
-    # 'HUIZHOU': 'HZO',
-    # 'YANTIAN': 'YTA',
-    # 'CHIWANH': 'CWH',
-    # 'NANSHA': 'NSA',
-    # 'HUANGPU': 'HPU',
-    # 'ZHENHAIH': 'ZHI',
-    # 25: 'DLS',
-    # 26: 'SZA',
-    # 27: 'BJI',
-    'ZHAPO': 'ZHP',
-    'SHUIDONG': 'SHD',
-    'ZHANJS': 'ZJS',
-    # 31: 'ZJS', # TODO:[-] 22-06-30 注意有两个ZJS
-    'NAOZHOU': 'NAZ',
-    'NANDU': 'NAD',
-    'HAIAN': 'HAN',
-    'XIUYING': 'XYG',
-    'QINGLANH': 'QLN',
-    'BOAO': 'BAO',
-    'GANGBEI': 'GBE',
-    'SANYA': 'SYA',
-    'DONGFANG': 'DFG',
-    'SHITOUPU': 'STP',
-    'WEIZHOU': 'WZH',
-    'BEIHAI': 'BHI',
-    'QINZHOU': 'QZH',
-    'FANGCG': 'FCG',
-    'WUCHANG': 'WCH',
-    'YINGGEH': 'YGH',
-    # ----
+    'DONGGANG': 'DGG',
+    'XIAOCS': 'XCS',
+    'LAOHUTAN': 'LHT',
+    'BAYUQUAN': 'BYQ',
+    'YINGKOU': 'YKO',
+    'HULUDAO': 'HLD',
+    'ZHIMAOW': 'ZMW',
+    'QINHUANG': 'QHD',
+    'TANGGU': 'TGU',
+    'CAOFD': 'CFD',
+    'HUANGHUA': 'HHA',
+    'BINZHOU': 'BZG',
+    'DONGYING': 'DYG',
+    'YANGJIAO': 'YJG',
+    'WEIFANG': 'WFG',
+    'LONGKOU': 'LKO',
+    'PENGLAI': 'PLI',
+    'YANTAI': 'YTI',  # TODO:[-] 实际不存在
+    'XIAOSHID': 'XSD',
+    'CHENGST': 'CST',
+    'WENDENG': 'WDG',
+    'SHIDAO': 'SID',
+    'QIANLIY': 'QLY',
+    'QINGDAOH': 'WMT',  # TODO:[*] 是否有问题
+    'XIAOMAID': 'XMD',
+    'SHIJIUS': 'RZH',
+    'LANSHAN': 'LSH',
+    'LIANYUNG': 'LYG',
+    'YANWEI': 'YWI',
+    'WKJIAO': 'YKG',
+    'LUSI': 'LSI',
+    'PUZHEN': 'BZH',
+    'WUSONG': 'WSG',
+    'GAOQIAO': 'GQA',
+    'COMIN': 'CMG',
 }
+# 区域1 独有的海洋站 供录入天文潮使用
+DICT_STATION_DIFF = {
+    'DONGGANG': 'DGG',
+    'XIAOCS': 'XCS',
+    'LAOHUTAN': 'LHT',
+    'BAYUQUAN': 'BYQ',
+    'YINGKOU': 'YKO',
+    'HULUDAO': 'HLD',
+    'ZHIMAOW': 'ZMW',
+    'QINHUANG': 'QHD',
+    'TANGGU': 'TGU',
+    'CAOFD': 'CFD',
+    'HUANGHUA': 'HHA',
+    'BINZHOU': 'BZG',
+    'DONGYING': 'DYG',
+    'YANGJIAO': 'YJG',
+    'WEIFANG': 'WFG',
+    'LONGKOU': 'LKO',
+    'PENGLAI': 'PLI',
+    'YANTAI': 'YTI',  # TODO:[-] 实际不存在
+    'XIAOSHID': 'XSD',
+    'CHENGST': 'CST',
+    'WENDENG': 'WDG',
+    'SHIDAO': 'SID',
+    'QIANLIY': 'QLY',
+    'QINGDAOH': 'WMT',  # TODO:[*] 是否有问题
+    'XIAOMAID': 'XMD',
+    'SHIJIUS': 'RZH',
+    'LANSHAN': 'LSH',
+    'LIANYUNG': 'LYG',
+    'YANWEI': 'YWI',
+    'WKJIAO': 'YKG',
+    'LUSI': 'LSI',
+    'PUZHEN': 'BZH',
+    'WUSONG': 'WSG',
+    'GAOQIAO': 'GQA',
+    'COMIN': 'CMG',
+}
+# 区域2 的字典
+# DICT_STATION = {
+#     # ----
+#     # 区域2
+#     # 芦潮港  10 711
+#     # 'LUCHAOG': 'LCG',
+#     # 大戢山  11 730
+#     # 'DAISHAN': 'DJS', # 没有大吉山
+#     # # 金山嘴  17 684
+#     # 'JINSHAN': 'JSZ',
+#     # # 滩浒    23 697
+#     # 3: 'TXU',       # TODO:[*] 22-06-21 没有滩浒的天文潮文件(2021)
+#     # 乍浦    26 667
+#     'ZHAPU': 'ZPU',
+#     # 澉浦    39 655
+#     # 5: 'GPU',   # TODO:[*] 22-06-21 没有澉浦的天文潮文件(2021) 注意 db 更新澉浦 GPU
+#     # 嵊山    17 768
+#     'SHENGSHAN': 'SHS',
+#     # 岱山    46 731
+#     'DAISHAN': 'DSH',
+#     # 定海    61 724
+#     'DINGHAI': 'DHI',
+#     # 镇海    61 704
+#     'ZHENHAIH': 'ZHI',
+#     # 沈家门  64 737
+#     'SHENJIAMEN': 'SJM',
+#     # 北仑    65 727
+#     'BEILUN': 'BLN',
+#     # 乌沙山  90 699
+#     'WUSS': 'WSH',
+#     # 石浦   106 719
+#     'SHIPU': 'SPU',
+#     # 健跳   117 699
+#     'JIANTIAO': 'JAT',
+#     # 海门Z  139 687
+#     'HAIMENZ': 'HMZ',  # TODO:[*] 22-06-21 天文潮位有两个，需对应
+#     # 大陈   153 714
+#     'DACHEN': 'DCH',
+#     # 坎门   175 679
+#     'KANMEN': 'KMN',
+#     # 温州S  181 645
+#     'WENZHOU2': 'WZS',
+#     # 瑞安S  197 641
+#     'RUIAN': 'RAS',
+#     # 鳌江S  206 638
+#     'AOJIANG': 'AJS',  # 没有鳌江S
+#     # 沙埕S  230 625
+#     'SHACHENG': 'SCS',  # 还有SHACHENGH
+#     # 秦屿   238 617
+#     'QINYU': 'QYU',
+#     # 三沙   246 614
+#     'SANSHA': 'SHA',
+#     # 北礵   258 621
+#     'BEISHUANG': 'BSH',
+#     # 城澳   263 584
+#     'CHENGAO': 'CAO',
+#     # 青屿   279 582
+#     'QINGYU': 'QGY',
+#     # 北茭   278 596
+#     'BJIAO': 'BJA',
+#     # 琯头   293 575
+#     'GUANTOU': 'GTO',
+#     # 梅花   299 581
+#     'MEIHUA': 'MHA',
+#     # 白岩潭 297 572
+#     'BAIYANT': 'BYT',
+#     # 平潭   332 590
+#     'PINGTANf': 'PTN',
+#     # 福清核 334 566
+#     'FUQINGHD': 'FQH',
+#     # 石城   344 562
+#     'SHICHENG': 'SHC',
+#     # 峰尾   353 538
+#     'FENGWEI': 'FHW',
+#     # 崇武H  368 536
+#     'CHONGWUH': 'CHW',
+#     # 晋江   382 520
+#     'JINJIANG': 'JJH',
+#     # 石井   381 507
+#     'SHIJING': 'SJH',
+#     # 厦门   393 484
+#     'XIAMEN': 'XMN',
+#     # 旧镇   421 463
+#     'JIUZHENG': 'JZH',
+#     # 古雷   432 459
+#     'GULEI': 'GUL',
+#     # 东山   436 452
+#     'DONGSHAN': 'DSH',
+#     # 赤石湾 442 434
+#     'CHISHIWAN': 'CSW',
+#     # 云澳   457 427
+#     'YUNAO': 'YAO',
+#     # 汕头S  460 405
+#     'SHANTOU': 'STO',
+#     # 海门G  470 397
+#     'HAIMENZ': 'HMN',  # 存在两个海门
+#     # 惠来   482 392
+#     'HUILAI': 'HLA',
+#     # 陆丰   491 366
+#     'LUFENG': 'LFG',
+#     # 遮浪   501 334
+#     'ZHELANG': 'ZHL',
+#     # 汕尾   495 321
+#     'SHANWEI': 'SHW',
+#     # 惠州   497 275
+#     'HUIZHOU': 'HZO',
+#     # 盐田   506 257
+#     'YANTIAN': 'YTA',
+#     # 赤湾H  513 233
+#     'CHIWANH': 'CHH',
+#     # 南沙   496 215
+#     'NANSHA': 'GNS',  # 注意存在两个南沙
+#     # 黄埔   491 216
+#     'HUANGPU': 'HPU',  # 存在两个黄埔，黄埔与黄埔G
+#     # 珠海   523 216
+#     'ZHUHAI': 'ZHU',
+#     # 灯笼山 534 208
+#     'DENGLONG': 'DLS',
+#     # 三灶   539 205
+#     'SANZAO': 'SZA',
+#     # ----
+#     # ----
+#     # 区域3
+#     'PINGTAN': 'PTN',
+#     # --- 以下重复的去掉
+#     # 'FUQINGHD': 'FQH',
+#     # 'SHICHENG': 'SHC',
+#     # 'FENGWEI': 'FHW',
+#     # 'CHONGWUH': 'CHW',
+#     # 'JINJIANG': 'JJH',
+#     # 'SHIJING': 'SJH',
+#     # 'XIAMEN': 'XMN',
+#     # 'JIUZHEN': 'JZH',
+#     # 'GULEI': 'GUL',
+#     # 'DONGSHAN': 'DSH',
+#     # 'CHISHIWAN': 'CSW',
+#     # 'YUNAO': 'YAO',
+#     # 'SHANTOU': 'STO',
+#     # 'HAIMENG2': 'HMN',
+#     # 'HUILAI': 'HLA',
+#     # 'LUFENG': 'LFG',
+#     # 'ZHELANG': 'ZHL',
+#     # 'SHANWEI': 'SHW',
+#     # 'HUIZHOU': 'HZO',
+#     # 'YANTIAN': 'YTA',
+#     # 'CHIWANH': 'CWH',
+#     # 'NANSHA': 'NSA',
+#     # 'HUANGPU': 'HPU',
+#     # 'ZHENHAIH': 'ZHI',
+#     # 25: 'DLS',
+#     # 26: 'SZA',
+#     # 27: 'BJI',
+#     'ZHAPO': 'ZHP',
+#     'SHUIDONG': 'SHD',
+#     'ZHANJS': 'ZJS',
+#     # 31: 'ZJS', # TODO:[-] 22-06-30 注意有两个ZJS
+#     'NAOZHOU': 'NAZ',
+#     'NANDU': 'NAD',
+#     'HAIAN': 'HAN',
+#     'XIUYING': 'XYG',
+#     'QINGLANH': 'QLN',
+#     'BOAO': 'BAO',
+#     'GANGBEI': 'GBE',
+#     'SANYA': 'SYA',
+#     'DONGFANG': 'DFG',
+#     'SHITOUPU': 'STP',
+#     'WEIZHOU': 'WZH',
+#     'BEIHAI': 'BHI',
+#     'QINZHOU': 'QZH',
+#     'FANGCG': 'FCG',
+#     'WUCHANG': 'WCH',
+#     'YINGGEH': 'YGH',
+#     # ----
+# }
 
 DICT_STATION_2 = {
     # 芦潮港  10 711
@@ -634,8 +710,8 @@ def update_station_alert_level(dict_station: dict, df: pd.DataFrame, session):
 def main():
     start_dt: datetime.datetime = datetime.datetime(2021, 1, 1)
     end_dt: datetime.datetime = datetime.datetime(2021, 12, 31)
-    year_str: str = '2021'
-    read_dir_path: str = r'C:\Users\evase\OneDrive\同步文件夹\02项目及本子\10-台风集合预报路径系统\数据\2201_天文潮'
+    year_str: str = '2022'
+    read_dir_path: str = r'C:\Users\evase\OneDrive\同步文件夹\02项目及本子\10-台风集合预报路径系统\数据\2022_天文潮\format_tide_2022'
     # read_dir_path: str = r'C:\Users\evase\OneDrive\同步文件夹\02项目及本子\10-台风集合预报路径系统\数据\2022_天文潮\format_tide_2022'
     session = DbFactory().Session
     # step2: 由于 东海和南海存在部分重叠的台站，需要先录入南海，然后去掉东海中南海已录入的部分，录入两次
@@ -669,14 +745,16 @@ def main():
     # dict_area2_diff = {'QINGYU': 'QGY',  'RUIAN': 'RAS'}
     # step3: 从指定路径:read_dir_path ,根据 dict_area2_diff 字典中获取存在的文件，并以 start_dt 为起始时间，写入db
     #
-    # station_2_db(read_dir_path, session, dict_area2_diff, start_dt, end_dt)
+    station_2_db(read_dir_path, session, DICT_STATION_DIFF, start_dt, end_dt, year_str)
     # + 22-06-23 批量更新 station_info 中的 d85 filed
     read_file_path: str = r'./ignore_data/sites_wl4_四色警戒潮位_含85基面.csv'
     df: pd.DataFrame = pd.read_csv(read_file_path,
                                    names=['name', 'code', 'wl1', 'wl2', 'wl3', 'wl4', 'd85', 'MSL', 'lon', 'lat'])
-    update_station_d85(DICT_STATION, df, session)
-    # update_station_alert_level(DICT_TEMP, df, session)
-    session.close()
+    # 更新 d85 基面差
+    # update_station_d85(DICT_STATION, df, session)
+    # 更新四色警戒潮位
+    # update_station_alert_level(DICT_STATION, df, session)
+    # session.close()
     pass
 
 

@@ -25,7 +25,7 @@ from common.enum import JobInstanceEnum, TaskStateEnum, ForecastAreaEnum, get_ar
 from util.customer_excption import CalculateTimeOutError
 from util.customer_decorators import except_log
 from conf.settings import TEST_ENV_SETTINGS, JOB_SETTINGS, MODIFY_CHMOD_PATH, MODIFY_CHMOD_FILENAME, TIME_ZONE
-from common.common_dict import get_forecast_area_range
+from common.common_dict import get_forecast_area_range, get_forecast_area_latlngs
 
 SHARED_PATH = TEST_ENV_SETTINGS.get('TY_GROUP_PATH_ROOT_DIR')
 MAX_TIME_INTERVAL: int = JOB_SETTINGS.get('MAX_TIME_INTERVAL')
@@ -874,8 +874,9 @@ class JobGeneratePathFile(IBaseJob):
         elif area == ForecastAreaEnum.ECS:
             suffix_name = 'CTSgpu2_plus.exe'
         # 渤海，区域1
+        # TODO:[*] 22-07-15 注意需要替换区域1的plus文件!
         elif area == ForecastAreaEnum.BHI:
-            suffix_name = 'CTSgpu1_plus.exe'
+            suffix_name = 'CTSgpu1.exe'
         return suffix_name
 
     def _get_grouppath_surge_shell_suffix(self, area: ForecastAreaEnum) -> str:
@@ -1735,8 +1736,11 @@ class JobTxt2NcPro(IBaseJob):
             sur = np.array(sur)
             sur = np.flipud(sur)
             dznum[dznum > 900] = 0
-            lon0 = np.arange(105 + 1 / 120, 123 + 1 / 120, 1 / 60)
-            lat0 = np.arange(15 + 1 / 120, 26 + 1 / 120, 1 / 60)
+            # TODO:[-] 22-07-14 改为动态获取 lats 与 lngs
+            res_latlngs = get_forecast_area_latlngs(area)
+            lon0 = res_latlngs[1]
+            lat0 = res_latlngs[0]
+
             lons, lats = np.meshgrid(lon0, lat0)
             #
             # wdir = wdir0 + 'result/' + caseno + '/'
