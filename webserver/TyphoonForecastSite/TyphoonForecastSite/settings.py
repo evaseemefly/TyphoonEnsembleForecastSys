@@ -97,7 +97,7 @@ DATABASES = {
         # 7530,mac
         # 'PASSWORD': '12345678',
         # 5820,p52s,p500,razer
-        'PASSWORD': '123456',
+        'PASSWORD': 'Nmefc@62105805',
         # 'HOST': '127.0.0.1',  # HOST
         # 'HOST': '0.0.0.0',  # HOST
         'HOST': '128.5.10.21',  # HOST

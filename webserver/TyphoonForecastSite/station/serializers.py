@@ -8,11 +8,13 @@ class StationForecastRealDataSerializer(serializers.Serializer):
     forecast_index = serializers.IntegerField()
     forecast_dt = serializers.DateTimeField(required=False)
     # surge = serializers.FloatField()
-    surge = serializers.DecimalField(max_digits=None,decimal_places=2)
+    surge = serializers.DecimalField(max_digits=None, decimal_places=2)
+
 
 class StationForecastRealDataMiniSerializer(serializers.Serializer):
     forecast_index = serializers.IntegerField()
     surge = serializers.DecimalField(max_digits=None, decimal_places=2)
+
 
 class StationAstronomicTideRealDataSerializer(serializers.Serializer):
     station_code = serializers.CharField()
@@ -63,8 +65,20 @@ class StationForecastRealDataByGroupSerializer(serializers.Serializer):
     list_realdata = StationForecastRealDataMiniSerializer(many=True)
     # list_realdata=serializers.ListSerializer
 
+
 class StationForecastRealDataMixin(StationForecastRealDataComplexSerializer, StationForecastRealDataRangeSerializer):
     pass
+
+
+class StationInfoSerializer(serializers.Serializer):
+    """
+        站点基础静态信息(经纬度，name等)
+    """
+    id = serializers.IntegerField()
+    code = serializers.CharField()
+    name = serializers.CharField()
+    lat = serializers.FloatField()
+    lon = serializers.FloatField()
 
 
 class StationStatisticsSerializer(serializers.Serializer):

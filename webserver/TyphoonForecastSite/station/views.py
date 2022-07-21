@@ -26,7 +26,7 @@ from typhoon.models import TyphoonGroupPathModel
 from .serializers import StationForecastRealDataSerializer, StationForecastRealDataComplexSerializer, \
     StationForecastRealDataRangeSerializer, StationForecastRealDataMixin, StationForecastRealDataRangeComplexSerializer, \
     StationAstronomicTideRealDataSerializer, StationAlertSerializer, StationStatisticsSerializer, \
-    StationForecastRealDataByGroupSerializer
+    StationForecastRealDataByGroupSerializer, StationInfoSerializer
 # 公共的
 from TyphoonForecastSite.settings import MY_PAGINATOR
 from util.const import DEFAULT_NULL_KEY, UNLESS_TY_CODE, DEFAULT_CODE, DEFAULT_TIMTSTAMP_STR, \
@@ -59,7 +59,7 @@ class StationListBaseView(TyGroupBaseView):
             获取全部的 非 is_del + is_abs 的station
         @return:
         """
-        query: List[StationInfoModel] = StationInfoModel.objects.filter(is_abs=False, is_del=False)
+        query: List[StationInfoModel] = StationInfoModel.objects.filter(is_abs=False, is_del=False, is_in_use=True)
         return query
 
     def get_station_complex(self, gp_id: int, forecast_dt: str) -> {}:
@@ -445,6 +445,17 @@ class StationListView(StationListBaseView):
                 self._status = 200
             except Exception as ex:
                 self.json = ex.args
+        return Response(self.json_data, status=self._status)
+
+
+class StationStaticsListView(StationListBaseView):
+    """
+        + 22-07-21 获取海洋站静态信息列表
+    """
+    def get(self, request: Request) -> Response:
+        list_station = self.get_all_station()
+        self.json_data = StationInfoSerializer(list_station, many=True).data
+        self._status = 200
         return Response(self.json_data, status=self._status)
 
 
