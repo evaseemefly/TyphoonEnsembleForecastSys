@@ -79,6 +79,7 @@ class StationInfoSerializer(serializers.Serializer):
     name = serializers.CharField()
     lat = serializers.FloatField()
     lon = serializers.FloatField()
+    is_abs = serializers.BooleanField()
 
 
 class StationStatisticsSerializer(serializers.Serializer):

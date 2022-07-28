@@ -448,10 +448,21 @@ class StationListView(StationListBaseView):
         return Response(self.json_data, status=self._status)
 
 
+class StationListByGroupView(StationListBaseView):
+    def get(self, request: Request) -> Response:
+        pid = int(request.GET.get('pid', str(DEFAULT_NULL_KEY)))
+        fathers = StationInfoModel.objects.filter(pid=pid, is_in_use=True)
+        res = StationInfoSerializer(fathers, many=True).data
+        self.json_data = res
+        self._status = 200
+        return Response(self.json_data, status=self._status)
+
+
 class StationStaticsListView(StationListBaseView):
     """
         + 22-07-21 获取海洋站静态信息列表
     """
+
     def get(self, request: Request) -> Response:
         list_station = self.get_all_station()
         self.json_data = StationInfoSerializer(list_station, many=True).data
