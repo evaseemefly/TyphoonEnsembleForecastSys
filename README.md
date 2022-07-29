@@ -9,6 +9,9 @@
 ## 项目文档:
 [前端README](./documents/client_readme.md)
 [部署README](./documents/项目部署.md)
+
+[用户手册](./documents/user_guide.md)
+
 ## 项目架构及所用到的技术
 ![系统架构图](./documents/pic/sys.png)
 ## 项目预览
@@ -60,12 +63,12 @@
 + 修复了icon layer 原点造成的偏移问题
 + 其他修复
   * 逐时潮位站显示 与 集合路径显示
-![22-02-18-01](./documents/pic/pic015.png)
-![22-02-18-02](./documents/pic/pic016.png)
-![22-02-18-03](./documents/pic/pic017.png)
+  ![22-02-18-01](./documents/pic/pic015.png)
+  ![22-02-18-02](./documents/pic/pic016.png)
+  ![22-02-18-03](./documents/pic/pic017.png)
   * 极值潮位站显示
-![22-02-18-04](./documents/pic/pic018.png)
-![22-02-18-05](./documents/pic/pic019.png)
+  ![22-02-18-04](./documents/pic/pic018.png)
+  ![22-02-18-05](./documents/pic/pic019.png)
 + 22-04-14
 + 重新修改了左侧加载图层
 + 将左侧加载图层的加载逻辑修改为级联操作(个人不喜欢这种操作)

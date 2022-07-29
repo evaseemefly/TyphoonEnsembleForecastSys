@@ -876,7 +876,7 @@ class JobGeneratePathFile(IBaseJob):
         # 渤海，区域1
         # TODO:[*] 22-07-15 注意需要替换区域1的plus文件!
         elif area == ForecastAreaEnum.BHI:
-            suffix_name = 'CTSgpu1.exe'
+            suffix_name = 'CTSgpu1_plus.exe'
         return suffix_name
 
     def _get_grouppath_surge_shell_suffix(self, area: ForecastAreaEnum) -> str:
@@ -1226,6 +1226,7 @@ class JobGeneratePathFile(IBaseJob):
                 # TODO:[*] 21-09-22 ERROR: ValueError: cannot convert float NaN to integer
                 spd0.append(round(dista[j] / 6))
                 if spd0[j] < minsp:
+                    # TODO:[*] 22-07-29 IndexError: index 20 is out of bounds for axis 1 with size 20
                     rrmat6[r, j] = round(rrmat6[r, j] * coef)
                     if j == kxi - 1:
                         rrmat6[r, j + 1] = round(rrmat6[r, j + 1] * coef)
