@@ -2,6 +2,7 @@
 # 注意数据库中均为世界时
 import os
 import pandas as pd
+
 import pathlib
 import datetime
 from sqlalchemy import create_engine
@@ -708,8 +709,8 @@ def update_station_alert_level(dict_station: dict, df: pd.DataFrame, session):
 
 
 def main():
-    start_dt: datetime.datetime = datetime.datetime(2021, 1, 1)
-    end_dt: datetime.datetime = datetime.datetime(2021, 12, 31)
+    start_dt: datetime.datetime = datetime.datetime(2022, 1, 1)
+    end_dt: datetime.datetime = datetime.datetime(2022, 12, 31)
     year_str: str = '2022'
     read_dir_path: str = r'C:\Users\evase\OneDrive\同步文件夹\02项目及本子\10-台风集合预报路径系统\数据\2022_天文潮\format_tide_2022'
     # read_dir_path: str = r'C:\Users\evase\OneDrive\同步文件夹\02项目及本子\10-台风集合预报路径系统\数据\2022_天文潮\format_tide_2022'
