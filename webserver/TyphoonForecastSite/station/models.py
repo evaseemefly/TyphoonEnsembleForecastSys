@@ -153,7 +153,7 @@ class TideDataModel(IIdModel):
     """
         + 22-07-31 每日的两个或一个高潮位表
     """
-    station_code = models.CharField(max_length=10, nullable=False)
+    station_code = models.CharField(max_length=10)
     forecast_dt = models.DateTimeField(default=now)
     surge = models.FloatField()
     tide_type = models.IntegerField(default=UNLESS_INDEX)

@@ -14,6 +14,8 @@ https://docs.djangoproject.com/en/3.0/ref/settings/
 """
 
 import os
+from ._PRIVACY import DB
+from enum import Enum, unique
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -83,8 +85,27 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'TyphoonForecastSite.wsgi.application'
 
+
 # Database
 # https://docs.djangoproject.com/en/3.0/ref/settings/#databases
+
+@unique
+class PATTERNENUM(Enum):
+    HOME = 1
+    COMPANY = 2
+    DOCKER = 3
+
+
+# 未提交的数据库密码(请勿提交)
+DB_PWD = DB.get('DB_PWD')
+# 调试时需要修改此处
+PATTERN = PATTERNENUM.COMPANY
+
+HOST = '127.0.0.1'
+if PATTERN == PATTERNENUM.COMPANY:
+    HOST = '128.5.10.21'
+elif PATTERN == PATTERNENUM.DOCKER:
+    HOST = 'host.docker.internal'
 
 DATABASES = {
     'default': {
@@ -97,16 +118,17 @@ DATABASES = {
         # 7530,mac
         # 'PASSWORD': '12345678',
         # 5820,p52s,p500,razer
-        'PASSWORD': '123456',
+        'PASSWORD': DB_PWD if PATTERN == PATTERNENUM.COMPANY else '123456',
         # 'HOST': '127.0.0.1',  # HOST
         # 'HOST': '0.0.0.0',  # HOST
         # 'HOST': '128.5.10.21',  # HOST
         # 访问宿主的mysql服务,
         # 'HOST': 'mysql',  # TODO:[-] 21-10-11 注意此处使用 mysql 的容器
         # mac 环境下 (1049, "Unknown database 'typhoon_forecast_db'")
-        'HOST': 'host.docker.internal',  # docker访问宿主机的mysql服务
+        # 'HOST': 'host.docker.internal',  # docker访问宿主机的mysql服务
         # 'HOST': '127.0.0.1',
-        'PORT': 3306,  # 端口
+        'HOST': HOST,
+        'PORT': '3308' if PATTERN == PATTERNENUM.COMPANY else '3306',  # 端口
 
         # 'PORT': 3308,  # TODO:[-] 21-10-11 端口暂时改为 3308
         'OPTIONS': {
