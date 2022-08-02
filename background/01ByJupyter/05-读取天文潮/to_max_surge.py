@@ -14,7 +14,18 @@ from sqlalchemy.orm import relationship, sessionmaker
 # from datetime import datetime
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
+from enum import Enum, unique
 from _PRIVACY import DB
+from common import DICT_STATION
+
+
+@unique
+class PATTERNENMU(Enum):
+    HOME = 1
+    COMPANY = 2
+
+
+PATTERN = PATTERNENMU.COMPANY
 
 DB_PWD = DB.get('DB_PWD')
 
@@ -23,9 +34,11 @@ DATABASES = {
         'ENGINE': 'mysqldb',  # 数据库引擎
         'NAME': 'typhoon_forecast_db',  # 数据库名
         'USER': 'root',  # 账号
-        'PASSWORD': DB_PWD,
+        'PASSWORD': DB_PWD if PATTERN == PATTERNENMU.COMPANY else '123456',
+        # 'HOST': '127.0.0.1',  # HOST
         'HOST': '128.5.10.21',  # HOST
-        'POST': 3308,  # 端口
+        # 'POST': 3306,  # 端口
+        'PORT': 3308,  # TODO:[-] 21-10-11 端口暂时改为 3308
         'OPTIONS': {
             "init_command": "SET foreign_key_checks = 0;",
         },
@@ -69,16 +82,14 @@ metadata = BaseMeta.metadata
 
 
 class TideDataModel(BaseMeta):
-    id = Column(Integer, primary_key=True)
+    # (1364, "Field 'id' doesn't have a default value") 需要手动设置数据库中的 id 字段为自增字段
+    id = Column(Integer, primary_key=True, autoincrement=True)
     station_code = Column(VARCHAR(200), nullable=False)
     forecast_dt = Column(DATETIME(fsp=2))
     surge = Column(Float, nullable=False)
     tide_type = Column(Integer)
 
     __tablename__ = 'tide_data_daily'
-
-
-from enum import Enum, unique
 
 
 @unique
@@ -104,7 +115,7 @@ def surge_data_2_stand(surge: str, forecast_dt_str: str, year: str, daily_start_
     # surge_utc_dt = arrow.get(surge_fullDt_str, 'YYYY-MM-DD hhmm').shift(hours=-8)
     surge_utc_dt = daily_start_time_utc.shift(hours=time.hour).shift(minutes=time.minute)
     surge_dict['surge'] = surge
-    surge_dict['dt'] = surge_utc_dt
+    surge_dict['dt'] = surge_utc_dt.datetime
     return surge_dict
 
 
@@ -136,7 +147,7 @@ def to_insert_db(session: sessionmaker, data: pd.DataFrame, year: str, station_f
             max_surge_1 = float(_max_surge_1_str)
             max_surge_1_utc_dt: datetime = max_surge_1_dict.get('dt')
             _tide_data = TideDataModel(station_code=station_code, surge=max_surge_1, forecast_dt=max_surge_1_utc_dt,
-                                       tide_type=TideTypeEnum.PRIMARY)
+                                       tide_type=TideTypeEnum.PRIMARY.value)
             session.add(_tide_data)
         # step2:获取第二个高潮
         # 需要判断 index 26,27 是否为 9999 若为 9999 则为缺省值
@@ -148,24 +159,27 @@ def to_insert_db(session: sessionmaker, data: pd.DataFrame, year: str, station_f
             max_surge_2: float = float(_max_surge_2_str)
             max_surge_2_utc_dt = max_surge_2_dict.get('dt')
             _tide_data_2 = TideDataModel(station_code=station_code, surge=max_surge_2, forecast_dt=max_surge_2_utc_dt,
-                                         tide_type=TideTypeEnum.MINOR)
+                                         tide_type=TideTypeEnum.MINOR.value)
             session.add(_tide_data_2)
 
     session.commit()
 
 
 def main():
-    file_name = 'AOJIANG2022'
-    # read_path = r'C:\Users\evase\OneDrive\同步文件夹\02项目及本子\10-台风集合预报路径系统\数据\2022_天文潮\format_tide_2022'
-    read_path = r'./'
-    full_path = str(pathlib.Path(read_path) / file_name)
-    YEAR = '2022'
-    session = DbFactory().Session
-    with open(full_path, 'rb') as f:
-        data = pd.read_table(f, sep='\s+', encoding='unicode_escape', header=None, infer_datetime_format=False)
-        print('读取成功')
-        to_insert_db(session, data, YEAR, 'AOJIANG', 'AJS')
-    pass
+    # 根据 DICT_STATION 录入全部的海洋站数据
+    for val, key in DICT_STATION.items():
+        file_name = f'{val}2022'
+        # read_path = r'C:\Users\evase\OneDrive\同步文件夹\02项目及本子\10-台风集合预报路径系统\数据\2022_天文潮\format_tide_2022'
+        read_path = r'./data'
+        full_path = str(pathlib.Path(read_path) / file_name)
+        if pathlib.Path(full_path).exists():
+            YEAR = '2022'
+            session = DbFactory().Session
+            with open(full_path, 'rb') as f:
+                data = pd.read_table(f, sep='\s+', encoding='unicode_escape', header=None, infer_datetime_format=False)
+                print('读取成功')
+                to_insert_db(session, data, YEAR, val, key)
+            pass
 
 
 if __name__ == '__main__':

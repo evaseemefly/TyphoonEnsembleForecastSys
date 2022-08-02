@@ -21,7 +21,7 @@ from rest_framework.decorators import (APIView, api_view,
 # --
 # 本项目的
 from .models import StationForecastRealDataModel, StationInfoModel, StationAstronomicTideRealDataModel, \
-    StationAlertTideModel, StationStatisticsModel, StationForecastRealDataSharedMdoel
+    StationAlertTideModel, StationStatisticsModel, StationForecastRealDataSharedMdoel, TideDataModel
 from typhoon.models import TyphoonGroupPathModel
 from .serializers import StationForecastRealDataSerializer, StationForecastRealDataComplexSerializer, \
     StationForecastRealDataRangeSerializer, StationForecastRealDataMixin, StationForecastRealDataRangeComplexSerializer, \
@@ -994,3 +994,28 @@ class StationSurgeSplitTab(BaseView):
         dao = StationForecastRealDataSharedMdoel.get_sharding_model(ty_code=ty_code)
         query = dao.objects.filter(id=1)
         return Response('', status=200)
+
+
+class StationTideDailyView(StationListBaseView):
+    """
+        + 22-07-31 当日高潮位视图
+    """
+
+    def get(self, request: Request) -> Response:
+        station_codes: str[] = request.GET.get('station_codes', [])
+        start_dt_str: str = request.GET.get('forecast_start_dt')
+        end_dt_str: str = request.GET.get('forecast_end_dt')
+        """
+            stationName: '测试1',
+			stationCode: 'CES1',
+			id: 1,
+			surgeList: [
+				{ forecastDt: new Date(), surge: 215 },
+				{ forecastDt: new Date(), surge: 108 },
+			],
+			blue: 120,
+			yellow: 140,
+			orgin: 160,
+			red: 180,
+        """
+        pass

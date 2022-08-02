@@ -130,6 +130,7 @@ class StationStatisticsModel(IIdModel, IDelModel, IModel):
     class Meta:
         db_table = 'station_quantile_realdata'
 
+
 # class StationComplexModel(IIdModel):
 #     ty_code = models.CharField(max_length=200)
 #     gp_id = models.IntegerField(default=DEFAULT_FK)
@@ -147,3 +148,15 @@ class StationStatisticsModel(IIdModel, IDelModel, IModel):
 #     class Meta:
 #         db_table = 'station_info'
 # abstract = True
+
+class TideDataModel(IIdModel):
+    """
+        + 22-07-31 每日的两个或一个高潮位表
+    """
+    station_code = models.CharField(max_length=10)
+    forecast_dt = models.DateTimeField(default=now)
+    surge = models.FloatField()
+    tide_type = models.IntegerField(default=UNLESS_INDEX)
+
+    class Meta:
+        db_table = 'tide_data_daily'
