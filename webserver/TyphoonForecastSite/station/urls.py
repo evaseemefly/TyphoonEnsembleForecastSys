@@ -14,7 +14,7 @@ from rest_framework import routers
 from .views import StationListView, StationSurgeRangeValueListView, StationSurgeRealListRangeValueView, \
     StationAstronomicTideRealDataListView, StationAlertView, StationSurgeRealDataQuarterListView, StationAreaListView, \
     StationCenterMaxListView, StationAllPathMaxListView, StationSurgeSplitTab, StationBaseLevelDiffView, \
-    StationD85DiffView, StationSurgeGroupRealListView, StationStaticsListView, StationListByGroupView
+    StationD85DiffView, StationSurgeGroupRealListView, StationStaticsListView, StationListByGroupView,StationTideDailyView
 
 app_name = '[station]'
 
@@ -22,6 +22,7 @@ urlpatterns = [
     # 根据查询条件获取 typhoonDetailModel 的列表
     url(r'^station/list/pid$', StationListByGroupView.as_view()),
     url(r'^station/list$', StationListView.as_view()),
+    url(r'^tide/list$', StationTideDailyView.as_view()),
     url(r'^station/all/list$', StationStaticsListView.as_view()),  # + 22-07-21 获取全部的海洋站
     url(r'^station/center/max/list$', StationCenterMaxListView.as_view()),
     url(r'^station/allpath/max/list$', StationAllPathMaxListView.as_view()),

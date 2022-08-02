@@ -92,3 +92,18 @@ class StationStatisticsSerializer(serializers.Serializer):
     median_val = serializers.FloatField()
     max_val = serializers.FloatField()
     min_val = serializers.FloatField(required=False)
+
+
+class TideDetailDataserializer(serializers.Serializer):
+    forecast_dt = serializers.DateTimeField()
+    surge = serializers.FloatField()
+
+
+class TideDailyDataSerializer(serializers.Serializer):
+    station_code = serializers.CharField()
+    station_name = serializers.CharField()
+    surge_list = TideDetailDataserializer(many=True)
+    blue = serializers.FloatField(required=False)
+    yellow = serializers.FloatField(required=False)
+    orange = serializers.FloatField(required=False)
+    red = serializers.FloatField(required=False)

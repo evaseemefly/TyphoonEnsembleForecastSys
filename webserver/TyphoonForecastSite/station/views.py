@@ -17,7 +17,7 @@ from rest_framework.request import Request
 from rest_framework.decorators import (APIView, api_view,
                                        authentication_classes,
                                        permission_classes)
-
+from typing import List
 # --
 # 本项目的
 from .models import StationForecastRealDataModel, StationInfoModel, StationAstronomicTideRealDataModel, \
@@ -26,15 +26,17 @@ from typhoon.models import TyphoonGroupPathModel
 from .serializers import StationForecastRealDataSerializer, StationForecastRealDataComplexSerializer, \
     StationForecastRealDataRangeSerializer, StationForecastRealDataMixin, StationForecastRealDataRangeComplexSerializer, \
     StationAstronomicTideRealDataSerializer, StationAlertSerializer, StationStatisticsSerializer, \
-    StationForecastRealDataByGroupSerializer, StationInfoSerializer
+    StationForecastRealDataByGroupSerializer, StationInfoSerializer, TideDailyDataSerializer
 # 公共的
 from TyphoonForecastSite.settings import MY_PAGINATOR
 from util.const import DEFAULT_NULL_KEY, UNLESS_TY_CODE, DEFAULT_CODE, DEFAULT_TIMTSTAMP_STR, \
-    STATION_SURGE_REALDATA_TAB_BASE_NAME
+    STATION_SURGE_REALDATA_TAB_BASE_NAME, DEFAULT_STATION_NAME
 from common.view_base import BaseView
 from typhoon.views_base import TyGroupBaseView
 # 自定义装饰器
 from util.customer_wrapt import get_time
+from util.common import convert_str_2_utc_dt
+from util.enum import AlertLevelEnum
 
 DEFAULT_PAGE_INDEX = MY_PAGINATOR.get('PAGE_INDEX')
 DEFAULT_PAGE_COUNT = MY_PAGINATOR.get('PAGE_COUNT')
@@ -1002,10 +1004,15 @@ class StationTideDailyView(StationListBaseView):
     """
 
     def get(self, request: Request) -> Response:
-        station_codes: str[] = request.GET.get('station_codes', [])
+        """
+            + 22-08-01 获取起止日期之间的指定潮位站集合的高潮值集合
+        """
+        # station_codes_str: str = request.GET.get('station_codes', '')
+        # station_codes = station_codes_str.split(',')
+        station_codes = request.GET.getlist('station_codes[]', [])
         start_dt_str: str = request.GET.get('forecast_start_dt')
         end_dt_str: str = request.GET.get('forecast_end_dt')
-        """
+        '''
             stationName: '测试1',
 			stationCode: 'CES1',
 			id: 1,
@@ -1017,5 +1024,41 @@ class StationTideDailyView(StationListBaseView):
 			yellow: 140,
 			orgin: 160,
 			red: 180,
-        """
-        pass
+        '''
+        start_dt_utc: datetime = convert_str_2_utc_dt(start_dt_str)
+        end_dt_utc: datetime = convert_str_2_utc_dt(end_dt_str)
+        list_tide: List[dict] = []
+        # step2: 根据提交的 station_codes 遍历，根据对应的 station_code以及起止时间获取高潮值
+        for station_code in station_codes:
+            tides = TideDataModel.objects.filter(station_code=station_code, forecast_dt__gte=start_dt_utc,
+                                                 forecast_dt__lte=end_dt_utc)
+            station_name = DEFAULT_STATION_NAME
+            if StationInfoModel.objects.filter(code=station_code).first() is not None:
+                station_name = StationInfoModel.objects.filter(code=station_code).first().name
+            tide_dict = {}
+            tide_dict['station_name'] = station_name
+            tide_dict['station_code'] = station_code
+            tide_dict['surge_list'] = []
+            for tide in tides:
+                tide_temp: {} = {}
+                tide_temp['forecast_dt'] = tide.forecast_dt
+                tide_temp['surge'] = tide.surge
+                tide_dict['surge_list'].append(tide_temp)
+                # 生成四色警戒潮位
+                alert_levels = StationAlertTideModel.objects.filter(station_code=station_code)
+                for level in alert_levels:
+                    if level.alert == AlertLevelEnum.BLUE.value:
+                        tide_dict['blue'] = level.tide
+                    elif level.alert == AlertLevelEnum.YELLOW.value:
+                        tide_dict['yellow'] = level.tide
+                    elif level.alert == AlertLevelEnum.ORANGE.value:
+                        tide_dict['orange'] = level.tide
+                    elif level.alert == AlertLevelEnum.RED.value:
+                        tide_dict['red'] = level.tide
+            list_tide.append(tide_dict)
+
+            pass
+        json_data = TideDailyDataSerializer(list_tide, many=True).data
+        self._status = 200
+        self.json_data = json_data
+        return Response(self.json_data, status=self._status)
