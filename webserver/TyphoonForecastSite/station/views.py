@@ -949,6 +949,25 @@ class StationAstronomicTideRealDataListView(StationListBaseView):
         return query[:]
 
 
+class StationAstronomicTideListView(StationListBaseView):
+    '''
+        + 22-08-05 根据 station_code | start_dt | end_dt 获取对应天文潮集合
+    '''
+
+    def get(self, request: Request) -> Response:
+        station_code: str = request.GET.get('station_code', None) if request.GET.get('station_code',
+                                                                                     None) is not None else DEFAULT_CODE
+        start_dt_str: str = request.GET.get('start_dt')
+        end_dt_str: str = request.GET.get('end_dt')
+        start_dt: datetime = arrow.get(start_dt_str).datetime
+        end_dt: datetime = arrow.get(end_dt_str).datetime
+        query: QuerySet = StationAstronomicTideRealDataModel.objects.filter(station_code=station_code).filter(
+            forecast_dt__lte=end_dt, forecast_dt__gte=start_dt)
+        self.json_data = StationAstronomicTideRealDataSerializer(query, many=True).data
+        self._status = 200
+        return Response(self.json_data, status=self._status)
+
+
 class StationBaseLevelDiffView(BaseView):
     def get(self, request: Request):
         station_code: str = request.GET.get('station_code', DEFAULT_CODE)
