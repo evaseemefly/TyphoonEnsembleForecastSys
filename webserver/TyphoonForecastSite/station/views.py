@@ -36,6 +36,7 @@ from typhoon.views_base import TyGroupBaseView
 # 自定义装饰器
 from util.customer_wrapt import get_time
 from util.common import convert_str_2_utc_dt
+from util.enum import AlertLevelEnum
 
 DEFAULT_PAGE_INDEX = MY_PAGINATOR.get('PAGE_INDEX')
 DEFAULT_PAGE_COUNT = MY_PAGINATOR.get('PAGE_COUNT')
@@ -1006,8 +1007,9 @@ class StationTideDailyView(StationListBaseView):
         """
             + 22-08-01 获取起止日期之间的指定潮位站集合的高潮值集合
         """
-        station_codes_str: str = request.GET.get('station_codes', '')
-        station_codes = station_codes_str.split(',')
+        # station_codes_str: str = request.GET.get('station_codes', '')
+        # station_codes = station_codes_str.split(',')
+        station_codes = request.GET.getlist('station_codes[]', [])
         start_dt_str: str = request.GET.get('forecast_start_dt')
         end_dt_str: str = request.GET.get('forecast_end_dt')
         '''
@@ -1042,6 +1044,17 @@ class StationTideDailyView(StationListBaseView):
                 tide_temp['forecast_dt'] = tide.forecast_dt
                 tide_temp['surge'] = tide.surge
                 tide_dict['surge_list'].append(tide_temp)
+                # 生成四色警戒潮位
+                alert_levels = StationAlertTideModel.objects.filter(station_code=station_code)
+                for level in alert_levels:
+                    if level.alert == AlertLevelEnum.BLUE.value:
+                        tide_dict['blue'] = level.tide
+                    elif level.alert == AlertLevelEnum.YELLOW.value:
+                        tide_dict['yellow'] = level.tide
+                    elif level.alert == AlertLevelEnum.ORANGE.value:
+                        tide_dict['orange'] = level.tide
+                    elif level.alert == AlertLevelEnum.RED.value:
+                        tide_dict['red'] = level.tide
             list_tide.append(tide_dict)
 
             pass

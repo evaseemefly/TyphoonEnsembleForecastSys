@@ -103,3 +103,7 @@ class TideDailyDataSerializer(serializers.Serializer):
     station_code = serializers.CharField()
     station_name = serializers.CharField()
     surge_list = TideDetailDataserializer(many=True)
+    blue = serializers.FloatField(required=False)
+    yellow = serializers.FloatField(required=False)
+    orange = serializers.FloatField(required=False)
+    red = serializers.FloatField(required=False)

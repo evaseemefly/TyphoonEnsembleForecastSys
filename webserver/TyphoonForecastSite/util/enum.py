@@ -26,6 +26,7 @@ class TaskStateEnum(Enum):
     ERROR = 7104
     UNUSED = 7105
 
+
 @unique
 class ForecastAreaEnum(Enum):
     '''
@@ -37,3 +38,10 @@ class ForecastAreaEnum(Enum):
     ECS = 511  # 二区
     SCS = 512  # 三区 ,注意三区目前为默认预报区域
 
+
+@unique
+class AlertLevelEnum(Enum):
+    BLUE = 5001
+    YELLOW = 5002
+    ORANGE = 5003
+    RED = 5004

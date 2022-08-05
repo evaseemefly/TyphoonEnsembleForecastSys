@@ -25,7 +25,7 @@ class PATTERNENMU(Enum):
     COMPANY = 2
 
 
-PATTERN = PATTERNENMU.HOME
+PATTERN = PATTERNENMU.COMPANY
 
 DB_PWD = DB.get('DB_PWD')
 
@@ -35,8 +35,10 @@ DATABASES = {
         'NAME': 'typhoon_forecast_db',  # 数据库名
         'USER': 'root',  # 账号
         'PASSWORD': DB_PWD if PATTERN == PATTERNENMU.COMPANY else '123456',
-        'HOST': '127.0.0.1',  # HOST
-        'POST': 3306,  # 端口
+        # 'HOST': '127.0.0.1',  # HOST
+        'HOST': '128.5.10.21',  # HOST
+        # 'POST': 3306,  # 端口
+        'PORT': 3308,  # TODO:[-] 21-10-11 端口暂时改为 3308
         'OPTIONS': {
             "init_command": "SET foreign_key_checks = 0;",
         },
