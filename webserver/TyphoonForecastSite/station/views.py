@@ -1029,6 +1029,7 @@ class StationTideDailyView(StationListBaseView):
         # station_codes_str: str = request.GET.get('station_codes', '')
         # station_codes = station_codes_str.split(',')
         station_codes = request.GET.getlist('station_codes[]', [])
+        # TODO:[-] 22-08-09 注意传入的时间为 utc 时间 00Z 不需要手动转换为 utc 时间，后台处理时统一使用utc时间
         start_dt_str: str = request.GET.get('forecast_start_dt')
         end_dt_str: str = request.GET.get('forecast_end_dt')
         '''
@@ -1044,8 +1045,8 @@ class StationTideDailyView(StationListBaseView):
 			orgin: 160,
 			red: 180,
         '''
-        start_dt_utc: datetime = convert_str_2_utc_dt(start_dt_str)
-        end_dt_utc: datetime = convert_str_2_utc_dt(end_dt_str)
+        start_dt_utc: datetime = convert_str_2_utc_dt(start_dt_str, False)
+        end_dt_utc: datetime = convert_str_2_utc_dt(end_dt_str, False)
         list_tide: List[dict] = []
         # step2: 根据提交的 station_codes 遍历，根据对应的 station_code以及起止时间获取高潮值
         for station_code in station_codes:
