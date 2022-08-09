@@ -1053,11 +1053,18 @@ class StationTideDailyView(StationListBaseView):
             tides = TideDataModel.objects.filter(station_code=station_code, forecast_dt__gte=start_dt_utc,
                                                  forecast_dt__lte=end_dt_utc)
             station_name = DEFAULT_STATION_NAME
+            d85 = None
+            base_level_diff = None
             if StationInfoModel.objects.filter(code=station_code).first() is not None:
-                station_name = StationInfoModel.objects.filter(code=station_code).first().name
+                stationInfo = StationInfoModel.objects.filter(code=station_code).first()
+                station_name = stationInfo.name
+                d85 = stationInfo.d85
+                base_level_diff = stationInfo.base_level_diff
             tide_dict = {}
             tide_dict['station_name'] = station_name
             tide_dict['station_code'] = station_code
+            tide_dict['d85'] = d85
+            tide_dict['base_level_diff'] = base_level_diff
             tide_dict['surge_list'] = []
             for tide in tides:
                 tide_temp: {} = {}

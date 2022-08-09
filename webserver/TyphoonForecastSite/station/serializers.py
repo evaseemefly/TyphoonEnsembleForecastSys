@@ -107,3 +107,5 @@ class TideDailyDataSerializer(serializers.Serializer):
     yellow = serializers.FloatField(required=False)
     orange = serializers.FloatField(required=False)
     red = serializers.FloatField(required=False)
+    d85 = serializers.FloatField(required=False)
+    base_level_diff = serializers.FloatField(required=False)
