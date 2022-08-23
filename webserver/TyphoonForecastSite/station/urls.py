@@ -37,7 +37,7 @@ urlpatterns = [
     url(r'^station/alert$', StationAlertView.as_view()),
     url(r'^station/baseLevelDiff$', StationBaseLevelDiffView.as_view()),
     url(r'^station/d85$', StationD85DiffView.as_view()),
-    url(r'^station/realdata/quarter/list$', StationSurgeRealDataQuarter87ListView.as_view()),
+    url(r'^station/realdata/quarter/list$', StationSurgeRealDataQuarterListView.as_view()),
 
     url(r'^station/test$', StationSurgeSplitTab.as_view()),
 
