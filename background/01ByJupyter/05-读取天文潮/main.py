@@ -26,7 +26,7 @@ DATABASES = {
         # 7530,mac
         # 'PASSWORD': 'admin123',
         # 5820,p52s,p500,razer
-        'PASSWORD': '123456',
+        'PASSWORD': '',
         # by cwb
         # 'USER': 'root',  # 账号
         # 'PASSWORD': '123456',
@@ -748,6 +748,8 @@ def main():
     # TODO:[*] 22-08-14 HMN 由 HAIMENZ -> HAIMENG
     DICT_STATION_DIFF = {'HAIMENG2': 'HMN'} 
     #
+    DICT_STATION_DIFF = {'RAOPING': 'RPG', 'HENGMEN': 'HGM', 'MAGE': 'MGE', 'TAISHAN': 'TSH', 'BEIJIN': 'BJN',
+                         'LEIZHOU': 'LZH', }
     station_2_db(read_dir_path, session, DICT_STATION_DIFF, start_dt, end_dt, year_str)
     # + 22-06-23 批量更新 station_info 中的 d85 filed
     read_file_path: str = r'./ignore_data/sites_wl4_四色警戒潮位_含85基面.csv'

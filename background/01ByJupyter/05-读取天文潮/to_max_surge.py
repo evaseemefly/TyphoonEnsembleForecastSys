@@ -167,9 +167,11 @@ def to_insert_db(session: sessionmaker, data: pd.DataFrame, year: str, station_f
 
 def main():
     # 根据 DICT_STATION 录入全部的海洋站数据
-    # TODO:[*] 22-08-14 HMN 由 HAIMENZ -> HAIMENG
+	# TODO:[*] 22-08-14 HMN 由 HAIMENZ -> HAIMENG
     DICT_STATION = {
-        'HAIMENG2': 'HMN', }
+        'HAIMENG2': 'HMN', }    # 目前解决南海 海门G
+    DICT_STATION = {'RAOPING': 'RPG', 'HENGMEN': 'HGM', 'MAGE': 'MGE', 'TAISHAN': 'TSH', 'BEIJIN': 'BJN',
+                    'LEIZHOU': 'LZH', }
     for val, key in DICT_STATION.items():
         file_name = f'{val}2022'
         # read_path = r'C:\Users\evase\OneDrive\同步文件夹\02项目及本子\10-台风集合预报路径系统\数据\2022_天文潮\format_tide_2022'
