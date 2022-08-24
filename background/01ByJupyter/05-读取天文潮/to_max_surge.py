@@ -167,8 +167,9 @@ def to_insert_db(session: sessionmaker, data: pd.DataFrame, year: str, station_f
 
 def main():
     # 根据 DICT_STATION 录入全部的海洋站数据
-    # TODO:[*] 22-08-15 注意东海和南海各有一个海门站
-    # 目前解决南海 海门G
+	# TODO:[*] 22-08-14 HMN 由 HAIMENZ -> HAIMENG
+    DICT_STATION = {
+        'HAIMENG2': 'HMN', }    # 目前解决南海 海门G
     DICT_STATION = {'RAOPING': 'RPG', 'HENGMEN': 'HGM', 'MAGE': 'MGE', 'TAISHAN': 'TSH', 'BEIJIN': 'BJN',
                     'LEIZHOU': 'LZH', }
     for val, key in DICT_STATION.items():

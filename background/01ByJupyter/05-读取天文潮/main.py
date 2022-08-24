@@ -745,6 +745,8 @@ def main():
     # dict_area2_diff = {'QINGYU': 'QGY', 'QINYU': 'QYU', 'RUIAN': 'RAS', 'WENZHOU2': 'WZS'}
     # dict_area2_diff = {'QINGYU': 'QGY',  'RUIAN': 'RAS'}
     # step3: 从指定路径:read_dir_path ,根据 dict_area2_diff 字典中获取存在的文件，并以 start_dt 为起始时间，写入db
+    # TODO:[*] 22-08-14 HMN 由 HAIMENZ -> HAIMENG
+    DICT_STATION_DIFF = {'HAIMENG2': 'HMN'} 
     #
     DICT_STATION_DIFF = {'RAOPING': 'RPG', 'HENGMEN': 'HGM', 'MAGE': 'MGE', 'TAISHAN': 'TSH', 'BEIJIN': 'BJN',
                          'LEIZHOU': 'LZH', }

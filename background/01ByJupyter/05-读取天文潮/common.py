@@ -127,6 +127,7 @@ DICT_STATION = {
     # 汕头S  460 405
     'SHANTOU': 'STO',
     # 海门G  470 397
+    # TODO:[*] 22-08-14 注意应改为 HAIMENG22022
     'HAIMENZ': 'HMN',  # 存在两个海门
     # 惠来   482 392
     'HUILAI': 'HLA',
