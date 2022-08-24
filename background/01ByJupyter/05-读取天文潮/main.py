@@ -748,6 +748,7 @@ def main():
     #
     DICT_STATION_DIFF = {'RAOPING': 'RPG', 'HENGMEN': 'HGM', 'MAGE': 'MGE', 'TAISHAN': 'TSH', 'BEIJIN': 'BJN',
                          'LEIZHOU': 'LZH', }
+    DICT_STATION_DIFF = {'HUANGPU': 'HPU',}
     station_2_db(read_dir_path, session, DICT_STATION_DIFF, start_dt, end_dt, year_str)
     # + 22-06-23 批量更新 station_info 中的 d85 filed
     read_file_path: str = r'./ignore_data/sites_wl4_四色警戒潮位_含85基面.csv'
