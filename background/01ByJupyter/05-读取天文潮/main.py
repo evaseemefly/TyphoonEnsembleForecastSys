@@ -32,7 +32,7 @@ DATABASES = {
         # 'PASSWORD': '123456',
         # 'HOST': 'localhost',  # HOST
         # 'HOST': '127.0.0.1',  # HOST
-        'HOST': '128.5.10.21',  # HOST
+        # 'HOST': '128.5.10.21',  # HOST
         # 'HOST': 'host.docker.internal',  # docker访问宿主机的mysql服务
         # 'POST': 3306,  # 端口
         'POST': 3308,  # TODO:[-] 21-10-11 端口暂时改为 3308
@@ -751,6 +751,7 @@ def main():
     DICT_STATION_DIFF = {'RAOPING': 'RPG', 'HENGMEN': 'HGM', 'MAGE': 'MGE', 'TAISHAN': 'TSH', 'BEIJIN': 'BJN',
                          'LEIZHOU': 'LZH', }
     DICT_STATION_DIFF = {'HUANGPU': 'HPU',}
+    DICT_STATION_DIFF = {'ZHUHAI': 'ZHU', }
     station_2_db(read_dir_path, session, DICT_STATION_DIFF, start_dt, end_dt, year_str)
     # + 22-06-23 批量更新 station_info 中的 d85 filed
     read_file_path: str = r'./ignore_data/sites_wl4_四色警戒潮位_含85基面.csv'
