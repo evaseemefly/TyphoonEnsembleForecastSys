@@ -291,13 +291,13 @@ DICT_STATION_3 = {
     18: 'SHW',
     19: 'HZO',
     20: 'YTA',
-    21: 'CWH',
+    21: 'CHH', # 赤湾 CWH -> CHH
     22: 'NSA',
     23: 'HPU',
-    24: 'ZHI',
+    24: 'ZHU', # 珠海 ZHI -> ZHU
     25: 'DLS',
     26: 'SZA',
-    27: 'BJI',
+    27: 'BJN', # BJI -> BJN
     28: 'ZHP',
     29: 'SHD',
     30: 'ZJS',
