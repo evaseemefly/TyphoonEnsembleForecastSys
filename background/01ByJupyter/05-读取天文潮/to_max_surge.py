@@ -35,6 +35,7 @@ DATABASES = {
         'NAME': 'typhoon_forecast_db',  # 数据库名
         'USER': 'root',  # 账号
         'PASSWORD': DB_PWD if PATTERN == PATTERNENMU.COMPANY else '123456',
+        # 'PASSWORD': 'Nmefc@62105805',
         'HOST': '127.0.0.1',  # HOST
         # 'HOST': '128.5.10.21',  # HOST
         'POST': 3306,  # 端口
@@ -83,7 +84,7 @@ metadata = BaseMeta.metadata
 
 class TideDataModel(BaseMeta):
     # (1364, "Field 'id' doesn't have a default value") 需要手动设置数据库中的 id 字段为自增字段
-    id = Column(Integer, primary_key=True, autoincrement=True)
+    id = Column(Integer, primary_key=True)
     station_code = Column(VARCHAR(200), nullable=False)
     forecast_dt = Column(DATETIME(fsp=2))
     surge = Column(Float, nullable=False)
@@ -167,11 +168,19 @@ def to_insert_db(session: sessionmaker, data: pd.DataFrame, year: str, station_f
 
 def main():
     # 根据 DICT_STATION 录入全部的海洋站数据
-	# TODO:[*] 22-08-14 HMN 由 HAIMENZ -> HAIMENG
+    # TODO:[*] 22-08-14 HMN 由 HAIMENZ -> HAIMENG
     DICT_STATION = {
-        'HAIMENG2': 'HMN', }    # 目前解决南海 海门G
+        'HAIMENG2': 'HMN', }  # 目前解决南海 海门G
     DICT_STATION = {'RAOPING': 'RPG', 'HENGMEN': 'HGM', 'MAGE': 'MGE', 'TAISHAN': 'TSH', 'BEIJIN': 'BJN',
                     'LEIZHOU': 'LZH', }
+    # TODO:[*] 22-08-31 录入东海部分缺省站点
+    # DICT_STATION = {'GANPU': 'GPU', }
+    # DICT_STATION = {'HAIMENZ': 'HMZ', }
+    # DICT_STATION = {'HAIMENZ': 'HMZ', }
+    # DICT_STATION = {'LONGWAN': 'LGW', }
+    # DICT_STATION = {'CHMEN': 'CGM', }
+    # DICT_STATION = {'TANTOU': 'TNT', }
+    DICT_STATION = {'PINGTAN': 'PTN', }
     for val, key in DICT_STATION.items():
         file_name = f'{val}2022'
         # read_path = r'C:\Users\evase\OneDrive\同步文件夹\02项目及本子\10-台风集合预报路径系统\数据\2022_天文潮\format_tide_2022'
@@ -189,3 +198,4 @@ def main():
 
 if __name__ == '__main__':
     main()
+    pass

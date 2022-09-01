@@ -26,13 +26,13 @@ DATABASES = {
         # 7530,mac
         # 'PASSWORD': 'admin123',
         # 5820,p52s,p500,razer
-        'PASSWORD': '',
+        'PASSWORD': 'Nmefc@62105805',
         # by cwb
         # 'USER': 'root',  # 账号
         # 'PASSWORD': '123456',
         # 'HOST': 'localhost',  # HOST
         # 'HOST': '127.0.0.1',  # HOST
-        # 'HOST': '128.5.10.21',  # HOST
+        'HOST': '128.5.10.21',  # HOST
         # 'HOST': 'host.docker.internal',  # docker访问宿主机的mysql服务
         # 'POST': 3306,  # 端口
         'POST': 3308,  # TODO:[-] 21-10-11 端口暂时改为 3308
@@ -752,6 +752,13 @@ def main():
                          'LEIZHOU': 'LZH', }
     DICT_STATION_DIFF = {'HUANGPU': 'HPU',}
     DICT_STATION_DIFF = {'ZHUHAI': 'ZHU', }
+    # TODO:[*] 22-08-31 录入东海部分缺省站点
+    # DICT_STATION_DIFF = {'GANPU': 'GPU', }
+    # DICT_STATION_DIFF = {'HAIMENZ': 'HMZ', }
+    # DICT_STATION_DIFF = {'DONGTOU': 'DTO', }
+    # DICT_STATION_DIFF = {'LONGWAN': 'LGW', }
+    # DICT_STATION_DIFF = {'CHMEN': 'CGM', }
+    DICT_STATION_DIFF = {'TANTOU': 'TNT', }
     station_2_db(read_dir_path, session, DICT_STATION_DIFF, start_dt, end_dt, year_str)
     # + 22-06-23 批量更新 station_info 中的 d85 filed
     read_file_path: str = r'./ignore_data/sites_wl4_四色警戒潮位_含85基面.csv'
