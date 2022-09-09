@@ -109,3 +109,33 @@ class TideDailyDataSerializer(serializers.Serializer):
     red = serializers.FloatField(required=False)
     d85 = serializers.FloatField(required=False)
     base_level_diff = serializers.FloatField(required=False)
+
+
+class StationTreeGrandsonSerializer(serializers.Serializer):
+    """
+        对应: mid_models -> StationTreeMidModel
+    """
+    id = serializers.IntegerField(required=True)
+    name = serializers.CharField(required=True)
+    code = serializers.CharField(required=True)
+    is_abs = serializers.BooleanField()
+
+class StationTreeChildSerializer(serializers.Serializer):
+    """
+        对应: mid_models -> StationTreeMidModel
+    """
+    id = serializers.IntegerField(required=True)
+    name = serializers.CharField(required=True)
+    code = serializers.CharField(required=True)
+    is_abs = serializers.BooleanField()
+    children = StationTreeGrandsonSerializer(many=True)
+
+class StationTreeDataSerializer(serializers.Serializer):
+    """
+        对应: mid_models -> StationTreeMidModel
+    """
+    id = serializers.IntegerField(required=True)
+    name = serializers.CharField(required=True)
+    code = serializers.CharField(required=True)
+    is_abs = serializers.BooleanField()
+    children = StationTreeChildSerializer(many=True)

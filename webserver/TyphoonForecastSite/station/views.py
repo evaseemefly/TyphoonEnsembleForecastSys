@@ -20,13 +20,17 @@ from rest_framework.decorators import (APIView, api_view,
 from typing import List
 # --
 # 本项目的
+# mid model
+from .mid_models import StationTreeMidModel
+# model
 from .models import StationForecastRealDataModel, StationInfoModel, StationAstronomicTideRealDataModel, \
     StationAlertTideModel, StationStatisticsModel, StationForecastRealDataSharedMdoel, TideDataModel
 from typhoon.models import TyphoonGroupPathModel
+# 序列化器
 from .serializers import StationForecastRealDataSerializer, StationForecastRealDataComplexSerializer, \
     StationForecastRealDataRangeSerializer, StationForecastRealDataMixin, StationForecastRealDataRangeComplexSerializer, \
     StationAstronomicTideRealDataSerializer, StationAlertSerializer, StationStatisticsSerializer, \
-    StationForecastRealDataByGroupSerializer, StationInfoSerializer, TideDailyDataSerializer
+    StationForecastRealDataByGroupSerializer, StationInfoSerializer, TideDailyDataSerializer, StationTreeDataSerializer
 # 公共的
 from TyphoonForecastSite.settings import MY_PAGINATOR
 from util.const import DEFAULT_NULL_KEY, UNLESS_TY_CODE, DEFAULT_CODE, DEFAULT_TIMTSTAMP_STR, \
@@ -457,6 +461,45 @@ class StationListByGroupView(StationListBaseView):
         res = StationInfoSerializer(fathers, many=True).data
         self.json_data = res
         self._status = 200
+        return Response(self.json_data, status=self._status)
+
+
+class FamilyStationListView(StationListBaseView):
+    """
+        + 22-09-08 根据传入的 pid 获取pid为传入pid的所有 father 及嵌套 children 数组
+    """
+
+    def get(self, request: Request) -> Response:
+        pid = int(request.GET.get('pid', str(DEFAULT_NULL_KEY)))
+        fathers = StationInfoModel.objects.filter(pid=pid, is_in_use=True)
+        station_list: List[StationTreeMidModel] = []
+        try:
+            for father in fathers:
+                father_tree_mid: StationTreeMidModel = StationTreeMidModel(father.id, father.name, father.code,
+                                                                           is_abs=father.is_abs, children=[])
+                children = StationInfoModel.objects.filter(pid=father.id, is_in_use=True, is_del=False)
+                children_tree_mid: List[StationTreeMidModel] = []
+                for child in children:
+                    grandson = StationInfoModel.objects.filter(pid=child.id)
+                    child_tree_mid: StationTreeMidModel = StationTreeMidModel(child.id, child.name, child.code,
+                                                                              is_abs=child.is_abs, children=[])
+                    if grandson.count() > 0:
+                        grandsons = []
+                        for temp in grandson:
+                            grandson_tree: StationTreeMidModel = StationTreeMidModel(temp.id, temp.name,
+                                                                                     temp.code,temp.is_abs, [])
+                            grandsons.append(grandson_tree)
+                        child_tree_mid.children = grandsons
+                    children_tree_mid.append(child_tree_mid)
+                if children.count() > 0:
+                    father_tree_mid.children = children_tree_mid
+                station_list.append(father_tree_mid)
+            res = StationTreeDataSerializer(station_list, many=True).data
+            self.json_data = res
+            self._status = 200
+        except Exception as ex:
+            self.json_data = ex.args
+            # self._status=500
         return Response(self.json_data, status=self._status)
 
 
