@@ -80,6 +80,7 @@ class StationInfoSerializer(serializers.Serializer):
     lat = serializers.FloatField()
     lon = serializers.FloatField()
     is_abs = serializers.BooleanField()
+    sort = serializers.IntegerField()
 
 
 class StationStatisticsSerializer(serializers.Serializer):
@@ -119,6 +120,8 @@ class StationTreeGrandsonSerializer(serializers.Serializer):
     name = serializers.CharField(required=True)
     code = serializers.CharField(required=True)
     is_abs = serializers.BooleanField()
+    sort = serializers.IntegerField(required=True)
+
 
 class StationTreeChildSerializer(serializers.Serializer):
     """
@@ -128,7 +131,9 @@ class StationTreeChildSerializer(serializers.Serializer):
     name = serializers.CharField(required=True)
     code = serializers.CharField(required=True)
     is_abs = serializers.BooleanField()
+    sort = serializers.IntegerField(required=True)
     children = StationTreeGrandsonSerializer(many=True)
+
 
 class StationTreeDataSerializer(serializers.Serializer):
     """
@@ -138,4 +143,5 @@ class StationTreeDataSerializer(serializers.Serializer):
     name = serializers.CharField(required=True)
     code = serializers.CharField(required=True)
     is_abs = serializers.BooleanField()
+    sort = serializers.IntegerField(required=True)
     children = StationTreeChildSerializer(many=True)

@@ -476,18 +476,21 @@ class FamilyStationListView(StationListBaseView):
         try:
             for father in fathers:
                 father_tree_mid: StationTreeMidModel = StationTreeMidModel(father.id, father.name, father.code,
-                                                                           is_abs=father.is_abs, children=[])
+                                                                           is_abs=father.is_abs, sort=father.sort,
+                                                                           children=[])
                 children = StationInfoModel.objects.filter(pid=father.id, is_in_use=True, is_del=False)
                 children_tree_mid: List[StationTreeMidModel] = []
                 for child in children:
                     grandson = StationInfoModel.objects.filter(pid=child.id)
                     child_tree_mid: StationTreeMidModel = StationTreeMidModel(child.id, child.name, child.code,
-                                                                              is_abs=child.is_abs, children=[])
+                                                                              is_abs=child.is_abs, sort=child.sort,
+                                                                              children=[])
                     if grandson.count() > 0:
                         grandsons = []
                         for temp in grandson:
                             grandson_tree: StationTreeMidModel = StationTreeMidModel(temp.id, temp.name,
-                                                                                     temp.code,temp.is_abs, [])
+                                                                                     temp.code, temp.is_abs, temp.sort,
+                                                                                     [])
                             grandsons.append(grandson_tree)
                         child_tree_mid.children = grandsons
                     children_tree_mid.append(child_tree_mid)
