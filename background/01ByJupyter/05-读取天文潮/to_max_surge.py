@@ -25,7 +25,7 @@ class PATTERNENMU(Enum):
     COMPANY = 2
 
 
-PATTERN = PATTERNENMU.HOME
+PATTERN = PATTERNENMU.COMPANY
 
 DB_PWD = DB.get('DB_PWD')
 
@@ -36,10 +36,10 @@ DATABASES = {
         'USER': 'root',  # 账号
         'PASSWORD': DB_PWD if PATTERN == PATTERNENMU.COMPANY else '123456',
         # 'PASSWORD': 'Nmefc@62105805',
-        'HOST': '127.0.0.1',  # HOST
-        # 'HOST': '128.5.10.21',  # HOST
-        'POST': 3306,  # 端口
-        # 'PORT': 3308,  # TODO:[-] 21-10-11 端口暂时改为 3308
+        # 'HOST': '127.0.0.1',  # HOST
+        'HOST': '128.5.10.21',  # HOST
+        # 'POST': 3306,  # 端口
+        'POST': 3308,  # TODO:[-] 21-10-11 端口暂时改为 3308
         'OPTIONS': {
             "init_command": "SET foreign_key_checks = 0;",
         },
@@ -52,19 +52,21 @@ class DbFactory:
         数据库工厂
     """
 
-    def __init__(self, db_mapping: str = 'default', engine_str: str = None, host: str = None, db_name: str = None,
+    def __init__(self, db_mapping: str = 'default', engine_str: str = None, host: str = None, post: str = None,
+                 db_name: str = None,
                  user: str = None,
                  pwd: str = None):
         db_options = DATABASES.get(db_mapping)
         self.engine_str = engine_str if engine_str else db_options.get('ENGINE')
         self.host = host if host else db_options.get('HOST')
+        self.post = post if post else db_options.get('POST')
         self.db_name = db_name if db_name else db_options.get('NAME')
         self.user = user if user else db_options.get('USER')
         self.password = pwd if pwd else db_options.get('PASSWORD')
         # self.engine = create_engine("mysql+pymysql://root:admin123@localhost/searchrescue", encoding='utf-8', echo=True)
         self.engine = create_engine(
-            f"mysql+{self.engine_str}://{self.user}:{self.password}@{self.host}/{self.db_name}",
-            encoding='utf-8', echo=True)
+            f"mysql+{self.engine_str}://{self.user}:{self.password}@{self.host}:{self.post}/{self.db_name}",
+            encoding='utf-8', echo=False)
         self._session_def = sessionmaker(bind=self.engine)
 
     @property
@@ -169,10 +171,10 @@ def to_insert_db(session: sessionmaker, data: pd.DataFrame, year: str, station_f
 def main():
     # 根据 DICT_STATION 录入全部的海洋站数据
     # TODO:[*] 22-08-14 HMN 由 HAIMENZ -> HAIMENG
-    DICT_STATION = {
-        'HAIMENG2': 'HMN', }  # 目前解决南海 海门G
-    DICT_STATION = {'RAOPING': 'RPG', 'HENGMEN': 'HGM', 'MAGE': 'MGE', 'TAISHAN': 'TSH', 'BEIJIN': 'BJN',
-                    'LEIZHOU': 'LZH', }
+    # DICT_STATION = {
+    #     'HAIMENG2': 'HMN', }  # 目前解决南海 海门G
+    # DICT_STATION = {'RAOPING': 'RPG', 'HENGMEN': 'HGM', 'MAGE': 'MGE', 'TAISHAN': 'TSH', 'BEIJIN': 'BJN',
+    #                 'LEIZHOU': 'LZH', }
     # TODO:[*] 22-08-31 录入东海部分缺省站点
     # DICT_STATION = {'GANPU': 'GPU', }
     # DICT_STATION = {'HAIMENZ': 'HMZ', }
@@ -180,7 +182,20 @@ def main():
     # DICT_STATION = {'LONGWAN': 'LGW', }
     # DICT_STATION = {'CHMEN': 'CGM', }
     # DICT_STATION = {'TANTOU': 'TNT', }
-    DICT_STATION = {'PINGTAN': 'PTN', }
+    # DICT_STATION = {'PINGTAN': 'PTN', }
+    # todo:[*] 22-09-20 发现缺少部分站点的高高潮值
+    # 广东省
+    # DICT_STATION = {'SZNANAO': 'NAO',
+    #                 'DAMEISHA': 'DMS',
+    #                 'SHEKOU': 'SHK',
+    #                 'CHIWANH': 'CWH',
+    #                 'QIANHAIWAN': 'QHW',
+    #                 'SZJICHANG': 'SZJ',
+    #                 'NANSHA': 'BJI',
+    #                 'BEIJIN': 'NAO',
+    #                 'ZHANJ': 'ZJH', }
+    # DICT_STATION = {'JIUZHEN': 'JZH', }
+    DICT_STATION = {'DAJIESAN': 'DJS', }
     for val, key in DICT_STATION.items():
         file_name = f'{val}2022'
         # read_path = r'C:\Users\evase\OneDrive\同步文件夹\02项目及本子\10-台风集合预报路径系统\数据\2022_天文潮\format_tide_2022'

@@ -471,7 +471,10 @@ class FamilyStationListView(StationListBaseView):
 
     def get(self, request: Request) -> Response:
         pid = int(request.GET.get('pid', str(DEFAULT_NULL_KEY)))
+        # 默认只加载 常用站点(不加载不常用站点)
+        is_in_common_use: bool = request.GET.get('is_in_common_use', True)
         fathers = StationInfoModel.objects.filter(pid=pid, is_in_use=True)
+
         station_list: List[StationTreeMidModel] = []
         try:
             for father in fathers:
@@ -481,7 +484,7 @@ class FamilyStationListView(StationListBaseView):
                 children = StationInfoModel.objects.filter(pid=father.id, is_in_use=True, is_del=False)
                 children_tree_mid: List[StationTreeMidModel] = []
                 for child in children:
-                    grandson = StationInfoModel.objects.filter(pid=child.id)
+                    grandson = StationInfoModel.objects.filter(pid=child.id, is_in_common_use=is_in_common_use)
                     child_tree_mid: StationTreeMidModel = StationTreeMidModel(child.id, child.name, child.code,
                                                                               is_abs=child.is_abs, sort=child.sort,
                                                                               children=[])
