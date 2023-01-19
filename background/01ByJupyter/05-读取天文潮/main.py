@@ -14,6 +14,8 @@ from sqlalchemy.orm import relationship, sessionmaker
 # from datetime import datetime
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
+from typing import List
+from common import DICT_STATION
 
 DATABASES = {
     'default': {
@@ -46,43 +48,43 @@ DATABASES = {
 # 区域2中独有的 station
 # {'BSH', 'WZS', 'QYU', 'CAO', 'DCH', 'SCS', 'DHI', 'SJM', 'GNS', 'SHA', 'SHS', 'BLN', 'MHA', 'BJA', 'JAT', 'KMN', 'AJS', 'BYT', 'RAS', 'SPU', 'ZPU', 'WSH', 'CHH', 'GTO'}
 # 区域1 的字典
-DICT_STATION = {
-    'DONGGANG': 'DGG',
-    'XIAOCS': 'XCS',
-    'LAOHUTAN': 'LHT',
-    'BAYUQUAN': 'BYQ',
-    'YINGKOU': 'YKO',
-    'HULUDAO': 'HLD',
-    'ZHIMAOW': 'ZMW',
-    'QINHUANG': 'QHD',
-    'TANGGU': 'TGU',
-    'CAOFD': 'CFD',
-    'HUANGHUA': 'HHA',
-    'BINZHOU': 'BZG',
-    'DONGYING': 'DYG',
-    'YANGJIAO': 'YJG',
-    'WEIFANG': 'WFG',
-    'LONGKOU': 'LKO',
-    'PENGLAI': 'PLI',
-    'YANTAI': 'YTI',  # TODO:[-] 实际不存在
-    'XIAOSHID': 'XSD',
-    'CHENGST': 'CST',
-    'WENDENG': 'WDG',
-    'SHIDAO': 'SID',
-    'QIANLIY': 'QLY',
-    'QINGDAOH': 'WMT',  # TODO:[*] 是否有问题
-    'XIAOMAID': 'XMD',
-    'SHIJIUS': 'RZH',
-    'LANSHAN': 'LSH',
-    'LIANYUNG': 'LYG',
-    'YANWEI': 'YWI',
-    'WKJIAO': 'YKG',
-    'LUSI': 'LSI',
-    'PUZHEN': 'BZH',
-    'WUSONG': 'WSG',
-    'GAOQIAO': 'GQA',
-    'COMIN': 'CMG',
-}
+# DICT_STATION = {
+#     'DONGGANG': 'DGG',
+#     'XIAOCS': 'XCS',
+#     'LAOHUTAN': 'LHT',
+#     'BAYUQUAN': 'BYQ',
+#     'YINGKOU': 'YKO',
+#     'HULUDAO': 'HLD',
+#     'ZHIMAOW': 'ZMW',
+#     'QINHUANG': 'QHD',
+#     'TANGGU': 'TGU',
+#     'CAOFD': 'CFD',
+#     'HUANGHUA': 'HHA',
+#     'BINZHOU': 'BZG',
+#     'DONGYING': 'DYG',
+#     'YANGJIAO': 'YJG',
+#     'WEIFANG': 'WFG',
+#     'LONGKOU': 'LKO',
+#     'PENGLAI': 'PLI',
+#     'YANTAI': 'YTI',  # TODO:[-] 实际不存在
+#     'XIAOSHID': 'XSD',
+#     'CHENGST': 'CST',
+#     'WENDENG': 'WDG',
+#     'SHIDAO': 'SID',
+#     'QIANLIY': 'QLY',
+#     'QINGDAOH': 'WMT',  # TODO:[*] 是否有问题
+#     'XIAOMAID': 'XMD',
+#     'SHIJIUS': 'RZH',
+#     'LANSHAN': 'LSH',
+#     'LIANYUNG': 'LYG',
+#     'YANWEI': 'YWI',
+#     'WKJIAO': 'YKG',
+#     'LUSI': 'LSI',
+#     'PUZHEN': 'BZH',
+#     'WUSONG': 'WSG',
+#     'GAOQIAO': 'GQA',
+#     'COMIN': 'CMG',
+# }
 # 区域1 独有的海洋站 供录入天文潮使用
 DICT_STATION_DIFF = {
     'DONGGANG': 'DGG',
@@ -708,6 +710,17 @@ def update_station_alert_level(dict_station: dict, df: pd.DataFrame, session):
     pass
 
 
+def get_repeat_station_code(dict_staiton: dict) -> List[str]:
+    list_station_code: List[str] = []
+    list_repeat_code: List[str] = []
+    for name, code in dict_staiton.items():
+        if code in list_station_code:
+            list_repeat_code.append(code)
+        else:
+            list_station_code.append(code)
+    return list_repeat_code
+
+
 def main():
     start_dt: datetime.datetime = datetime.datetime(2022, 1, 1)
     end_dt: datetime.datetime = datetime.datetime(2022, 12, 31)
@@ -746,11 +759,11 @@ def main():
     # dict_area2_diff = {'QINGYU': 'QGY',  'RUIAN': 'RAS'}
     # step3: 从指定路径:read_dir_path ,根据 dict_area2_diff 字典中获取存在的文件，并以 start_dt 为起始时间，写入db
     # TODO:[*] 22-08-14 HMN 由 HAIMENZ -> HAIMENG
-    DICT_STATION_DIFF = {'HAIMENG2': 'HMN'} 
+    DICT_STATION_DIFF = {'HAIMENG2': 'HMN'}
     #
     DICT_STATION_DIFF = {'RAOPING': 'RPG', 'HENGMEN': 'HGM', 'MAGE': 'MGE', 'TAISHAN': 'TSH', 'BEIJIN': 'BJN',
                          'LEIZHOU': 'LZH', }
-    DICT_STATION_DIFF = {'HUANGPU': 'HPU',}
+    DICT_STATION_DIFF = {'HUANGPU': 'HPU', }
     DICT_STATION_DIFF = {'ZHUHAI': 'ZHU', }
     # TODO:[*] 22-08-31 录入东海部分缺省站点
     # DICT_STATION_DIFF = {'GANPU': 'GPU', }
@@ -759,7 +772,12 @@ def main():
     # DICT_STATION_DIFF = {'LONGWAN': 'LGW', }
     # DICT_STATION_DIFF = {'CHMEN': 'CGM', }
     DICT_STATION_DIFF = {'TANTOU': 'TNT', }
-    station_2_db(read_dir_path, session, DICT_STATION_DIFF, start_dt, end_dt, year_str)
+    # TODO:[-] 23-01-19 准备录入 2023年站点的准备工作
+    # S1: 从 common.py 中获取存在重复站位的 code
+    list_repeat_station: List[str] = get_repeat_station_code(DICT_STATION)
+    print(list_repeat_station)
+
+    # station_2_db(read_dir_path, session, DICT_STATION_DIFF, start_dt, end_dt, year_str)
     # + 22-06-23 批量更新 station_info 中的 d85 filed
     read_file_path: str = r'./ignore_data/sites_wl4_四色警戒潮位_含85基面.csv'
     df: pd.DataFrame = pd.read_csv(read_file_path,
