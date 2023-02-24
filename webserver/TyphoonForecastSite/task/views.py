@@ -186,7 +186,8 @@ class TaskCreateView(BaseView):
                                                                            gmt_commit=datetime.datetime.utcnow(),
                                                                            member_num=members_num,
                                                                            max_wind_radius_dif=max_wind_radius_diff,
-                                                                           json_field=deviation_radius_list)
+                                                                           json_field=deviation_radius_list,
+                                                                           area=area)
         # 21-09-20 customer_ty_cma_list -> forecastDt 需要转换为 2021071905 (local time)
         # 'customer_ty_cma_list': [
         #     {'forecastDt': '2021-09-04T06:00:00.000Z',
@@ -199,7 +200,7 @@ class TaskCreateView(BaseView):
                       'members_num': members_num,
                       'deviation_radius_list': deviation_radius_list, 'is_customer_ty': is_customer_ty,
                       'ty_customer_cma': list_customer_cma,
-                      'forecast_area': area.value}
+                      'forecast_area': area}
         log_in.info(f'接收到:ty_code:{ty_code}提交至celery')
         res = self.celery.send_task(self.CELERY_TASK_NAME, args=[params_obj, '123', 19], kwargs=params_obj)
         log_in.info(f'ty_code:{ty_code}提交至celery成功!')

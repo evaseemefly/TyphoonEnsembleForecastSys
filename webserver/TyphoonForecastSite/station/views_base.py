@@ -10,7 +10,7 @@ from datetime import datetime
 # ----
 from django.db.models import QuerySet
 # ————
-from .models import StationInfoModel, StationForecastRealDataModel
+from .models import StationInfoModel, StationForecastRealDataModel,StationForecastRealDataSharedMdoel
 from common.interface import ICheckExisted
 
 class StationCommonView(ICheckExisted):
@@ -28,7 +28,8 @@ class StationCommonView(ICheckExisted):
         @return:
         """
         isExisted: bool = False
-        query: QuerySet = StationForecastRealDataModel.objects.filter(ty_code=ty_code, timestamp=timestamp)
+        dao = StationForecastRealDataSharedMdoel.get_sharding_model(ty_code=ty_code)
+        query: QuerySet = dao.objects.filter(ty_code=ty_code, timestamp=timestamp)
         # 再根据 forecastDt 获取对应的值
         query = query.filter(forecast_dt=forecast_dt)
         if len(query) > 0:

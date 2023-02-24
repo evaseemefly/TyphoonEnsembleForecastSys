@@ -87,3 +87,20 @@ class JobInstanceEnum(Enum):
     STORE_FIELD_SURGE = 10
     TXT_2_NC_PRO = 11
     STORE_PRO_SURGE = 12
+
+
+def get_area_dp_file(area: ForecastAreaEnum) -> str:
+    """
+        根据传入的 area 获取对应的地形文件
+    :param area:
+    :return:
+    """
+    default_area_dp_file_name = 'topo3sz.dp'
+    dp_file_name: str = default_area_dp_file_name
+    if area == ForecastAreaEnum.BHI:
+        dp_file_name = 'topo1.dp'
+    elif area == ForecastAreaEnum.ECS:
+        dp_file_name = 'topo2.dp'
+    elif area == ForecastAreaEnum.SCS:
+        dp_file_name = 'topo3sz.dp'
+    return dp_file_name

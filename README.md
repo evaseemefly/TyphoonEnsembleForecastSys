@@ -9,6 +9,9 @@
 ## 项目文档:
 [前端README](./documents/client_readme.md)
 [部署README](./documents/项目部署.md)
+
+[用户手册](./documents/user_guide.md)
+
 ## 项目架构及所用到的技术
 ![系统架构图](./documents/pic/sys.png)
 ## 项目预览
@@ -60,13 +63,12 @@
 + 修复了icon layer 原点造成的偏移问题
 + 其他修复
   * 逐时潮位站显示 与 集合路径显示
-![22-02-18-01](./documents/pic/pic015.png)
-![22-02-18-02](./documents/pic/pic016.png)
-![22-02-18-03](./documents/pic/pic017.png)
+  ![22-02-18-01](./documents/pic/pic015.png)
+  ![22-02-18-02](./documents/pic/pic016.png)
+  ![22-02-18-03](./documents/pic/pic017.png)
   * 极值潮位站显示
-![22-02-18-04](./documents/pic/pic018.png)
-![22-02-18-05](./documents/pic/pic019.png)
----
+  ![22-02-18-04](./documents/pic/pic018.png)
+  ![22-02-18-05](./documents/pic/pic019.png)
 + 22-04-14
 + 重新修改了左侧加载图层
 + 将左侧加载图层的加载逻辑修改为级联操作(个人不喜欢这种操作)
@@ -87,3 +89,23 @@
 - 根据台风强度(类型)修改了对应的台风标识
 ![22-02-18-07](./documents/pic/pic024.png)
 ![22-02-18-07](./documents/pic/pic025.png)
+---
++ 22-06-05  
++ 由于每个台风生成的station站点潮位数据约有1000w-5000w行，故对台风编号,eg`2107`进行分表,后端实现了写入分表与读取分表,切记数据迁移时需要加入索引!
++ 尝试在通过geotiff动态发布等值线wms服务，但不适用于大量动态数据的等值线加载  
++ 加载等值线改为由前台加载geotiff并通过`truf`生成等值线，具体流程如下
+![等值线实现方式](./documents/pic/pic026.png)
+最终实现效果如下:
+![max等值线加载](./documents/pic/pic027.png)
+![field等值线加载](./documents/pic/pic028.png)
+---
++ 22-06-16
++ 加入了 `raster` 与 `isosurface` 动态切换的功能,修复了之前同时加载两份色标的bug;
++ 动态切换时会根据加载的不同layer加载不同形式的`colorbar`;
++ 将之前顺序await修改为链式表达式;
++ 将部分`raster` 与 `isosurface`逻辑进行了重新封装;
+![max等值线加载](./documents/pic/pic029.png)
+![max等值线加载](./documents/pic/pic030.png)
+* 目前上存在 逐时增水场 色标为当前过程中 [min,max] 范围 与 等值面色标的 当前时刻的 [min,max]不一致的问题;
++ 获取台风路径 | 加载layer时加入了loading。
+![max等值线加载](./documents/pic/pic031.png)

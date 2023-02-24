@@ -21,10 +21,11 @@ from typing import List
 from model.models import CaseStatus
 from util.customer_decorators import log_count_time, store_job_rate
 from util.log import Loggings, log_in
-from common.enum import JobInstanceEnum, TaskStateEnum, ForecastAreaEnum
+from common.enum import JobInstanceEnum, TaskStateEnum, ForecastAreaEnum, get_area_dp_file
 from util.customer_excption import CalculateTimeOutError
 from util.customer_decorators import except_log
 from conf.settings import TEST_ENV_SETTINGS, JOB_SETTINGS, MODIFY_CHMOD_PATH, MODIFY_CHMOD_FILENAME, TIME_ZONE
+from common.common_dict import get_forecast_area_range, get_forecast_area_latlngs
 
 SHARED_PATH = TEST_ENV_SETTINGS.get('TY_GROUP_PATH_ROOT_DIR')
 MAX_TIME_INTERVAL: int = JOB_SETTINGS.get('MAX_TIME_INTERVAL')
@@ -873,6 +874,7 @@ class JobGeneratePathFile(IBaseJob):
         elif area == ForecastAreaEnum.ECS:
             suffix_name = 'CTSgpu2_plus.exe'
         # 渤海，区域1
+        # TODO:[*] 22-07-15 注意需要替换区域1的plus文件!
         elif area == ForecastAreaEnum.BHI:
             suffix_name = 'CTSgpu1_plus.exe'
         return suffix_name
@@ -1224,6 +1226,7 @@ class JobGeneratePathFile(IBaseJob):
                 # TODO:[*] 21-09-22 ERROR: ValueError: cannot convert float NaN to integer
                 spd0.append(round(dista[j] / 6))
                 if spd0[j] < minsp:
+                    # TODO:[*] 22-07-29 IndexError: index 20 is out of bounds for axis 1 with size 20
                     rrmat6[r, j] = round(rrmat6[r, j] * coef)
                     if j == kxi - 1:
                         rrmat6[r, j + 1] = round(rrmat6[r, j + 1] * coef)
@@ -1456,22 +1459,29 @@ class JobTxt2Nc(IBaseJob):
         """
 
         @param kwargs: forecast_start_dt_str: 预报的起始时间 (local) eg: YYYYMMDDhh
+                       forecast_start_dt
+                       forecast_area: 预报区域枚举
 
         @return:
         """
         forecast_dt: datetime = kwargs.get('forecast_dt')
         forecast_start_dt: datetime = kwargs.get('forecast_start_dt')
         forecast_start_dt_str: str = kwargs.get('forecast_start_dt_str')
+        area: ForecastAreaEnum = kwargs.get('forecast_area')
         # timestamp_str: str = '2021080415'
         # ts_dt: datetime = arrow.get(forecast_start_dt_str, 'YYYYMMDDhh').datetime
-        self.txt2nc(SHARED_PATH, self.ty_stamp, forecast_start_dt)
+        self.txt2nc(SHARED_PATH, self.ty_stamp, forecast_start_dt, area)
         pass
 
     @store_job_rate(job_instance=JobInstanceEnum.TXT_2_NC, job_rate=90)
-    def txt2nc(self, wdir0, caseno, stm):
+    def txt2nc(self, wdir0, caseno, stm, area: ForecastAreaEnum):
         # TODO:[-] 21-09-10 新增部分——解决陆地部分未掩码的bug
         top_dir_path: str = self.path_data_full
-        top_full_name: str = str(pathlib.Path(top_dir_path) / 'topo3sz.dp')
+        # TODO:[*] 22-06-20 注意此处的地形文件加载时写死的!需要修改
+        topo_file_name: str = get_area_dp_file(area)
+        top_full_name: str = str(pathlib.Path(top_dir_path) / topo_file_name)
+        log_in.info(f'/task/jobs.py->JobTxt2Nc->def txt2nc()|读取地形文件:{top_full_name}')
+        # top_full_name: str = str(pathlib.Path(top_dir_path) / '.dp')
         with open(top_full_name, 'r+') as fi:
             dz0 = fi.readlines()
             tpnum = []
@@ -1523,10 +1533,17 @@ class JobTxt2Nc(IBaseJob):
                         dznum2.append(list(map(float, dz3)))
                     max_surge = np.array(dznum2)
                     # TODO:[-] 21-09-10 新增部分——解决陆地部分未掩码的bug
+                    # TODO:[*] 22-06-20 此处存在一个bug
+                    # ValueError: operands could not be broadcast together with shapes (720,1140) (660,1080)
                     max_surge = max_surge * topo
-        #
-        yy = np.arange(15 + 1 / 120, 26 + 1 / 120, 1 / 60)
-        xx = np.arange(105 + 1 / 120, 123 + 1 / 120, 1 / 60)
+        # + 22-06-21 动态获取不同预报区域的范围
+        forecast_area_range = get_forecast_area_range(area)
+        # yy = np.arange(15 + 1 / 120, 26 + 1 / 120, 1 / 60)
+        # xx = np.arange(105 + 1 / 120, 123 + 1 / 120, 1 / 60)
+        yy = np.arange(forecast_area_range.lat_min + forecast_area_range.step / 2,
+                       forecast_area_range.lat_max + forecast_area_range.step / 2, forecast_area_range.step)
+        xx = np.arange(forecast_area_range.lon_min + forecast_area_range.step / 2,
+                       forecast_area_range.lon_max + forecast_area_range.step / 2, forecast_area_range.step)
         if fl_name != None:
             print(type(ascii_fl), np.shape(ascii_fl))
             tt, mm = np.shape(ascii_fl)
@@ -1536,13 +1553,16 @@ class JobTxt2Nc(IBaseJob):
             timenum = []
             dnum = stm.toordinal()
             HH = str(stm.strftime('%H'))
-            for i in range(int(tt / 660)):
+            # + 22-06-21 此处修改为动态获取纬度差/step
+            lat_nums = (forecast_area_range.lat_max - forecast_area_range.lat_min) / forecast_area_range.step
+            for i in range(int(tt / lat_nums)):
                 st2 = stm + timedelta(hours=i + 1)
                 timenum.append(dnum + (float(HH) + i + 1) / 24)
                 # print(type(dnum),dnum,timenum)
                 timestr.append(str(st2))
                 hours.append(i + 1)
-
+            # TODO:[*] 22-06-20 ERROR:
+            # ValueError: cannot reshape array of size 9849600 into shape (13,660,1080)
             ascii_fl2 = np.reshape(ascii_fl, (len(timestr), len(yy), len(xx)))
             # TODO:[-] 21-09-10 新增部分——解决陆地部分未掩码的bug
             for i in range(len(timestr)):
@@ -1639,11 +1659,19 @@ class JobTxt2NcPro(IBaseJob):
 
     @except_log()
     def to_do(self, **kwargs):
+        """
+
+        :param kwargs:  forecast_start_dt
+                        forecast_area 预报区域 (22-06-20 新增)
+        :return:
+        """
         forecast_start_dt: datetime = kwargs.get('forecast_start_dt')
+        forecast_area: ForecastAreaEnum = kwargs.get('forecast_area')
         # timestamp_str: str = '2021080415'
         # ts_dt: datetime = arrow.get(timestamp_str, 'YYYYMMDDhh').datetime
         dznum = self.get_maxsurgedata(SHARED_PATH, self.ty_stamp, forecast_start_dt)
-        self.gen_prosurge_nc(SHARED_PATH, self.ty_stamp, forecast_start_dt, dznum, self._levs, self._levs2)
+        self.gen_prosurge_nc(SHARED_PATH, self.ty_stamp, forecast_start_dt, dznum, self._levs, self._levs2,
+                             forecast_area)
         pass
 
     def get_maxsurgedata(self, wdir0, caseno, st):
@@ -1678,12 +1706,16 @@ class JobTxt2NcPro(IBaseJob):
             return dznum
 
     @store_job_rate(job_instance=JobInstanceEnum.TXT_2_NC_PRO, job_rate=90)
-    def gen_prosurge_nc(self, wdir0, caseno, st, dznum, levs, levs2):
+    def gen_prosurge_nc(self, wdir0, caseno, st, dznum, levs, levs2, area: ForecastAreaEnum):
 
         # tdir = wdir0 + 'data/'
+        # + 22-06-21 动态获取不同预报区域的范围
+        forecast_area_range = get_forecast_area_range(area)
+        lat_nums = int((forecast_area_range.lat_max - forecast_area_range.lat_min) / forecast_area_range.step)
         tdir = str(pathlib.Path(wdir0) / 'data')
-
-        toponame = str(pathlib.Path(tdir) / 'topo3sz.dp')
+        # TODO:[*] 22-06-20 新加入了动态获取地形文件
+        topo_file_name: str = get_area_dp_file(area)
+        toponame = str(pathlib.Path(tdir) / topo_file_name)
         with open(toponame, 'r+') as fi:
             dz0 = fi.readlines()
             tpnum = []
@@ -1701,12 +1733,15 @@ class JobTxt2NcPro(IBaseJob):
             return
         else:
             tt, mm = np.shape(dznum)
-            sur = dznum[0:660, :]
+            sur = dznum[0:lat_nums, :]
             sur = np.array(sur)
             sur = np.flipud(sur)
             dznum[dznum > 900] = 0
-            lon0 = np.arange(105 + 1 / 120, 123 + 1 / 120, 1 / 60)
-            lat0 = np.arange(15 + 1 / 120, 26 + 1 / 120, 1 / 60)
+            # TODO:[-] 22-07-14 改为动态获取 lats 与 lngs
+            res_latlngs = get_forecast_area_latlngs(area)
+            lon0 = res_latlngs[1]
+            lat0 = res_latlngs[0]
+
             lons, lats = np.meshgrid(lon0, lat0)
             #
             # wdir = wdir0 + 'result/' + caseno + '/'
@@ -1715,7 +1750,7 @@ class JobTxt2NcPro(IBaseJob):
             syear = str(st)[0:4]
             #
             for i in range(len(levs)):
-                pps = self.cal_pro(dznum, levs[i])
+                pps = self.cal_pro(dznum, levs[i], area)
                 pps = np.flipud(pps)
                 pps[sur > 900] = nan
                 ##==============saveas netcdf===================#
@@ -1749,15 +1784,18 @@ class JobTxt2NcPro(IBaseJob):
                 prosurge[::] = pps
                 nc_data.close()
 
-    def cal_pro(self, dznum, levs):
+    def cal_pro(self, dznum, levs, area: ForecastAreaEnum):
+        # + 22-06-21 动态获取不同预报区域的范围
+        forecast_area_range = get_forecast_area_range(area)
+        lat_nums = int((forecast_area_range.lat_max - forecast_area_range.lat_min) / forecast_area_range.step)
         pp = dznum.copy()
         pp[pp >= levs] = levs
         pp[pp < levs] = 0
         tt, mm = np.shape(dznum)
-        pps = np.zeros((660, mm))
-        for i in range(int(tt / 660)):
-            pps = pps + pp[i * 660:(i + 1) * 660, :] / levs
-        pps = pps / int(tt / 660) * 100
+        pps = np.zeros((lat_nums, mm))
+        for i in range(int(tt / lat_nums)):
+            pps = pps + pp[i * lat_nums:(i + 1) * lat_nums, :] / levs
+        pps = pps / int(tt / lat_nums) * 100
         return pps
 
         # return picname

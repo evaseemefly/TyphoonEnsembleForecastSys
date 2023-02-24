@@ -32,6 +32,7 @@ TEST_ENV_SETTINGS = {
 DATABASES = {
     'default': {
         'ENGINE': 'mysqldb',  # 数据库引擎
+        # 'NAME': 'typhoon_forecast_db_new',  # 数据库名
         'NAME': 'typhoon_forecast_db',  # 数据库名
         # by casablanca
         # mac

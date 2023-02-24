@@ -16,9 +16,52 @@ class StationInfoModel(IModel, IDelModel, IIdModel):
     desc = models.CharField(max_length=500, null=True)
     pid = models.IntegerField(default=ABS_KEY)  # 添加的所属父级id
     is_abs = models.BooleanField(default=False)  # 是否为抽象对象(抽象对象不显示)
+    base_level_diff = models.FloatField(null=True)
+    d85 = models.IntegerField()
+    is_in_use = models.BooleanField(default=True)  # 是否为使用中的站点(部分海洋站没有四色警戒潮位，不作为使用站点)
+    is_in_common_use = models.BooleanField(default=True)
+    sort = models.IntegerField(default=-1)  # 排序
 
     class Meta:
         db_table = 'station_info'
+
+
+class StationForecastRealDataSharedMdoel(IIdModel, IDelModel, IModel, ITimeStamp):
+    SHARED_TABLE_BASE_NAME = 'station_forecast_realdata'
+    """
+        + 22-05-24 尝试加入分表功能
+                   大体逻辑:
+                            根据 ty_code 进行分表
+                            表名: station_forecast_realdata_2017
+                                 station_forecast_realdata_{ty_code}
+    """
+    ty_code = models.CharField(max_length=200)
+    gp_id = models.IntegerField(default=DEFAULT_FK)
+    station_code = models.CharField(max_length=10, default=DEFAULT_CODE)
+    forecast_dt = models.DateTimeField(default=now)
+    forecast_index = models.IntegerField(default=UNLESS_INDEX)
+    surge = models.FloatField()
+    timestamp = models.CharField(max_length=100, default='2021010416')  # + 21-05-11 新加入的时间戳字段
+
+    @classmethod
+    def get_sharding_tb_name(cls, ty_code=None):
+        db_table = f'{cls.SHARED_TABLE_BASE_NAME}_{ty_code}'
+        return db_table
+
+    @classmethod
+    def get_sharding_model(cls, ty_code=None):
+        class Meta:
+            db_table = f'{cls.SHARED_TABLE_BASE_NAME}_{ty_code}'
+
+        attrs = {
+            '__module__': cls.__module__,
+            '__doc__': f'station_code:{ty_code}',
+            'Meta': Meta
+        }
+        return type(str('StationForecastRealDataModel'), (cls,), attrs)
+
+    class Meta:
+        abstract = True
 
 
 class StationForecastRealDataModel(IIdModel, IDelModel, IModel, ITimeStamp):
@@ -78,8 +121,8 @@ class StationStatisticsModel(IIdModel, IDelModel, IModel):
     quarter_val = models.FloatField()  # 1/4 分位数
     three_quarters_val = models.FloatField()  # 3/4 分位数
     median_val = models.FloatField()  # 中位数
-    max_val = models.FloatField() # 最大值
-    min_val = models.FloatField() # 最小值
+    max_val = models.FloatField()  # 最大值
+    min_val = models.FloatField()  # 最小值
     ty_code = models.CharField(max_length=200)
     station_code = models.CharField(max_length=10, default=DEFAULT_CODE)
     forecast_dt = models.DateTimeField(default=now)
@@ -88,6 +131,7 @@ class StationStatisticsModel(IIdModel, IDelModel, IModel):
 
     class Meta:
         db_table = 'station_quantile_realdata'
+
 
 # class StationComplexModel(IIdModel):
 #     ty_code = models.CharField(max_length=200)
@@ -106,3 +150,15 @@ class StationStatisticsModel(IIdModel, IDelModel, IModel):
 #     class Meta:
 #         db_table = 'station_info'
 # abstract = True
+
+class TideDataModel(IIdModel):
+    """
+        + 22-07-31 每日的两个或一个高潮位表
+    """
+    station_code = models.CharField(max_length=10)
+    forecast_dt = models.DateTimeField(default=now)
+    surge = models.FloatField()
+    tide_type = models.IntegerField(default=UNLESS_INDEX)
+
+    class Meta:
+        db_table = 'tide_data_daily'

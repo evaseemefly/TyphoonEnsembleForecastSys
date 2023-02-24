@@ -17,10 +17,18 @@ from common.enum import ForecastOrganizationEnum, TyphoonForecastSourceEnum
 from common.const import UNLESS_INDEX, UNLESS_ID_STR, NONE_ID
 from task.jobs import JobGetTyDetail, JobGetCustomerTyDetail, JobGeneratePathFile, JobTxt2Nc, JobTxt2NcPro, JobTaskBatch
 from conf.settings import TEST_ENV_SETTINGS
+from conf.settings import DATABASES
 from local.globals import get_celery
 from task.celery import app
 from util.customer_decorators import store_job_rate
 from util.log import Loggings, log_in
+# 分表相关
+from sqlalchemy.ext.automap import automap_base
+from sqlalchemy import MetaData, Table
+from sqlalchemy import Column, Date, Float, ForeignKey, Integer, text
+from sqlalchemy.dialects.mysql import DATETIME, INTEGER, TINYINT, VARCHAR
+#
+from core.db import DbFactory
 
 from util.customer_decorators import log_count_time, store_job_rate
 from common.enum import JobInstanceEnum, TaskStateEnum, ForecastAreaEnum
@@ -119,7 +127,7 @@ def case_station(start: datetime, end: datetime, ty_code: str, ty_timestamp_str:
     gmt_start = start
     gmt_end = end  # 目前使用的结束时间为从台风网上爬取的时间的结束时间(预报)
     ty_stamp: str = f'TY{ty_code}_{ty_timestamp_str}'  # TY2046_1642658538
-    ty_detail: TyphoonForecastDetailModel = TyphoonForecastDetailModel(code=TY_CODE,
+    ty_detail: TyphoonForecastDetailModel = TyphoonForecastDetailModel(code=ty_code,
                                                                        organ_code=ForecastOrganizationEnum.NMEFC.value,
                                                                        gmt_start=gmt_start,
                                                                        gmt_end=gmt_end,
@@ -227,6 +235,112 @@ def case_max_surge(ty_code: str, ty_stamp: str, gmt_start: datetime, gmt_end: da
     pass
 
 
+def case_db_splittable():
+    auto_base = automap_base()
+
+    db_factory = DbFactory()
+    session = db_factory.Session
+    engine = db_factory.engine
+    auto_base.prepare(engine, reflect=True)
+    table_name: str = 'station_info'
+    station_info = getattr(auto_base.classes, table_name)
+
+    # station_info=auto_base.classes.station_info
+    query = session.query(station_info).filter_by(code='GTO').all()
+    pass
+
+
+def case_db_check_tab_exist(tab_name: str):
+    """
+        判断指定表是否存在
+    @return:
+    """
+    is_exist = False
+    auto_base = automap_base()
+
+    db_factory = DbFactory()
+    session = db_factory.Session
+    engine = db_factory.engine
+    auto_base.prepare(engine, reflect=True)
+    list_tabs = auto_base.classes
+    if tab_name in list_tabs:
+        is_exist = True
+    # station_info = getattr(auto_base.classes, table_name)
+    return is_exist
+    pass
+
+
+def case_db_create_split_tab(ty_code: str):
+    """
+        测试分表插入
+    @param item:
+    @return:
+    """
+    db_name: str == DATABASES.get('default').get('NAME')
+    # db_name: str = 'typhoon_forecast_db_new'
+    tab_name: str = f'station_forecast_realdata_{ty_code}'
+    # 注意此处需要先判断是否已经存在指定的 tb
+    # 方式1: 执行sql语句创建 tb —— 不使用此种方式
+    sql_str: str = f""""
+    create table {tab_name}
+    (
+        id           int auto_increment
+            primary key,
+        is_del       tinyint(1)   not null,
+        gmt_created  datetime(6)  null,
+        gmt_modified datetime(6)  null,
+        name         varchar(200) not null,
+        code         varchar(50)  not null,
+        lat          double       null,
+        lon          double       null,
+        `desc`       varchar(500) null,
+        is_abs       tinyint(1)   not null,
+        pid          int          not null
+    );"""
+    # 方式2: 不使用执行 create sql
+    meta_data = MetaData()
+    Table(tab_name, meta_data, Column('id', Integer, primary_key=True),
+          Column('is_del', TINYINT(1), nullable=False, server_default=text("'0'"), default=0),
+
+          Column('ty_code', VARCHAR(200), nullable=False),
+          Column('gp_id', Integer, nullable=False),
+          Column('station_code', VARCHAR(200), nullable=False),
+          Column('forecast_dt', DATETIME(fsp=2)),
+          Column('forecast_index', Integer, nullable=False),
+          Column('surge', Float, nullable=False),
+          Column('timestamp', VARCHAR(100), nullable=False),
+          Column('gmt_created', DATETIME(fsp=6), default=datetime.utcnow),
+          Column('gmt_modified', DATETIME(fsp=6), default=datetime.utcnow)
+          )
+    db_factory = DbFactory()
+    session = db_factory.Session
+    engine = db_factory.engine
+    with engine.connect() as conn:
+        # result_proxy = conn.execute(sql_str)
+        # result = result_proxy.fetchall()
+        try:
+            meta_data.create_all(engine)
+        except Exception as ex:
+            print(ex.args)
+
+
+def case_db_insert_split_tab(ty_code: str):
+    db_name: str = 'typhoon_forecast_db_new'
+    tab_name: str = f'station_forecast_realdata_{ty_code}'
+    auto_base = automap_base()
+    db_factory = DbFactory()
+    engine = db_factory.engine
+    auto_base.prepare(engine, reflect=True)
+    StationSurgeDao = getattr(auto_base.classes, tab_name)
+    station_model = StationSurgeDao(ty_code='2017', gp_id=0,
+                                    station_code='123', forecast_dt=datetime.utcnow(),
+                                    forecast_index=1, surge=2.5,
+                                    timestamp=datetime.timestamp)
+    session = db_factory.Session
+    session.add(station_model)
+    session.commit()
+
+
 def case_get_gp():
     """
         测试 get 指定 gp
@@ -298,7 +412,7 @@ def to_do(*args, **kwargs):
     """
 
     # step-1: 爬取 指定台风编号的台风
-    is_debug: bool = True
+    is_debug: bool = False
 
     is_break: bool = False
     if is_break:
@@ -405,7 +519,7 @@ def to_do(*args, **kwargs):
             # # TODO:[-] + 21-09-02 txt -> nc 目前没问题，需要注意一下当前传入的 时间戳是 yyyymmddHH 的格式，与上面的不同
             # TODO:[*] 21-09-08 注意此处暂时将 时间戳设置为一个固定值！！注意！！
             job_txt2nc = JobTxt2Nc(ty_code, timestamp_str)
-            job_txt2nc.to_do(forecast_start_dt=dt_forecast_start)
+            job_txt2nc.to_do(forecast_start_dt=dt_forecast_start, forecast_area=forecast_area)
             # TODO:[-] 21-11-16 加入了处理最大增水场的步骤！
             case_max_surge(ty_code, ty_stamp, dt_forecast_start, dt_forecast_end)
             log_in.info(f'ty_code:{ty_code}|timestamp:{job_ty.timestamp_str},完成surge_max的.dat->.nc的转换')
@@ -416,14 +530,14 @@ def to_do(*args, **kwargs):
             # # step 3-2:
             # #
             job_txt2ncpro = JobTxt2NcPro(ty_code, timestamp_str)
-            job_txt2ncpro.to_do(forecast_start_dt=dt_forecast_start)
+            job_txt2ncpro.to_do(forecast_start_dt=dt_forecast_start, forecast_area=forecast_area)
             log_in.info(f'ty_code:{ty_code}|timestamp:{job_ty.timestamp_str},完成surge_pro的.dat->.nc的转换')
             case_pro_surge(ty_code, ty_stamp, dt_forecast_start, dt_forecast_end)
             log_in.info(f'ty_code:{ty_code}|timestamp:{job_ty.timestamp_str},完成surge_pro的.nc->.tiff的转换')
     pass
 
 
-def test_get_gp_model():
+def get_gp_model():
     """
         测试 根据 file_name 获取对应的 gp_model
     @return:
@@ -458,9 +572,14 @@ def main():
     # TODO:[-] 21-09-03 测试全部整合至 to_do 中
     # to_do()
     # TODO:[-] 22-01-20 测试海洋站 to_store 操作
-    case_station(gmt_start, gmt_end, ty_code, ty_stamp, 80, ForecastAreaEnum.SCS)
+    # case_station(gmt_start, gmt_end, ty_code, ty_stamp, 80, ForecastAreaEnum.SCS)
     # TODO:[-] 21-09-06 测试 local
     # case_test_local()
+    # TODO:[-] 22-05-23 测试分表查询 | 判断指定 tab 是否存在 | 分表写入
+    # case_db_splittable()
+    # case_db_check_tab_exist('station_info')
+    # case_db_create_split_tab('2107')
+    case_db_insert_split_tab('2017')
     # 测试查询 gp
     # case_get_gp()
     # test_get_gp_model()

@@ -33,8 +33,8 @@ from util.customer_decorators import log_count_time, store_job_rate
 from util.log import Loggings, log_in
 from common.enum import JobInstanceEnum, TaskStateEnum
 
-from conf.settings import TEST_ENV_SETTINGS
-from core.db import DbFactory
+from conf.settings import TEST_ENV_SETTINGS, DATABASES
+from core.db import DbFactory, check_exist_table, create_station_surge_realdata_split_tab, get_station_surge_dao
 
 from core.file import StationSurgeRealDataFile, FieldSurgeCoverageFile, ProSurgeCoverageFile, MaxSurgeCoverageFile
 
@@ -208,6 +208,18 @@ def to_station_realdata(list_files: List[str], ty_detail: TyphoonForecastDetailM
     ty_id: int = kwargs.get('ty_id')
     forecast_area = kwargs.get('forecast_area', None)
     log_in.info(f'准备读取海洋站realdata,共有{len(list_files)}个')
+    log_in.info(f'准备写入的ty_code:{ty_detail.code}')
+    # TODO:[*] 22-05-24 此处加入动态分表的流程
+    # step: 动态分表 -1 判断指定表是否存在
+    tab_base_name: str = 'station_forecast_realdata'
+    # 动态分表的表名
+    tab_name_surge_realdata_split: str = f'{tab_base_name}_{ty_detail.code}'
+    is_exist = check_exist_table(tab_name_surge_realdata_split)
+    db_name: str = DATABASES.get('default').get('NAME')
+    # step: 动态分表 -2 若不存在则动态创建该表
+    if is_exist is False:
+        tab_base_name = create_station_surge_realdata_split_tab(ty_detail.code)
+    # ---
     for file_temp in list_files:
         # eg: Surge_TY2022_2021010416_f0_p10.dat
         # eg2: Surge_TY2022_2021010416_c0_p_10.dat
@@ -651,6 +663,21 @@ class GroupTyphoonPath(IBaseOpt):
         """
         pass
 
+    def _check_surge_real_table_exist(self, ty_code: str) -> bool:
+        """
+            - 22-05-24 判断 潮位 实时数据表是否存在
+            eg:
+                eg:station_forecast_realdata_2107
+        @param ty_code:
+        @return:
+        """
+        tab_base_name: str = 'station_forecast_realdata'
+        tab_name: str = f'{tab_base_name}_{ty_code}'
+        return check_exist_table(tab_name)
+
+    def _create_surge_real_split_tab(self, ty_code: str) -> str:
+        pass
+
     def read_forecast_data(self, **kwargs):
         """
             读取 预报 数据
@@ -686,6 +713,7 @@ class GroupTyphoonPath(IBaseOpt):
                                                                ty_path_marking=self.ty_path_marking, bp=self.ty_bp_val,
                                                                is_bp_increase=self.ty_bp_isIncrease)
         list_ty_realdata: List[TyphoonForecastRealDataModel] = []
+
         # list_ty_path.append(ty_path)
         # 先判断 df 中的预报时间是否与写入的 dt_range 匹配
         if len(df_temp) > 3 and self.forecast_dt_range == len(df_temp.iloc[3:]):
@@ -847,14 +875,22 @@ class StationRealDataFile(ITyphoonPath):
         full_path: str = str(pathlib.Path(self.save_dir_path) / file_name)
         forecast_area: ForecastAreaEnum = kwargs.get('forecast_area') if kwargs.get('forecast_area',
                                                                                     None) is not None else ForecastAreaEnum.SCS
+        log_in.info(
+            f'- 获取提交的区域为:{forecast_area.value}')
         df_temp: pd.DataFrame = self.init_forecast_data(group_path_file=full_path)
         list_station_realdata: List[StationForecastRealDataModel] = []
+        # TODO:[*] 22-05-24 修改为动态库表改为手动获取动态库表的 dao映射实体
+        StationSurgeRealdataDao = get_station_surge_dao(self.ty_code)
+        # ---
         # 先判断 df 中的预报时间是否与写入的 dt_range 匹配
         if df_temp is not None:
             num_columns = df_temp.shape[0]  # 行数
             num_rows = df_temp.shape[1]  # 列数
             # TODO:[-] 22-01-18 加入了根据传入的参数获取对应海区的步骤
             current_dict: dict = get_area_dict_station(forecast_area)
+            if len(current_dict) != num_rows:
+                ex = Exception(f'当前区域:{forecast_area.value},字典长度:{len(current_dict)},实际读取文件行数:{num_rows}不一致!')
+                raise ex
             # 列与 common/common_dict -> DICT_STATION 的 key 对应
             for index_column in range(num_rows):
                 # TODO:[-] 22-01-18: 注意此处修改为动态字典
@@ -865,10 +901,11 @@ class StationRealDataFile(ITyphoonPath):
                 delta = timedelta(hours=1)
                 for val_row in series_column:
                     # forecast_start=
-                    station_realdata = StationForecastRealDataModel(ty_code=self.ty_code, gp_id=self.gp_id,
-                                                                    station_code=station_code, forecast_dt=current_dt,
-                                                                    forecast_index=index_row, surge=val_row,
-                                                                    timestamp=timestamp_str)
+                    # TODO:[*] 22-05-24 修改为动态获取的库表 dao 实体; 之前的为:StationForecastRealDataModel
+                    station_realdata = StationSurgeRealdataDao(ty_code=self.ty_code, gp_id=self.gp_id,
+                                                               station_code=station_code, forecast_dt=current_dt,
+                                                               forecast_index=index_row, surge=val_row,
+                                                               timestamp=timestamp_str)
                     index_row = index_row + 1
                     current_dt = current_dt + delta
                     # 对当前时间进行 hours +1
