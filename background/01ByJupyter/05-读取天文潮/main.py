@@ -722,10 +722,10 @@ def get_repeat_station_code(dict_staiton: dict) -> List[str]:
 
 
 def main():
-    start_dt: datetime.datetime = datetime.datetime(2022, 1, 1)
-    end_dt: datetime.datetime = datetime.datetime(2022, 12, 31)
-    year_str: str = '2022'
-    read_dir_path: str = r'C:\Users\evase\OneDrive\同步文件夹\02项目及本子\10-台风集合预报路径系统\数据\2022_天文潮\format_tide_2022'
+    start_dt: datetime.datetime = datetime.datetime(2023, 1, 1)
+    end_dt: datetime.datetime = datetime.datetime(2023, 12, 31)
+    year_str: str = '2023'
+    read_dir_path: str = r'E:\05DATA\09tide\tide2023'
     # read_dir_path: str = r'C:\Users\evase\OneDrive\同步文件夹\02项目及本子\10-台风集合预报路径系统\数据\2022_天文潮\format_tide_2022'
     session = DbFactory().Session
     # step2: 由于 东海和南海存在部分重叠的台站，需要先录入南海，然后去掉东海中南海已录入的部分，录入两次
@@ -777,11 +777,13 @@ def main():
     list_repeat_station: List[str] = get_repeat_station_code(DICT_STATION)
     print(list_repeat_station)
 
-    # station_2_db(read_dir_path, session, DICT_STATION_DIFF, start_dt, end_dt, year_str)
+    station_2_db(read_dir_path, session, DICT_STATION, start_dt, end_dt, year_str)
     # + 22-06-23 批量更新 station_info 中的 d85 filed
     read_file_path: str = r'./ignore_data/sites_wl4_四色警戒潮位_含85基面.csv'
     df: pd.DataFrame = pd.read_csv(read_file_path,
                                    names=['name', 'code', 'wl1', 'wl2', 'wl3', 'wl4', 'd85', 'MSL', 'lon', 'lat'])
+
+
     # 更新 d85 基面差
     # update_station_d85(DICT_STATION, df, session)
     # 更新四色警戒潮位

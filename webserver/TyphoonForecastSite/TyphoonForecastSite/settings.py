@@ -30,7 +30,7 @@ SECRET_KEY = '^belj%#qs2a$bo&*xs9p*@rs76qwst@+x4a%a^3nl5%!pyb2xu'
 DEBUG = True
 
 # TODO:[-] 21-10-13 添加实际线上环境
-ALLOWED_HOSTS = ['128.5.10.21', '127.0.0.1', '0.0.0.0', 'localhost', '192.168.50.86']
+ALLOWED_HOSTS = ['128.5.10.21', '127.0.0.1', '0.0.0.0', 'localhost', '192.168.50.86', '128.5.9.79']
 
 # Application definition
 
@@ -99,8 +99,7 @@ class PATTERNENUM(Enum):
 # 未提交的数据库密码(请勿提交)
 DB_PWD = DB.get('DB_PWD')
 # 调试时需要修改此处
-PATTERN = PATTERNENUM.DOCKER
-
+PATTERN = PATTERNENUM.COMPANY
 
 HOST = '127.0.0.1'
 if PATTERN == PATTERNENUM.COMPANY:

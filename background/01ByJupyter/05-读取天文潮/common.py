@@ -1,3 +1,5 @@
+# TODO:[-] 23-01-19
+# 由于 东山 与 岱山的 code 均为 DSH 暂时不录入这两个站点
 DICT_STATION = {
     'DONGGANG': 'DGG',
     'XIAOCS': 'XCS',
@@ -51,7 +53,7 @@ DICT_STATION = {
     # 嵊山    17 768
     'SHENGSHAN': 'SHS',
     # 岱山    46 731
-    'DAISHAN': 'DSH',
+    # 'DAISHAN': 'DSH',
     # 定海    61 724
     'DINGHAI': 'DHI',
     # 镇海    61 704
@@ -119,7 +121,7 @@ DICT_STATION = {
     # 古雷   432 459
     'GULEI': 'GUL',
     # 东山   436 452
-    'DONGSHAN': 'DSH',
+    # 'DONGSHAN': 'DSH',
     # 赤石湾 442 434
     'CHISHIWAN': 'CSW',
     # 云澳   457 427

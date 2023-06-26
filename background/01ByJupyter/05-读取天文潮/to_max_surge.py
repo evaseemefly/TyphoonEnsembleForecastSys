@@ -195,14 +195,15 @@ def main():
     #                 'BEIJIN': 'NAO',
     #                 'ZHANJ': 'ZJH', }
     # DICT_STATION = {'JIUZHEN': 'JZH', }
-    DICT_STATION = {'DAJIESAN': 'DJS', }
+    # DICT_STATION = {'DAJIESAN': 'DJS', }
     for val, key in DICT_STATION.items():
-        file_name = f'{val}2022'
+        file_name = f'{val}2023'
         # read_path = r'C:\Users\evase\OneDrive\同步文件夹\02项目及本子\10-台风集合预报路径系统\数据\2022_天文潮\format_tide_2022'
-        read_path = r'./data'
+        # read_path = r'./data'
+        read_path: str = r'E:\05DATA\09tide\tide2023'
         full_path = str(pathlib.Path(read_path) / file_name)
         if pathlib.Path(full_path).exists():
-            YEAR = '2022'
+            YEAR = '2023'
             session = DbFactory().Session
             with open(full_path, 'rb') as f:
                 data = pd.read_table(f, sep='\s+', encoding='unicode_escape', header=None, infer_datetime_format=False)

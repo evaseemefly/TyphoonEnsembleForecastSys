@@ -44,3 +44,9 @@ class LayerCheckView(BaseView, StationCommonView, TyGroupCommonView, GeoCommonVi
         # self.json_data = TyExistedStatusSerializer(status, many=False).data
         self._status = 200
         return Response(list_existed, self._status)
+
+
+class ConsulView(BaseView):
+    def get(self, request: Request) -> Response:
+        self._status = 200
+        return Response('sucess', self._status)

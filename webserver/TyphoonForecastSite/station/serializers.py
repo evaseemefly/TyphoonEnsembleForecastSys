@@ -81,6 +81,7 @@ class StationInfoSerializer(serializers.Serializer):
     lon = serializers.FloatField()
     is_abs = serializers.BooleanField()
     sort = serializers.IntegerField()
+    is_in_common_use = serializers.BooleanField()
 
 
 class StationStatisticsSerializer(serializers.Serializer):
