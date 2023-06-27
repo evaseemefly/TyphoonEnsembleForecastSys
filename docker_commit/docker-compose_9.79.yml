@@ -1,0 +1,26 @@
+version: "2.1"
+
+services:
+  # 对应 typhoon
+  django-server:
+    build:
+      context: .
+      dockerfile: ./dockerfiles/django_server_file
+    image: typhoon:1.5.2  # 9.79 服务器上的容器为 1.5.2 tag | 23-06-26
+    container_name: django_sever
+    working_dir: /code
+    volumes:
+      # - ./opt/project:/opt/project # 处理生成的group等文件
+      - /home/nmefc/proj/typhoon_forecast_server/log:/log # 日志
+      - /home/nmefc/proj/typhoon_forecast_server/code:/code
+    ports:
+      - "8000:8000"
+    tty: true # 第一次上线测试时加入，去掉上面的 command，手动进入容器后方便查看问题
+    depends_on:
+      - redis
+
+  redis:
+    container_name: redis
+    image: redis:latest
+    ports:
+      - "6379:6379"

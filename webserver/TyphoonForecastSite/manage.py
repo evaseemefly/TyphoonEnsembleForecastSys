@@ -79,6 +79,7 @@ if __name__ == '__main__':
     # 尝试多个 service host 端口
     # 127.0.0.1 不行
     # 0.0.0.0 错误  consul.base.BadRequest: 400 Invalid service address
-    server = HttpServer(service_host='128.5.9.106', service_port=8082, consul_host='128.5.9.79', consul_port=8500,
+    # 线上部署可行
+    server = HttpServer(service_host='128.5.9.79', service_port=8092, consul_host='128.5.9.79', consul_port=8500,
                         appClass=DjangoServer, consul_area_name='typhoon_forecast')
     server.startServer()
