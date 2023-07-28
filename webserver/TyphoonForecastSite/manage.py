@@ -61,6 +61,7 @@ class HttpServer:
         @return:
         """
         client = ConsulClient(consul_host=self.consul_host, consul_port=self.consul_port)
+        # TODO:[-] 23-06-27 注意此处需要获取当前app的所有urls
         # 注册服务，将路由 index 和 user 依次注册
         for aps in self.appnames:
             service_id = aps + self.service_host + ':' + str(self.service_port)

@@ -12,6 +12,7 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import ForeignKey, Sequence, MetaData, Table
 from sqlalchemy.orm import relationship, sessionmaker
 # from datetime import datetime
+from urllib.parse import quote_plus as urlquote
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from enum import Enum, unique
@@ -65,7 +66,7 @@ class DbFactory:
         self.password = pwd if pwd else db_options.get('PASSWORD')
         # self.engine = create_engine("mysql+pymysql://root:admin123@localhost/searchrescue", encoding='utf-8', echo=True)
         self.engine = create_engine(
-            f"mysql+{self.engine_str}://{self.user}:{self.password}@{self.host}:{self.post}/{self.db_name}",
+            f"mysql+{self.engine_str}://{self.user}:{urlquote(self.password)}@{self.host}:{self.post}/{self.db_name}",
             encoding='utf-8', echo=False)
         self._session_def = sessionmaker(bind=self.engine)
 
@@ -196,6 +197,19 @@ def main():
     #                 'ZHANJ': 'ZJH', }
     # DICT_STATION = {'JIUZHEN': 'JZH', }
     # DICT_STATION = {'DAJIESAN': 'DJS', }
+    # 23-07-17 录入部分缺少的站点
+    DICT_STATION = {
+        # 'LEIZHOU': 'LZH',
+        #             'WUCHANG': 'WCH',
+        #             'CHIWANH': 'CWH',
+        #             'NANSHA': 'GNS',
+        #             'HENGMEN': 'HGM',
+        #             'MAGE': 'MGE',
+        #             'TAISHAN': 'TSH',
+        #             'BEIJIN': 'BJI',
+        #             'NANSHA': 'NSA'，
+        'HAIMENG2': 'HMG'  # 广东海门G
+    }
     for val, key in DICT_STATION.items():
         file_name = f'{val}2023'
         # read_path = r'C:\Users\evase\OneDrive\同步文件夹\02项目及本子\10-台风集合预报路径系统\数据\2022_天文潮\format_tide_2022'

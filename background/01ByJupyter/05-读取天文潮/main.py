@@ -14,6 +14,8 @@ from sqlalchemy.orm import relationship, sessionmaker
 # from datetime import datetime
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
+
+from urllib.parse import quote_plus as urlquote
 from typing import List
 from common import DICT_STATION
 
@@ -499,7 +501,7 @@ class DbFactory:
         self.password = pwd if pwd else db_options.get('PASSWORD')
         # self.engine = create_engine("mysql+pymysql://root:admin123@localhost/searchrescue", encoding='utf-8', echo=True)
         self.engine = create_engine(
-            f"mysql+{self.engine_str}://{self.user}:{self.password}@{self.host}:{self.post}/{self.db_name}",
+            f"mysql+{self.engine_str}://{self.user}:{urlquote(self.password)}@{self.host}:{self.post}/{self.db_name}",
             encoding='utf-8', echo=False)
         self._session_def = sessionmaker(bind=self.engine)
 
@@ -510,12 +512,107 @@ class DbFactory:
         return self._session_def()
 
 
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker, scoped_session, Session
+from sqlalchemy.ext.declarative import declarative_base
+
+
+class DBConfig:
+    """
+    DbConfig DB配置类
+    :version: 1.4
+    :date: 2020-02-11
+    TODO:[-] 23-06-28 此处修改为通过 consul 统一获取配置信息
+    """
+
+    driver = 'mysql+mysqldb'
+    host = '128.5.10.21'
+    # 宿主机的mysql服务
+    # host = 'host.docker.internal'
+    port = '3308'
+    username = 'root'
+    password = 'Nmefc@62105805'
+    database = 'typhoon_forecast_db'
+    charset = 'utf8mb4'
+    table_name_prefix = ''
+    echo = 0
+    pool_size = 100
+    max_overflow = 100
+    pool_recycle = 60
+
+    def get_url(self):
+        config = [
+            self.driver,
+            '://',
+            self.username,
+            ':',
+            urlquote(self.password),
+            '@',
+            self.host,
+            ':',
+            self.port,
+            '/',
+            self.database,
+            '?charset=',
+            self.charset,
+        ]
+
+        return ''.join(config)
+
+
+class DBFactory:
+    """
+        + 23-03-09 数据库工厂类
+    """
+    session: Session = None
+    default_config: DBConfig = DBConfig()
+
+    def __init__(self, config: DBConfig = None):
+        if not config:
+            config = self.default_config
+        self.session = self._create_scoped_session(config)
+
+    def __del__(self):
+        """
+            + 23-04-04 解决
+            sqlalchemy.exc.OperationalError: (MySQLdb._exceptions.OperationalError)
+             (1040, 'Too many connections')
+        :return:
+        """
+        self.session.close()
+
+    @staticmethod
+    def _create_scoped_session(config: DBConfig):
+        engine = create_engine(
+            config.get_url(),
+            pool_size=config.pool_size,
+            max_overflow=config.max_overflow,
+            pool_recycle=config.pool_recycle,
+            echo=config.echo
+        )
+
+        # TODO:[-] 23-03-10 sqlalchemy.exc.ArgumentError: autocommit=True is no longer supported
+        session_factory = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+
+        # scoped_session封装了两个值 Session 和 registry,registry加括号就执行了ThreadLocalRegistry的__call__方法,
+        # 如果当前本地线程中有session就返回session,没有就将session添加到了本地线程
+        # 优点:支持线程安全,为每个线程都创建一个session
+        # scoped_session 是一个支持多线程且线程安全的session
+        return scoped_session(session_factory)
+
+
+# TODO:[*] 23-07-17 由于sqlalchemy1.4 -> 2.0 此部分重新修改
 engine = DbFactory().engine
 
 # 生成基类
 BaseMeta = declarative_base()
 md = MetaData(bind=engine)  # 引用MetaData
 metadata = BaseMeta.metadata
+
+
+# ----
+# 修改为 sqlalchem2.0 版本
+# BaseMeta = declarative_base()
 
 
 class IIdModel(BaseMeta):
@@ -727,7 +824,9 @@ def main():
     year_str: str = '2023'
     read_dir_path: str = r'E:\05DATA\09tide\tide2023'
     # read_dir_path: str = r'C:\Users\evase\OneDrive\同步文件夹\02项目及本子\10-台风集合预报路径系统\数据\2022_天文潮\format_tide_2022'
+    # TODO:[*] 23-07-17 sqlalchemy1.4 -> 2.0
     session = DbFactory().Session
+    # session = DBFactory().session
     # step2: 由于 东海和南海存在部分重叠的台站，需要先录入南海，然后去掉东海中南海已录入的部分，录入两次
     # demo: {0: 'LCG', 1: 'DJS', 2: 'JSZ'}
     dict_diff = dict_not_inner(DICT_STATION_3, DICT_STATION_2)
@@ -735,9 +834,9 @@ def main():
     # {'文件名前缀':'station_code'}
     dict_area2_diff = {}
     list_station_code_area2_diff = [code for key, code in dict_diff.items()]
-    for name, code in DICT_STATION.items():
-        if code in list_station_code_area2_diff:
-            dict_area2_diff[name] = code
+    # for name, code in DICT_STATION.items():
+    #     if code in list_station_code_area2_diff:
+    #         dict_area2_diff[name] = code
     # {'ZHAPU': 'ZPU', 'SHENGSHAN': 'SHS', 'DINGHAI': 'DHI',
     # 'SHENJIAMEN': 'SJM', 'BEILUN': 'BLN', 'WUSS': 'WSH',
     # 'SHIPU': 'SPU', 'JIANTIAO': 'JAT', 'DACHEN': 'DCH',
@@ -772,17 +871,29 @@ def main():
     # DICT_STATION_DIFF = {'LONGWAN': 'LGW', }
     # DICT_STATION_DIFF = {'CHMEN': 'CGM', }
     DICT_STATION_DIFF = {'TANTOU': 'TNT', }
+    # 23-07-17 录入部分缺少的站点
+    DICT_STATION = {
+        # 'LEIZHOU': 'LZH',
+        #             'WUCHANG': 'WCH',
+        #             'CHIWANH': 'CWH',
+        #             'NANSHA': 'GNS',
+        #             'HENGMEN': 'HGM',
+        #             'MAGE': 'MGE',
+        #             'TAISHAN': 'TSH',
+        #             'BEIJIN': 'BJI',
+        #             'NANSHA': 'NSA',
+        'HAIMENG2': 'HMG'
+    }
     # TODO:[-] 23-01-19 准备录入 2023年站点的准备工作
     # S1: 从 common.py 中获取存在重复站位的 code
-    list_repeat_station: List[str] = get_repeat_station_code(DICT_STATION)
-    print(list_repeat_station)
+    # list_repeat_station: List[str] = get_repeat_station_code(DICT_STATION)
+    # print(list_repeat_station)
 
     station_2_db(read_dir_path, session, DICT_STATION, start_dt, end_dt, year_str)
     # + 22-06-23 批量更新 station_info 中的 d85 filed
     read_file_path: str = r'./ignore_data/sites_wl4_四色警戒潮位_含85基面.csv'
     df: pd.DataFrame = pd.read_csv(read_file_path,
                                    names=['name', 'code', 'wl1', 'wl2', 'wl3', 'wl4', 'd85', 'MSL', 'lon', 'lat'])
-
 
     # 更新 d85 基面差
     # update_station_d85(DICT_STATION, df, session)
