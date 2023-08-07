@@ -223,8 +223,10 @@ class TySpiderBaseView(BaseView):
         baseUrl: str = 'typhoon.nmc.cn'
         # http://typhoon.nmc.cn/weatherservice/typhoon/jsons/view_2726099
         # target_url = f'{url}_{ty_id}'
+        headers = {
+            'User-Agent': get_agent()}
         conn = http.client.HTTPConnection(baseUrl)
-        conn.request('GET', f"/weatherservice/typhoon/jsons/view_{str(ty_id)}")
+        conn.request('GET', f"/weatherservice/typhoon/jsons/view_{str(ty_id)}", headers=headers)
         res = conn.getresponse()
         content = res.read().decode('utf-8')
         index: int = len(f'typhoon_jsons_view_{str(ty_id)}') + 1

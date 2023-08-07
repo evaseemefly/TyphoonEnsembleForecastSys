@@ -882,7 +882,12 @@ def main():
         #             'TAISHAN': 'TSH',
         #             'BEIJIN': 'BJI',
         #             'NANSHA': 'NSA',
-        'HAIMENG2': 'HMG'
+        # 'HAIMENG2': 'HMG'
+        # TODO:[-] 23-08-02
+        # 'HUANGPUG': 'HPG',  # 上海黄埔公园
+        # 'DONGTOU': 'DTO',  # 洞头
+        # 'LONGWAN': 'LGW',  # 龙湾
+        'CHMEN': 'CGM',  # 长门
     }
     # TODO:[-] 23-01-19 准备录入 2023年站点的准备工作
     # S1: 从 common.py 中获取存在重复站位的 code

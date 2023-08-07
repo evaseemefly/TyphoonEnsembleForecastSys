@@ -26,28 +26,6 @@ class PATTERNENMU(Enum):
     COMPANY = 2
 
 
-PATTERN = PATTERNENMU.COMPANY
-
-DB_PWD = DB.get('DB_PWD')
-
-DATABASES = {
-    'default': {
-        'ENGINE': 'mysqldb',  # 数据库引擎
-        'NAME': 'typhoon_forecast_db',  # 数据库名
-        'USER': 'root',  # 账号
-        'PASSWORD': DB_PWD if PATTERN == PATTERNENMU.COMPANY else '123456',
-        # 'PASSWORD': 'Nmefc@62105805',
-        # 'HOST': '127.0.0.1',  # HOST
-        'HOST': '128.5.10.21',  # HOST
-        # 'POST': 3306,  # 端口
-        'POST': 3308,  # TODO:[-] 21-10-11 端口暂时改为 3308
-        'OPTIONS': {
-            "init_command": "SET foreign_key_checks = 0;",
-        },
-    }
-}
-
-
 class DbFactory:
     """
         数据库工厂
@@ -75,6 +53,116 @@ class DbFactory:
         if self._session_def is None:
             self._session_def = sessionmaker(bind=self.engine)
         return self._session_def()
+
+
+PATTERN = PATTERNENMU.COMPANY
+
+DB_PWD = DB.get('DB_PWD')
+
+DATABASES = {
+    'default': {
+        'ENGINE': 'mysqldb',  # 数据库引擎
+        'NAME': 'typhoon_forecast_db',  # 数据库名
+        'USER': 'root',  # 账号
+        'PASSWORD': DB_PWD if PATTERN == PATTERNENMU.COMPANY else '123456',
+        # 'PASSWORD': 'Nmefc@62105805',
+        # 'HOST': '127.0.0.1',  # HOST
+        'HOST': '128.5.10.21',  # HOST
+        # 'POST': 3306,  # 端口
+        'POST': 3308,  # TODO:[-] 21-10-11 端口暂时改为 3308
+        'OPTIONS': {
+            "init_command": "SET foreign_key_checks = 0;",
+        },
+    }
+}
+
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker, scoped_session, Session
+from sqlalchemy.ext.declarative import declarative_base
+
+
+class DBConfig:
+    """
+    DbConfig DB配置类
+    :version: 1.4
+    :date: 2020-02-11
+    TODO:[-] 23-06-28 此处修改为通过 consul 统一获取配置信息
+    """
+
+    driver = 'mysql+mysqldb'
+    host = '128.5.10.21'
+    # 宿主机的mysql服务
+    # host = 'host.docker.internal'
+    port = '3308'
+    username = 'root'
+    password = 'Nmefc@62105805'
+    database = 'typhoon_forecast_db'
+    charset = 'utf8mb4'
+    table_name_prefix = ''
+    echo = 0
+    pool_size = 100
+    max_overflow = 100
+    pool_recycle = 60
+
+    def get_url(self):
+        config = [
+            self.driver,
+            '://',
+            self.username,
+            ':',
+            urlquote(self.password),
+            '@',
+            self.host,
+            ':',
+            self.port,
+            '/',
+            self.database,
+            '?charset=',
+            self.charset,
+        ]
+
+        return ''.join(config)
+
+
+class DBFactory:
+    """
+        + 23-03-09 数据库工厂类
+    """
+    session: Session = None
+    default_config: DBConfig = DBConfig()
+
+    def __init__(self, config: DBConfig = None):
+        if not config:
+            config = self.default_config
+        self.session = self._create_scoped_session(config)
+
+    def __del__(self):
+        """
+            + 23-04-04 解决
+            sqlalchemy.exc.OperationalError: (MySQLdb._exceptions.OperationalError)
+             (1040, 'Too many connections')
+        :return:
+        """
+        self.session.close()
+
+    @staticmethod
+    def _create_scoped_session(config: DBConfig):
+        engine = create_engine(
+            config.get_url(),
+            pool_size=config.pool_size,
+            max_overflow=config.max_overflow,
+            pool_recycle=config.pool_recycle,
+            echo=config.echo
+        )
+
+        # TODO:[-] 23-03-10 sqlalchemy.exc.ArgumentError: autocommit=True is no longer supported
+        session_factory = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+
+        # scoped_session封装了两个值 Session 和 registry,registry加括号就执行了ThreadLocalRegistry的__call__方法,
+        # 如果当前本地线程中有session就返回session,没有就将session添加到了本地线程
+        # 优点:支持线程安全,为每个线程都创建一个session
+        # scoped_session 是一个支持多线程且线程安全的session
+        return scoped_session(session_factory)
 
 
 engine = DbFactory().engine
@@ -209,6 +297,14 @@ def main():
         #             'BEIJIN': 'BJI',
         #             'NANSHA': 'NSA'，
         'HAIMENG2': 'HMG'  # 广东海门G
+    }
+    # 23-08-02 补录羊口港 YKG
+    DICT_STATION = {
+        # 'YKOUG': 'YKG',  # 广东海门G
+        # 'HUANGPUG': 'HPG',  # 上海黄埔公园
+        # 'DONGTOU': 'DTO',  # 洞头
+        # 'LONGWAN': 'LGW', #龙湾
+        'CHMEN': 'CGM',  # 长门
     }
     for val, key in DICT_STATION.items():
         file_name = f'{val}2023'
