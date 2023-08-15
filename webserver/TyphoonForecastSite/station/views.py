@@ -21,16 +21,18 @@ from typing import List
 # --
 # 本项目的
 # mid model
-from .mid_models import StationTreeMidModel
+from .mid_models import StationTreeMidModel, DistStationTideListMidModel
 # model
 from .models import StationForecastRealDataModel, StationInfoModel, StationAstronomicTideRealDataModel, \
-    StationAlertTideModel, StationStatisticsModel, StationForecastRealDataSharedMdoel, TideDataModel
+    StationAlertTideModel, StationStatisticsModel, StationForecastRealDataSharedMdoel, TideDataModel, \
+    DistStationTideRealDataModel
 from typhoon.models import TyphoonGroupPathModel
 # 序列化器
 from .serializers import StationForecastRealDataSerializer, StationForecastRealDataComplexSerializer, \
     StationForecastRealDataRangeSerializer, StationForecastRealDataMixin, StationForecastRealDataRangeComplexSerializer, \
     StationAstronomicTideRealDataSerializer, StationAlertSerializer, StationStatisticsSerializer, \
-    StationForecastRealDataByGroupSerializer, StationInfoSerializer, TideDailyDataSerializer, StationTreeDataSerializer
+    StationForecastRealDataByGroupSerializer, StationInfoSerializer, TideDailyDataSerializer, StationTreeDataSerializer, \
+    DistStationTideListSerializer
 # 公共的
 from TyphoonForecastSite.settings import MY_PAGINATOR
 from util.const import DEFAULT_NULL_KEY, UNLESS_TY_CODE, DEFAULT_CODE, DEFAULT_TIMTSTAMP_STR, \
@@ -1016,6 +1018,62 @@ class StationAstronomicTideListView(StationListBaseView):
         query: QuerySet = StationAstronomicTideRealDataModel.objects.filter(station_code=station_code).filter(
             forecast_dt__lte=end_dt, forecast_dt__gte=start_dt)
         self.json_data = StationAstronomicTideRealDataSerializer(query, many=True).data
+        self._status = 200
+        return Response(self.json_data, status=self._status)
+
+
+class DistStationAstronomicTideListView(StationListBaseView):
+    """
+        + 23-08-15 获取所有不同站点的指定时间范围内的天文潮集合
+    """
+
+    def get(self, request: Request) -> Response:
+        """
+
+        @param request:
+        @return: [{
+                    station_code: 站点代号
+                    tide_list: 天文潮集合
+                    forecast_ts_list: 预报时间戳集合
+                    }]
+        """
+        start_dt_str: str = request.GET.get('start_dt')
+        end_dt_str: str = request.GET.get('end_dt')
+        start_dt: datetime = arrow.get(start_dt_str).datetime
+        end_dt: datetime = arrow.get(end_dt_str).datetime
+        # 使用聚合方法获取不同站点的天文潮集合
+        # 将 datetime -> timestamp
+        query_sql: str = f"""SELECT station_code,group_concat(unix_timestamp(forecast_dt)) as forecastdt_list,group_concat(surge) as surge_list
+FROM `station_astronomictidee _realdata`
+WHERE forecast_dt>='{start_dt}' AND forecast_dt<='{end_dt}'
+group by station_code"""
+        res = DistStationTideRealDataModel.objects.raw(query_sql)
+        # ERROR: 'Raw query must include the primary key'
+        # 设定 DistStationTideRealDataModel 的 station_code 为 主键
+        dist_station_tide_list: List[DistStationTideListMidModel] = []
+        for temp in res:
+            # 1- 站点代号
+            temp_code: str = temp.station_code
+            temp_tide_str_list: List[str] = temp.surge_list.split(',')
+            # 2- 天文潮集合
+            temp_tide_list: List[float] = []
+            for temp_tide_str in temp_tide_str_list:
+                if temp_tide_str != '':
+                    temp_tide_list.append(float(temp_tide_str))
+
+            temp_dt_str_list: List[str] = temp.forecastdt_list.split(',')
+            # 3- 预报时间戳集合
+            temp_ts_list: List[int] = []
+            for temp_dt_str in temp_dt_str_list:
+                if temp_dt_str != '':
+                    # '2023-08-01 04:00:00.000000'
+                    # 1690862400.000000
+                    temp_ts_list.append(int(float(temp_dt_str)))
+            temp_tide_middelmodel: DistStationTideListMidModel = DistStationTideListMidModel(code=temp_code,
+                                                                                             tide_list=temp_tide_list,
+                                                                                             forecast_ts_list=temp_ts_list)
+            dist_station_tide_list.append(temp_tide_middelmodel)
+        self.json_data = DistStationTideListSerializer(dist_station_tide_list, many=True).data
         self._status = 200
         return Response(self.json_data, status=self._status)
 

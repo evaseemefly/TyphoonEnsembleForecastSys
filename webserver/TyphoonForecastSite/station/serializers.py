@@ -60,6 +60,16 @@ class StationAlertSerializer(serializers.Serializer):
     alert = serializers.IntegerField()
 
 
+class DistStationTideListSerializer(serializers.Serializer):
+    """
+        + 23-08-15 不同站点的天文潮位与时间集合
+        对应 DistStationTideListMidModel
+    """
+    station_code = serializers.CharField()
+    tide_list = serializers.ListField(child=serializers.FloatField())
+    forecast_ts_list = serializers.ListField(child=serializers.IntegerField())
+
+
 class StationForecastRealDataByGroupSerializer(serializers.Serializer):
     gp_id = serializers.IntegerField()
     list_realdata = StationForecastRealDataMiniSerializer(many=True)

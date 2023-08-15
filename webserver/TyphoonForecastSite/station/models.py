@@ -102,6 +102,18 @@ class StationAstronomicTideRealDataModel(IIdModel, IDelModel, IModel):
 
     class Meta:
         db_table = 'station_astronomictidee _realdata'
+        managed = False
+
+
+class DistStationTideRealDataModel(models.Model):
+    station_code = models.CharField(max_length=10, default=DEFAULT_CODE, primary_key=True)
+    forecast_dt = models.CharField(max_length=2000, default='')
+    surge = models.CharField(max_length=2000, default='')
+
+    class Meta:
+        db_table = 'station_astronomictidee _realdata'
+        # 加入 managed=False 取消同名 tb -> model 的检查
+        managed = False
 
 
 class StationAlertTideModel(IIdModel, IDelModel, IModel):

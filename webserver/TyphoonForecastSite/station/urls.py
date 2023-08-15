@@ -15,7 +15,7 @@ from .views import StationListView, StationSurgeRangeValueListView, StationSurge
     StationAstronomicTideRealDataListView, StationAlertView, StationSurgeRealDataQuarterListView, StationAreaListView, \
     StationCenterMaxListView, StationAllPathMaxListView, StationSurgeSplitTab, StationBaseLevelDiffView, \
     StationD85DiffView, StationSurgeGroupRealListView, StationStaticsListView, StationListByGroupView, \
-    StationTideDailyView, StationAstronomicTideListView, FamilyStationListView
+    StationTideDailyView, StationAstronomicTideListView, FamilyStationListView, DistStationAstronomicTideListView
 
 app_name = '[station]'
 
@@ -35,6 +35,7 @@ urlpatterns = [
     url(r'^station/group/reallist/list$', StationSurgeGroupRealListView.as_view()),
     url(r'^station/astronomictide/range/list$', StationAstronomicTideRealDataListView.as_view()),
     url(r'^station/astronomictide/list$', StationAstronomicTideListView.as_view()),
+    url(r'^station/dist/astronomictide/list$', DistStationAstronomicTideListView.as_view()),
     url(r'^station/alert$', StationAlertView.as_view()),
     url(r'^station/baseLevelDiff$', StationBaseLevelDiffView.as_view()),
     url(r'^station/d85$', StationD85DiffView.as_view()),
