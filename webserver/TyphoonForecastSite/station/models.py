@@ -106,6 +106,9 @@ class StationAstronomicTideRealDataModel(IIdModel, IDelModel, IModel):
 
 
 class DistStationTideRealDataModel(models.Model):
+    """
+        + 23-08-12 不同站点的 天文潮+预报时间 集合
+    """
     station_code = models.CharField(max_length=10, default=DEFAULT_CODE, primary_key=True)
     forecast_dt = models.CharField(max_length=2000, default='')
     surge = models.CharField(max_length=2000, default='')
