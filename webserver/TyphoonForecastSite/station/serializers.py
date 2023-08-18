@@ -60,6 +60,15 @@ class StationAlertSerializer(serializers.Serializer):
     alert = serializers.IntegerField()
 
 
+class DistStationAlertSerializer(serializers.Serializer):
+    """
+        + 23-08-18 不同站点的警戒潮位序列化器
+    """
+    station_code = serializers.CharField()
+    alert_tide_list = serializers.ListField(child=serializers.FloatField())
+    alert_level_list = serializers.ListField(child=serializers.IntegerField())
+
+
 class DistStationTideListSerializer(serializers.Serializer):
     """
         + 23-08-15 不同站点的天文潮位与时间集合

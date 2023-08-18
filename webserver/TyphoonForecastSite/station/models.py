@@ -128,6 +128,19 @@ class StationAlertTideModel(IIdModel, IDelModel, IModel):
     alert = models.IntegerField()
 
 
+class DistStationAlertTide(IDelModel, IModel):
+    """
+
+    """
+    station_code = models.CharField(max_length=10, default=DEFAULT_CODE, primary_key=True)
+    tide = models.FloatField()
+    alert = models.IntegerField()
+
+    class Meta:
+        db_table = 'station_stationalerttidemodel'
+        managed = False
+
+
 class StationStatisticsModel(IIdModel, IDelModel, IModel):
     """
         + 21-10-27 海洋站分位数表

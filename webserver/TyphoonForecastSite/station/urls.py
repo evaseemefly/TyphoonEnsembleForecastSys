@@ -15,7 +15,8 @@ from .views import StationListView, StationSurgeRangeValueListView, StationSurge
     StationAstronomicTideRealDataListView, StationAlertView, StationSurgeRealDataQuarterListView, StationAreaListView, \
     StationCenterMaxListView, StationAllPathMaxListView, StationSurgeSplitTab, StationBaseLevelDiffView, \
     StationD85DiffView, StationSurgeGroupRealListView, StationStaticsListView, StationListByGroupView, \
-    StationTideDailyView, StationAstronomicTideListView, FamilyStationListView, DistStationAstronomicTideListView
+    StationTideDailyView, StationAstronomicTideListView, FamilyStationListView, DistStationAstronomicTideListView, \
+    DistStationAlertView
 
 app_name = '[station]'
 
@@ -37,6 +38,8 @@ urlpatterns = [
     url(r'^station/astronomictide/list$', StationAstronomicTideListView.as_view()),
     url(r'^station/dist/astronomictide/list$', DistStationAstronomicTideListView.as_view()),
     url(r'^station/alert$', StationAlertView.as_view()),
+    # + 23-08-18 加载全部站点的警戒潮位集合
+    url(r'^station/dist/alert$', DistStationAlertView.as_view()),
     url(r'^station/baseLevelDiff$', StationBaseLevelDiffView.as_view()),
     url(r'^station/d85$', StationD85DiffView.as_view()),
     url(r'^station/realdata/quarter/list$', StationSurgeRealDataQuarterListView.as_view()),

@@ -25,14 +25,14 @@ from .mid_models import StationTreeMidModel, DistStationTideListMidModel
 # model
 from .models import StationForecastRealDataModel, StationInfoModel, StationAstronomicTideRealDataModel, \
     StationAlertTideModel, StationStatisticsModel, StationForecastRealDataSharedMdoel, TideDataModel, \
-    DistStationTideRealDataModel
+    DistStationTideRealDataModel, DistStationAlertTide
 from typhoon.models import TyphoonGroupPathModel
 # 序列化器
 from .serializers import StationForecastRealDataSerializer, StationForecastRealDataComplexSerializer, \
     StationForecastRealDataRangeSerializer, StationForecastRealDataMixin, StationForecastRealDataRangeComplexSerializer, \
     StationAstronomicTideRealDataSerializer, StationAlertSerializer, StationStatisticsSerializer, \
     StationForecastRealDataByGroupSerializer, StationInfoSerializer, TideDailyDataSerializer, StationTreeDataSerializer, \
-    DistStationTideListSerializer
+    DistStationTideListSerializer, DistStationAlertSerializer
 # 公共的
 from TyphoonForecastSite.settings import MY_PAGINATOR
 from util.const import DEFAULT_NULL_KEY, UNLESS_TY_CODE, DEFAULT_CODE, DEFAULT_TIMTSTAMP_STR, \
@@ -1103,6 +1103,43 @@ class StationD85DiffView(BaseView):
                 diffObj['d85_diff'] = station_res.first().d85
                 self._status = 200
         self.json_data = diffObj
+        return Response(self.json_data, status=self._status)
+
+
+class DistStationAlertView(StationListBaseView):
+    def get(self, request: Request):
+        """
+            + 23-08-18 获取所有站点的警戒潮位集合
+        @param request:
+        @return:
+        """
+        sql_raw: str = f"""
+            SELECT station_code,group_concat(tide) as tide_list,group_concat(alert) as alert_list
+            FROM station_stationalerttidemodel
+            group by station_code
+        """
+        res = DistStationAlertTide.objects.raw(sql_raw)
+        dist_station_alert_list: List[dict] = []
+        for temp in res:
+            temp_code: str = temp.station_code
+            temp_alert_tide: List[int] = []
+            temp_alert_level: List[int] = []
+            if temp.tide_list is not None:
+                temp_tide_str: List[str] = temp.tide_list.split(',')
+                temp_alert_tide = [float(tide) for tide in temp_tide_str]
+                temp_alert_tide.sort()
+            if temp.alert_list is not None:
+                temp_alert_str: List[str] = temp.alert_list.split(',')
+                temp_alert_level = [int(alert) for alert in temp_alert_str]
+                temp_alert_level.sort()
+            temp_station_alert_dict: dict = {
+                'station_code': temp_code,
+                'alert_tide_list': temp_alert_tide,
+                'alert_level_list': temp_alert_level
+            }
+            dist_station_alert_list.append(temp_station_alert_dict)
+        self.json_data = DistStationAlertSerializer(dist_station_alert_list, many=True).data
+        self._status = 200
         return Response(self.json_data, status=self._status)
 
 
