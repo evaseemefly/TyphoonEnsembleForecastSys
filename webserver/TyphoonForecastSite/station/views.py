@@ -1043,10 +1043,21 @@ class DistStationAstronomicTideListView(StationListBaseView):
         end_dt: datetime = arrow.get(end_dt_str).datetime
         # 使用聚合方法获取不同站点的天文潮集合
         # 将 datetime -> timestamp
-        query_sql: str = f"""SELECT station_code,group_concat(unix_timestamp(forecast_dt)) as forecastdt_list,group_concat(surge) as surge_list
-FROM `station_astronomictidee _realdata`
-WHERE forecast_dt>='{start_dt}' AND forecast_dt<='{end_dt}'
-group by station_code"""
+        # TODO:[*] 23-08-28 此处加入黄骅的单站测试，待删除
+        query_sql: str = f"""SELECT station_code,
+        group_concat(unix_timestamp(forecast_dt)  order by forecast_dt) as forecastdt_list,
+        group_concat(surge  order by forecast_dt) as surge_list
+        FROM `station_astronomictidee _realdata`
+        WHERE forecast_dt>='{start_dt}' AND forecast_dt<='{end_dt}'  group by station_code"""
+
+        """
+            SELECT station_code ,
+               group_concat(forecast_dt order by forecast_dt ) as forecastdt_list,
+               group_concat(surge order by forecast_dt) as surge_list
+            FROM `station_astronomictidee _realdata`
+            WHERE forecast_dt>='2023-08-27 12:00:00+00:00' AND forecast_dt<='2023-09-03 12:00:00+00:00'
+            group by station_code
+        """
         res = DistStationTideRealDataModel.objects.raw(query_sql)
         # ERROR: 'Raw query must include the primary key'
         # 设定 DistStationTideRealDataModel 的 station_code 为 主键
