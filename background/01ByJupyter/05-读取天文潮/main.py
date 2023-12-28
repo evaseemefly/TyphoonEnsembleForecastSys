@@ -819,10 +819,10 @@ def get_repeat_station_code(dict_staiton: dict) -> List[str]:
 
 
 def main():
-    start_dt: datetime.datetime = datetime.datetime(2023, 1, 1)
-    end_dt: datetime.datetime = datetime.datetime(2023, 12, 31)
-    year_str: str = '2023'
-    read_dir_path: str = r'E:\05DATA\09tide\tide2023'
+    start_dt: datetime.datetime = datetime.datetime(2024, 1, 1)
+    end_dt: datetime.datetime = datetime.datetime(2024, 12, 31)
+    year_str: str = '2024'
+    read_dir_path: str = r'E:\05DATA\09tide\tide2024'
     # read_dir_path: str = r'C:\Users\evase\OneDrive\同步文件夹\02项目及本子\10-台风集合预报路径系统\数据\2022_天文潮\format_tide_2022'
     # TODO:[*] 23-07-17 sqlalchemy1.4 -> 2.0
     session = DbFactory().Session
@@ -858,43 +858,73 @@ def main():
     # dict_area2_diff = {'QINGYU': 'QGY',  'RUIAN': 'RAS'}
     # step3: 从指定路径:read_dir_path ,根据 dict_area2_diff 字典中获取存在的文件，并以 start_dt 为起始时间，写入db
     # TODO:[*] 22-08-14 HMN 由 HAIMENZ -> HAIMENG
-    DICT_STATION_DIFF = {'HAIMENG2': 'HMN'}
+    # DICT_STATION_DIFF = {'HAIMENG2': 'HMN'}
+    # #
+    # DICT_STATION_DIFF = {'RAOPING': 'RPG', 'HENGMEN': 'HGM', 'MAGE': 'MGE', 'TAISHAN': 'TSH', 'BEIJIN': 'BJN',
+    #                      'LEIZHOU': 'LZH', }
+    # DICT_STATION_DIFF = {'HUANGPU': 'HPU', }
+    # DICT_STATION_DIFF = {'ZHUHAI': 'ZHU', }
+    # # TODO:[*] 22-08-31 录入东海部分缺省站点
+    # # DICT_STATION_DIFF = {'GANPU': 'GPU', }
+    # # DICT_STATION_DIFF = {'HAIMENZ': 'HMZ', }
+    # # DICT_STATION_DIFF = {'DONGTOU': 'DTO', }
+    # # DICT_STATION_DIFF = {'LONGWAN': 'LGW', }
+    # # DICT_STATION_DIFF = {'CHMEN': 'CGM', }
+    # DICT_STATION_DIFF = {'TANTOU': 'TNT', }
+    # # 23-07-17 录入部分缺少的站点
+    # DICT_STATION = {
+    #     # 'LEIZHOU': 'LZH',
+    #     #             'WUCHANG': 'WCH',
+    #     #             'CHIWANH': 'CWH',
+    #     #             'NANSHA': 'GNS',
+    #     #             'HENGMEN': 'HGM',
+    #     #             'MAGE': 'MGE',
+    #     #             'TAISHAN': 'TSH',
+    #     #             'BEIJIN': 'BJI',
+    #     #             'NANSHA': 'NSA',
+    #     # 'HAIMENG2': 'HMG'
+    #     # TODO:[-] 23-08-02
+    #     # 'HUANGPUG': 'HPG',  # 上海黄埔公园
+    #     # 'DONGTOU': 'DTO',  # 洞头
+    #     # 'LONGWAN': 'LGW',  # 龙湾
+    #     'CHMEN': 'CGM',  # 长门
+    # }
+    # # TODO:[-] 23-09-13 温带系统缺失的几个站点
+    # # 燕尾 YWI YANWEI
+    # # 澉浦
+    # # 海门Z
+    # # 平潭
+    # # 深圳东山
+    # # 港北
+    # DICT_STATION = {
+    #     'YANWEI': 'YWI',  # 燕尾 YWI
+    #     'GANPU': 'GPU',  # 澉浦
+    #     'HAIMENZ': 'HMZ',  # 海门Z
+    #     'PINGTAN': 'PTN',  # 平潭
+    #     'SZDONGSHAN': 'DSH',  # 深圳东山
+    #     'GANGBEI': 'GBE',  # 港北
+    # }
+    # # TODO:[-] 23-01-19 准备录入 2023年站点的准备工作
+    # # S1: 从 common.py 中获取存在重复站位的 code
+    # # list_repeat_station: List[str] = get_repeat_station_code(DICT_STATION)
+    # # print(list_repeat_station)
+    # # TODO:[*] 23-09-14 发现 79 与 21 中存在的部分站点错误的问题
+    # # DICT_STATION = {
+    # #     'DAISHAN': 'DSH',  # 岱山
+    # # }
     #
-    DICT_STATION_DIFF = {'RAOPING': 'RPG', 'HENGMEN': 'HGM', 'MAGE': 'MGE', 'TAISHAN': 'TSH', 'BEIJIN': 'BJN',
-                         'LEIZHOU': 'LZH', }
-    DICT_STATION_DIFF = {'HUANGPU': 'HPU', }
-    DICT_STATION_DIFF = {'ZHUHAI': 'ZHU', }
-    # TODO:[*] 22-08-31 录入东海部分缺省站点
-    # DICT_STATION_DIFF = {'GANPU': 'GPU', }
-    # DICT_STATION_DIFF = {'HAIMENZ': 'HMZ', }
-    # DICT_STATION_DIFF = {'DONGTOU': 'DTO', }
-    # DICT_STATION_DIFF = {'LONGWAN': 'LGW', }
-    # DICT_STATION_DIFF = {'CHMEN': 'CGM', }
-    DICT_STATION_DIFF = {'TANTOU': 'TNT', }
-    # 23-07-17 录入部分缺少的站点
-    DICT_STATION = {
-        # 'LEIZHOU': 'LZH',
-        #             'WUCHANG': 'WCH',
-        #             'CHIWANH': 'CWH',
-        #             'NANSHA': 'GNS',
-        #             'HENGMEN': 'HGM',
-        #             'MAGE': 'MGE',
-        #             'TAISHAN': 'TSH',
-        #             'BEIJIN': 'BJI',
-        #             'NANSHA': 'NSA',
-        # 'HAIMENG2': 'HMG'
-        # TODO:[-] 23-08-02
-        # 'HUANGPUG': 'HPG',  # 上海黄埔公园
-        # 'DONGTOU': 'DTO',  # 洞头
-        # 'LONGWAN': 'LGW',  # 龙湾
-        'CHMEN': 'CGM',  # 长门
-    }
-    # TODO:[-] 23-01-19 准备录入 2023年站点的准备工作
-    # S1: 从 common.py 中获取存在重复站位的 code
-    # list_repeat_station: List[str] = get_repeat_station_code(DICT_STATION)
-    # print(list_repeat_station)
+    # # TODO:[*] 23-09-19 补录 孤东，芝罘岛，岱山
+    # DICT_STATION = {
+    #     'GUDONG': 'GUD',  # 孤东
+    #     'YANTAI': 'ZFD',  # 芝罘岛
+    #     'DAISHAN': 'DAI',  # 芝罘岛
+    # }
 
-    station_2_db(read_dir_path, session, DICT_STATION, start_dt, end_dt, year_str)
+    # TODO:[-] 23-12-28 每年的天文潮录入
+    # 使用 common.py -> DICT_STATION
+    DICT_STATION_COMMON = DICT_STATION
+
+    station_2_db(read_dir_path, session, DICT_STATION_COMMON, start_dt, end_dt, year_str)
     # + 22-06-23 批量更新 station_info 中的 d85 filed
     read_file_path: str = r'./ignore_data/sites_wl4_四色警戒潮位_含85基面.csv'
     df: pd.DataFrame = pd.read_csv(read_file_path,

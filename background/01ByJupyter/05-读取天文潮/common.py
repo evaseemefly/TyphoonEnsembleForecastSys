@@ -1,5 +1,6 @@
 # TODO:[-] 23-01-19
 # 由于 东山 与 岱山的 code 均为 DSH 暂时不录入这两个站点
+# TODO:[-] 23-12-28 更新了站点字典,以此为准
 DICT_STATION = {
     'DONGGANG': 'DGG',
     'XIAOCS': 'XCS',
@@ -18,7 +19,7 @@ DICT_STATION = {
     'WEIFANG': 'WFG',
     'LONGKOU': 'LKO',
     'PENGLAI': 'PLI',
-    'YANTAI': 'YTI',  # TODO:[-] 实际不存在
+    # 'YANTAI': 'YTI',  # TODO:[-] 实际不存在
     'XIAOSHID': 'XSD',
     'CHENGST': 'CST',
     'WENDENG': 'WDG',
@@ -129,8 +130,10 @@ DICT_STATION = {
     # 汕头S  460 405
     'SHANTOU': 'STO',
     # 海门G  470 397
-    # TODO:[*] 22-08-14 注意应改为 HAIMENG22022
-    'HAIMENZ': 'HMN',  # 存在两个海门
+    # TODO:[-] 22-08-14 注意应改为 HAIMENG22022
+    'HAIMENG2': 'HMN',
+    # 'HAIMENZ': 'HMN',  # 存在两个海门
+    # 'HAIMENZ': 'HMZ',  # 海门Z
     # 惠来   482 392
     'HUILAI': 'HLA',
     # 陆丰   491 366
@@ -144,9 +147,9 @@ DICT_STATION = {
     # 盐田   506 257
     'YANTIAN': 'YTA',
     # 赤湾H  513 233
-    'CHIWANH': 'CHH',
+    # 'CHIWANH': 'CHH',
     # 南沙   496 215
-    'NANSHA': 'GNS',  # 注意存在两个南沙
+    # 'NANSHA': 'GNS',  # 注意存在两个南沙
     # 黄埔   491 216
     'HUANGPU': 'HPU',  # 存在两个黄埔，黄埔与黄埔G
     # 珠海   523 216
@@ -166,7 +169,6 @@ DICT_STATION = {
     'XIUYING': 'XYG',
     'QINGLANH': 'QLN',
     'BOAO': 'BAO',
-    'GANGBEI': 'GBE',
     'SANYA': 'SYA',
     'DONGFANG': 'DFG',
     'SHITOUPU': 'STP',
@@ -176,4 +178,22 @@ DICT_STATION = {
     'FANGCG': 'FCG',
     'WUCHANG': 'WCH',
     'YINGGEH': 'YGH',
+    # TODO:[-] 23-12-28 统一修改天文潮 name:code 对应关系
+    'RAOPING': 'RPG', 'HENGMEN': 'HGM', 'MAGE': 'MGE', 'TAISHAN': 'TSH', 'BEIJIN': 'BJN',
+    # 'ZHUHAI': 'ZHU',
+    'TANTOU': 'TNT',
+    'LEIZHOU': 'LZH',
+    'CHIWANH': 'CWH',
+    'NANSHA': 'NSA',
+    'HUANGPUG': 'HPG',  # 上海黄埔公园
+    'DONGTOU': 'DTO',  # 洞头
+    'LONGWAN': 'LGW',  # 龙湾
+    'CHMEN': 'CGM',  # 长门
+    'GANPU': 'GPU',  # 澉浦
+    'PINGTAN': 'PTN',  # 平潭
+    'SZDONGSHAN': 'DSH',  # 深圳东山
+    'GANGBEI': 'GBE',  # 港北
+    'GUDONG': 'GUD',  # 孤东
+    'YANTAI': 'ZFD',  # 芝罘岛
+    'DAISHAN': 'DAI',  # 芝罘岛
 }
